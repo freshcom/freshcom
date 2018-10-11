@@ -4,7 +4,6 @@ defmodule FCIdentity.Storage do
   """
   def reset! do
     reset_eventstore()
-    # reset_readstore()
   end
 
   defp reset_eventstore do
@@ -14,23 +13,4 @@ defmodule FCIdentity.Storage do
 
     EventStore.Storage.Initializer.reset!(conn)
   end
-
-  # defp reset_readstore do
-  #   config = Application.get_env(:my_app, MyApp.Repo)
-
-  #   {:ok, conn} = Postgrex.start_link(config)
-
-  #   Postgrex.query!(conn, truncate_readstore_tables(), [])
-  # end
-
-  # defp truncate_readstore_tables do
-  #   """
-  #   TRUNCATE TABLE
-  #     table1,
-  #     table2,
-  #     table3
-  #   RESTART IDENTITY
-  #   CASCADE;
-  #   """
-  # end
 end

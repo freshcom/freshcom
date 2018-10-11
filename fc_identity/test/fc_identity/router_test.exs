@@ -3,9 +3,31 @@ defmodule FCIdentity.RouterTest do
 
   alias FCIdentity.Router
   alias FCIdentity.RoleKeeper
-  alias FCIdentity.{RegisterUser, DeleteUser, UpdateAccountInfo}
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated}
+  alias FCIdentity.{
+    RegisterUser,
+    DeleteUser,
+    GeneratePasswordResetToken,
+    UpdateAccountInfo
+  }
+  alias FCIdentity.{
+    AccountCreated,
+    AccountInfoUpdated,
+    PasswordResetTokenGenerated
+  }
   alias FCIdentity.{UserRegistered, UserAdded, UserDeleted}
+
+  def requester_id(account_id, role) do
+    requester_id = uuid4()
+    RoleKeeper.keep(requester_id, account_id, role)
+
+    requester_id
+  end
+
+  def user_stream(events) do
+    Enum.each(events, fn(event) ->
+      append_to_stream("user-" <> event.user_id, [event])
+    end)
+  end
 
   describe "dispatch RegisterUser" do
     test "with valid command" do
@@ -62,29 +84,65 @@ defmodule FCIdentity.RouterTest do
     end
 
     test "with valid command" do
-      requester_id = uuid4()
       account_id = uuid4()
-      RoleKeeper.keep(requester_id, account_id, "administrator")
+      requester_id = requester_id(account_id, "administrator")
 
       user_id = uuid4()
-      event1 = %UserAdded{
+      user_stream([%UserAdded{
         account_id: account_id,
         user_id: user_id,
         type: "managed",
         role: "developer"
-      }
-      append_to_stream("user-" <> user_id, [event1])
+      }])
 
       cmd = %DeleteUser{
         requester_id: requester_id,
         account_id: account_id,
         user_id: user_id
       }
-
       :ok = Router.dispatch(cmd)
 
       assert_receive_event(UserDeleted, fn(event) ->
         assert event.user_id == cmd.user_id
+      end)
+    end
+  end
+
+  describe "dispatch GeneratePasswordResetToken" do
+    test "with invalid command" do
+      cmd = %GeneratePasswordResetToken{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %GeneratePasswordResetToken{
+        user_id: uuid4()
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      user_id = uuid4()
+      user_stream([%UserAdded{
+        account_id: account_id,
+        user_id: user_id,
+        type: "managed",
+        role: "developer"
+      }])
+
+      cmd = %GeneratePasswordResetToken{
+        user_id: user_id,
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(PasswordResetTokenGenerated, fn(event) ->
+        assert event.user_id == cmd.user_id
+        assert event.token
+        assert event.expires_at
       end)
     end
   end

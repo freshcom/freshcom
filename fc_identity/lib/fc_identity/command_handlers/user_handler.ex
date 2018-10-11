@@ -3,18 +3,25 @@ defmodule FCIdentity.UserHandler do
 
   use OK.Pipe
 
+  import UUID
   import Comeonin.Argon2
   import FCIdentity.{Support, Validation, Normalization}
   import FCIdentity.UserPolicy
 
   alias FCIdentity.UsernameKeeper
-  alias FCIdentity.{RegisterUser, AddUser, DeleteUser}
+  alias FCIdentity.{
+    RegisterUser,
+    AddUser,
+    DeleteUser,
+    GeneratePasswordResetToken
+  }
   alias FCIdentity.{
     UserRegistrationRequested,
     FinishUserRegistration,
     UserAdded,
     UserRegistered,
-    UserDeleted
+    UserDeleted,
+    PasswordResetTokenGenerated
   }
 
   def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
@@ -43,6 +50,8 @@ defmodule FCIdentity.UserHandler do
 
   def handle(%{id: nil}, _), do: {:error, {:not_found, :user}}
 
+  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :user}}
+
   def handle(%{id: user_id} = state, %FinishUserRegistration{} = cmd) do
     %UserRegistered{
       user_id: user_id,
@@ -62,6 +71,19 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~> merge_to(%UserDeleted{})
     |> unwrap_ok()
+  end
+
+  def handle(_, %GeneratePasswordResetToken{} = cmd) do
+    expires_at =
+      cmd.expires_at
+      |> Timex.Timezone.convert("UTC")
+      |> DateTime.to_iso8601()
+
+    %PasswordResetTokenGenerated{
+      user_id: cmd.user_id,
+      token: uuid4(),
+      expires_at: expires_at
+    }
   end
 
   defp put_name(%{name: name} = cmd) when byte_size(name) > 0 do

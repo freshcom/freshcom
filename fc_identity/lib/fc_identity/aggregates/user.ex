@@ -6,7 +6,8 @@ defmodule FCIdentity.User do
     UserRegistrationRequested,
     UserAdded,
     UserRegistered,
-    UserDeleted
+    UserDeleted,
+    PasswordResetTokenGenerated
   }
 
   typedstruct do
@@ -23,6 +24,9 @@ defmodule FCIdentity.User do
     field :first_name, String.t()
     field :last_name, String.t()
     field :name, String.t()
+
+    field :password_reset_token, String.t()
+    field :password_reset_token_expires_at, DateTime.t()
   end
 
   def apply(state, %UserRegistrationRequested{}), do: state
@@ -38,5 +42,9 @@ defmodule FCIdentity.User do
 
   def apply(state, %UserDeleted{}) do
     %{state | status: "removed"}
+  end
+
+  def apply(state, %PasswordResetTokenGenerated{} = event) do
+    %{state | password_reset_token: event.token, password_reset_token_expires_at: event.expires_at}
   end
 end

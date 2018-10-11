@@ -5,7 +5,8 @@ defmodule FCIdentity.Router do
     RegisterUser,
     FinishUserRegistration,
     AddUser,
-    DeleteUser
+    DeleteUser,
+    GeneratePasswordResetToken
   }
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
 
@@ -23,7 +24,8 @@ defmodule FCIdentity.Router do
     RegisterUser,
     AddUser,
     FinishUserRegistration,
-    DeleteUser
+    DeleteUser,
+    GeneratePasswordResetToken
   ], to: UserHandler, aggregate: User
 
   dispatch [CreateAccount, UpdateAccountInfo],

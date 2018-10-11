@@ -40,6 +40,7 @@ defmodule FCIdentity.MixProject do
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.3"},
       {:ok, "~> 2.0"},
+      {:timex, "~> 3.4"},
       {:faker, "~> 0.11", only: [:test, :dev]},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},
@@ -49,7 +50,7 @@ defmodule FCIdentity.MixProject do
 
   defp docs do
     [
-      source_url: "https://github.com/rbao/fc_identity",
+      source_url: "https://github.com/freshcom/freshcom/fc_identity",
       groups_for_modules: groups_for_modules()
     ]
   end
@@ -60,6 +61,7 @@ defmodule FCIdentity.MixProject do
         FCIdentity.RegisterUser,
         FCIdentity.AddUser,
         FCIdentity.FinishUserRegistration,
+        FCIdentity.GeneratePasswordResetToken,
 
         FCIdentity.CreateAccount,
         FCIdentity.UpdateAccountInfo
@@ -69,6 +71,8 @@ defmodule FCIdentity.MixProject do
         FCIdentity.UserAdded,
         FCIdentity.UserRegistered,
         FCIdentity.UserRegistrationRequested,
+        FCIdentity.PasswordResetTokenGenerated,
+
         FCIdentity.AccountCreated,
         FCIdentity.AccountInfoUpdated,
       ],
