@@ -1,21 +1,7 @@
-# FCStateStorage
+# Freshcom State Storage
 
-**TODO: Add description**
+Freshcom State Storage provides a storage for storing persistent state, it comes with a memory adapter and a Dynamo DB adapter. It also provides a few globally available state store for all services of the Freshcom Project.
 
-## Installation
+The state stored in state storage are just key value pairs as the state is only used for the command side of the full CQRS pattern, for example checking whether username is unique or not.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `fc_state_storage` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:fc_state_storage, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/fc_state_storage](https://hexdocs.pm/fc_state_storage).
-
+Read side project should never be store in the state storage.
