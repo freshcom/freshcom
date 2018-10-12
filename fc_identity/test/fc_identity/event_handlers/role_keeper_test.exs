@@ -1,6 +1,7 @@
 defmodule FCIdentity.RoleKeeperTest do
   use FCIdentity.UnitCase, async: true
 
+  alias FCStateStorage.GlobalStore.RoleStore
   alias FCIdentity.RoleKeeper
   alias FCIdentity.UserAdded
 
@@ -9,6 +10,6 @@ defmodule FCIdentity.RoleKeeperTest do
 
     :ok = RoleKeeper.handle(event, %{})
 
-    assert RoleKeeper.get(event.user_id, event.account_id) == "owner"
+    assert RoleStore.get(event.user_id, event.account_id) == "owner"
   end
 end

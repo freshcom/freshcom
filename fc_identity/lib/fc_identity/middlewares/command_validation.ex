@@ -2,7 +2,7 @@ defmodule FCIdentity.CommandValidation do
   @behaviour Commanded.Middleware
 
   alias Commanded.Middleware.Pipeline
-  alias FCIdentity.Validation
+  alias FCSupport.Validation
 
   def before_dispatch(%Pipeline{} = pipeline) do
     validate(pipeline)

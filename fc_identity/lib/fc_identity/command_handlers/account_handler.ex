@@ -3,9 +3,8 @@ defmodule FCIdentity.AccountHandler do
 
   @behaviour Commanded.Commands.Handler
 
-  use OK.Pipe
+  use FCSupport, :command_handler
 
-  import FCIdentity.Support
   import FCIdentity.AccountPolicy
 
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}

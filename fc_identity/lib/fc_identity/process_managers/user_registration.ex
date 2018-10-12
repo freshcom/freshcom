@@ -1,10 +1,11 @@
 defmodule FCIdentity.UserRegistration do
+  @moduledoc false
   use TypedStruct
   use Commanded.ProcessManagers.ProcessManager,
     name: "1c03fc1e-af6b-42f4-96f6-2685114677e9",
     router: FCIdentity.Router
 
-  import FCIdentity.Support
+  import FCSupport.Struct
   import UUID
 
   alias FCIdentity.{UserRegistrationRequested, UserAdded, AccountCreated, UserRegistered}
@@ -39,7 +40,7 @@ defmodule FCIdentity.UserRegistration do
       email_verified: false,
       role: "owner"
     }
-    add_user = struct_merge(add_user, event)
+    add_user = merge(add_user, event)
 
     create_live_account = %CreateAccount{
       requester_role: "system",

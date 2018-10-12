@@ -1,4 +1,4 @@
-defmodule FCIdentity.Changeset do
+defmodule FCSupport.Changeset do
   @moduledoc """
   A light weight changeset implementation similar to the one provided by Ecto.
   """

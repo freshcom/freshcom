@@ -1,4 +1,4 @@
-defmodule FCIdentity.Normalization do
+defmodule FCSupport.Normalization do
 
   def to_utc_iso8601(datetime) do
     datetime

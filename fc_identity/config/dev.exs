@@ -14,4 +14,4 @@ config :ex_aws, :retries,
   base_backoff_in_ms: 10,
   max_backoff_in_ms: 10_000
 
-config :fc_identity, FCIdentity.SimpleStore, FCIdentity.DynamoStore
+config :fc_state_storage, adapter: FCStateStorage.DynamoAdapter

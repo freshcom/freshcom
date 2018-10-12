@@ -1,5 +1,5 @@
-defmodule FCIdentity.Translation do
-  alias FCIdentity.Changeset
+defmodule FCSupport.Translation do
+  alias FCSupport.Changeset
 
   @spec put_change(Changeset.t, list, String.t, String.t) :: Changeset.t
   def put_change(changeset, translatable_fields, locale \\ nil, default_locale \\ nil)

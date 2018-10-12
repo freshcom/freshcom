@@ -2,7 +2,7 @@ defmodule FCIdentity.RequesterIdentification do
   @behaviour Commanded.Middleware
 
   alias Commanded.Middleware.Pipeline
-  alias FCIdentity.RoleKeeper
+  alias FCStateStorage.GlobalStore.RoleStore
   alias FCIdentity.TypeKeeper
 
   def before_dispatch(%Pipeline{} = pipeline) do
@@ -19,7 +19,7 @@ defmodule FCIdentity.RequesterIdentification do
 
   def identify(%{requester_role: nil, account_id: _, requester_id: requester_id, requester_type: nil} = cmd) do
     task = Task.async(fn -> TypeKeeper.get(requester_id) end)
-    role = RoleKeeper.get(cmd.requester_id, cmd.account_id)
+    role = RoleStore.get(cmd.requester_id, cmd.account_id)
     type = Task.await(task)
 
     %{cmd | requester_type: type, requester_role: role}

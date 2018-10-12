@@ -3,7 +3,6 @@ defmodule FCIdentity.TypeKeeper do
     name: "a64a6d5d-fc8c-4911-9715-d5e0ecdc9a82"
 
   alias FCIdentity.UserAdded
-  alias FCIdentity.SimpleStore
 
   def handle(%UserAdded{} = event, _metadata) do
     keep(event.user_id, event.type)
@@ -15,7 +14,7 @@ defmodule FCIdentity.TypeKeeper do
   @spec keep(String.t(), String.t()) :: :ok
   def keep(user_id, type) do
     key = generate_key(user_id)
-    {:ok, _} = SimpleStore.put(key, %{type: type})
+    {:ok, _} = FCStateStorage.put(key, %{type: type})
 
     :ok
   end
@@ -27,7 +26,7 @@ defmodule FCIdentity.TypeKeeper do
   def get(user_id) do
     key = generate_key(user_id)
 
-    case SimpleStore.get(key) do
+    case FCStateStorage.get(key) do
       %{type: type} -> type
       _ -> nil
     end

@@ -1,7 +1,8 @@
 defmodule FCIdentity.RequesterIdentificationTest do
   use FCIdentity.UnitCase, async: true
 
-  alias FCIdentity.{TypeKeeper, RoleKeeper}
+  alias FCStateStorage.GlobalStore.RoleStore
+  alias FCIdentity.TypeKeeper
   alias FCIdentity.RequesterIdentification
   alias FCIdentity.DummyCommand
 
@@ -30,7 +31,7 @@ defmodule FCIdentity.RequesterIdentificationTest do
     test "when requester role not set and user id is provided" do
       user_id = uuid4()
       account_id = uuid4()
-      RoleKeeper.keep(user_id, account_id, "developer")
+      RoleStore.put(user_id, account_id, "developer")
       TypeKeeper.keep(user_id, "standard")
 
       original_cmd = %DummyCommand{

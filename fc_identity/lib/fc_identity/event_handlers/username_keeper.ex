@@ -3,7 +3,6 @@ defmodule FCIdentity.UsernameKeeper do
     name: "750e4669-c458-472a-a9a3-6b00d27ec14f"
 
   alias FCIdentity.UserAdded
-  alias FCIdentity.SimpleStore
 
   def handle(%UserAdded{} = event, _metadata), do: keep(event)
 
@@ -18,7 +17,7 @@ defmodule FCIdentity.UsernameKeeper do
   def keep(event) do
     key = generate_key(event)
 
-    case SimpleStore.put(key, %{}, allow_overwrite: false) do
+    case FCStateStorage.put(key, %{}, allow_overwrite: false) do
       {:ok, _} -> :ok
       {:error, :key_already_exist} -> {:error, :username_already_exist}
     end
@@ -40,7 +39,7 @@ defmodule FCIdentity.UsernameKeeper do
   end
 
   defp do_exist?(key) do
-    case SimpleStore.get(key) do
+    case FCStateStorage.get(key) do
       nil -> false
       _ -> true
     end

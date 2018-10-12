@@ -1,3 +1,3 @@
-FCIdentity.MemoryStore.start_link(:ok)
+FCStateStorage.MemoryAdapter.start_link(:ok)
 
 ExUnit.start()

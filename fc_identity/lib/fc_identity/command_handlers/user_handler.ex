@@ -3,11 +3,11 @@ defmodule FCIdentity.UserHandler do
 
   @behaviour Commanded.Commands.Handler
 
-  use OK.Pipe
+  use FCSupport, :command_handler
 
   import UUID
   import Comeonin.Argon2
-  import FCIdentity.{Support, Validation, Normalization}
+  import FCSupport.{Validation, Normalization}
   import FCIdentity.UserPolicy
 
   alias FCIdentity.UsernameKeeper

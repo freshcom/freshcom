@@ -16,4 +16,4 @@ config :eventstore, EventStore.Storage,
 
 # config :fc_identity, FCIdentity.SimpleStore, FCIdentity.DynamoStore
 
-config :fc_identity, FCIdentity.SimpleStore, FCIdentity.MemoryStore
+config :fc_state_storage, adapter: FCStateStorage.MemoryAdapter

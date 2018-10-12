@@ -2,11 +2,9 @@ defmodule FCIdentity.User do
   @moduledoc false
 
   use TypedStruct
+  use FCSupport, :aggregate
 
-  import FCIdentity.{Changeset, Support}
-
-  alias FCIdentity.DefaultLocaleKeeper
-  alias FCIdentity.Translation
+  alias FCStateStorage.GlobalStore.DefaultLocaleStore
   alias FCIdentity.{
     UserRegistrationRequested,
     UserAdded,
@@ -56,7 +54,7 @@ defmodule FCIdentity.User do
 
   def apply(state, %UserAdded{} = event) do
     %{state | id: event.user_id}
-    |> struct_merge(event)
+    |> merge(event)
   end
 
   def apply(state, %UserRegistered{} = event) do
@@ -96,7 +94,7 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %UserInfoUpdated{locale: locale} = event) do
-    default_locale = DefaultLocaleKeeper.get(state.account_id)
+    default_locale = DefaultLocaleStore.get(state.account_id)
 
     state
     |> cast(event, event.effective_keys)

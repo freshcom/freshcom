@@ -2,10 +2,8 @@ defmodule FCIdentity.Account do
   @moduledoc false
 
   use TypedStruct
+  use FCSupport, :aggregate
 
-  import FCIdentity.{Changeset, Support}
-
-  alias FCIdentity.Translation
   alias FCIdentity.{AccountCreated, AccountInfoUpdated}
 
   typedstruct do
@@ -45,7 +43,7 @@ defmodule FCIdentity.Account do
 
   def apply(%{} = state, %AccountCreated{} = event) do
     %{state | id: event.account_id}
-    |> struct_merge(event)
+    |> merge(event)
   end
 
   def apply(%{} = state, %AccountInfoUpdated{locale: locale} = event) do

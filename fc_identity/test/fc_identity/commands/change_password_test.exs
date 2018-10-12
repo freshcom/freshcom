@@ -1,7 +1,7 @@
 defmodule FCIdentity.ChangePasswordTest do
   use FCIdentity.UnitCase, async: true
 
-  import FCIdentity.Validation
+  import FCSupport.Validation
   alias FCIdentity.ChangePassword
 
   describe "validations" do

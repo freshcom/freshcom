@@ -30,6 +30,8 @@ defmodule FCIdentity.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:fc_support, path: "../fc_support"},
+      {:fc_state_storage, path: "../fc_state_storage"},
       {:commanded, "~> 0.17"},
       {:commanded_eventstore_adapter, "~> 0.3"},
       {:vex, "~> 0.7"},
