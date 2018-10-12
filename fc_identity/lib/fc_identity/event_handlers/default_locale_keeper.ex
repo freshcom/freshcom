@@ -1,4 +1,6 @@
 defmodule FCIdentity.DefaultLocaleKeeper do
+  @moduledoc false
+
   use Commanded.Event.Handler,
     name: "e04b7e24-a659-43d2-a84f-0b9c351c23a3"
 

@@ -1,4 +1,6 @@
 defmodule FCIdentity.RoleKeeper do
+  @moduledoc false
+
   use Commanded.Event.Handler,
     name: "7acce566-f170-4b36-a1da-7655f67c65f8"
 

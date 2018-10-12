@@ -1,4 +1,6 @@
 defmodule FCIdentity.Router do
+  @moduledoc false
+
   use Commanded.Commands.Router
 
   alias FCIdentity.{

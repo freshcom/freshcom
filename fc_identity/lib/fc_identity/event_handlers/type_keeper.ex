@@ -1,4 +1,6 @@
 defmodule FCIdentity.TypeKeeper do
+  @moduledoc false
+
   use Commanded.Event.Handler,
     name: "a64a6d5d-fc8c-4911-9715-d5e0ecdc9a82"
 

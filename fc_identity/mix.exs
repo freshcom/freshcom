@@ -4,6 +4,7 @@ defmodule FCIdentity.MixProject do
   def project do
     [
       app: :fc_identity,
+      name: "Freshcom Identity",
       version: "0.1.0",
       elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env),
@@ -44,38 +45,48 @@ defmodule FCIdentity.MixProject do
   defp docs do
     [
       source_url: "https://github.com/freshcom/freshcom/fc_identity",
-      groups_for_modules: groups_for_modules()
+      groups_for_modules: groups_for_modules(),
+      extras: ["README.md"],
+      main: "readme"
     ]
   end
 
   defp groups_for_modules do
     [
       "Commands": [
-        FCIdentity.RegisterUser,
         FCIdentity.AddUser,
+        FCIdentity.ChangePassword,
+        FCIdentity.ChangeUserRole,
+        FCIdentity.DeleteUser,
         FCIdentity.FinishUserRegistration,
+        FCIdentity.GenerateEmailVerificationToken,
         FCIdentity.GeneratePasswordResetToken,
+        FCIdentity.RegisterUser,
+        FCIdentity.UpdateUserInfo,
+        FCIdentity.VerifyEmail,
 
         FCIdentity.CreateAccount,
         FCIdentity.UpdateAccountInfo
       ],
 
       "Events": [
+        FCIdentity.EmailVerificationTokenGenerated,
+        FCIdentity.EmailVerified,
+        FCIdentity.PasswordChanged,
+        FCIdentity.PasswordResetTokenGenerated,
         FCIdentity.UserAdded,
+        FCIdentity.UserDeleted,
+        FCIdentity.UserInfoUpdated,
         FCIdentity.UserRegistered,
         FCIdentity.UserRegistrationRequested,
-        FCIdentity.PasswordResetTokenGenerated,
+        FCIdentity.UserRoleChanged,
 
         FCIdentity.AccountCreated,
         FCIdentity.AccountInfoUpdated,
       ],
 
-      "Support": [
-        FCIdentity.Changeset,
-        FCIdentity.Normalization,
-        FCIdentity.Translation,
-        FCIdentity.Validation,
-        FCIdentity.Support
+      "Stores": [
+        FCIdentity.UsernameStore
       ]
     ]
   end

@@ -1,21 +1,12 @@
-# FCIdentity
+# Freshcom Identity
 
-**TODO: Add description**
+Freshcom Identity provides identity and access management functionalities for the Freshcom Project. It follows a combination of Stripe and AWS style IAM with the following key feature:
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `fc_identity` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:fc_identity, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/fc_identity](https://hexdocs.pm/fc_identity).
-
+- Standard user CAN register.
+- Standard user CAN create and own multiple accounts.
+- Standard user CAN add managed user to a specific account.
+- Standard user CANNOT join account created by other standard user.
+- Managed user CANNOT create accounts.
+- Each user have a single role used for authorization.
+- Each account have a corresponding test account.
+- User that have access to an account have the same access to its corresponding test account.

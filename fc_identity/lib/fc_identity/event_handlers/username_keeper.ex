@@ -1,4 +1,6 @@
 defmodule FCIdentity.UsernameKeeper do
+  @moduledoc false
+
   use Commanded.Event.Handler,
     name: "750e4669-c458-472a-a9a3-6b00d27ec14f"
 
