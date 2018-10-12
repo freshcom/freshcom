@@ -4,4 +4,4 @@ Freshcom State Storage provides a storage for storing persistent state, it comes
 
 The state stored in state storage are just key value pairs as the state is only used for the command side of the full CQRS pattern, for example checking whether username is unique or not.
 
-Read side project should never be store in the state storage.
+Read side projections should never be store in the state storage.
