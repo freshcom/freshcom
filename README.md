@@ -12,11 +12,11 @@ Freshcom is a re-implementation of [Freshcom API](https://github.com/freshcom/fr
 
 ### CQRS/ES
 
-Freshcom uses [commanded](https://github.com/commanded/commanded) and is implemented following the [CQRS/ES](http://cqrs.nu/Faq) pattern. This allows freshcom to take full advantage of OTP and make it much easier to be extended by developers. However, to extend freshcom you do not need to fully understand CQRS/ES, you just need to know that freshcom emits many events in its lifecycle and you can simply act on those event to extend the functionalities.
+Freshcom uses [commanded](https://github.com/commanded/commanded) and is implemented following the [CQRS/ES](http://cqrs.nu/Faq) pattern. This allows freshcom to take more advantage of OTP and make it much easier to be extended by developers. However, to extend freshcom you do not need to fully understand CQRS/ES, you just need to know that freshcom emits many events in its lifecycle and you can simply act on those event to extend the functionalities.
 
 ### Services
 
-Freshcom is built using loosely coupled services where each service is an OTP application. If you do not need to use the complete feature of Freshcom or if some feature does fit your need, you can simply cherry pick the services you need and build the rest on your own.
+Freshcom is built using loosely coupled services where each service is an OTP application. If you do not need to use the complete feature of Freshcom or if some feature does not fit your need, you can simply cherry pick the services you need and build the rest on your own.
 
 ### I18n
 
