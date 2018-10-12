@@ -12,7 +12,8 @@ defmodule FCIdentity.RouterTest do
     ChangePassword,
     UpdateAccountInfo,
     UpdateUserInfo,
-    GenerateEmailVerificationToken
+    GenerateEmailVerificationToken,
+    VerifyEmail
   }
   alias FCIdentity.{
     AccountCreated,
@@ -27,7 +28,8 @@ defmodule FCIdentity.RouterTest do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
-    EmailVerificationTokenGenerated
+    EmailVerificationTokenGenerated,
+    EmailVerified
   }
 
   def requester_id(account_id, role) do
@@ -38,8 +40,10 @@ defmodule FCIdentity.RouterTest do
   end
 
   def user_stream(events) do
-    Enum.each(events, fn(event) ->
-      append_to_stream("user-" <> event.user_id, [event])
+    groups = Enum.group_by(events, &(&1.user_id))
+
+    Enum.each(groups, fn({user_id, events}) ->
+      append_to_stream("user-" <> user_id, events)
     end)
   end
 
@@ -332,6 +336,51 @@ defmodule FCIdentity.RouterTest do
       assert_receive_event(UserInfoUpdated, fn(event) ->
         assert event.user_id == cmd.user_id
         assert event.name == cmd.name
+      end)
+    end
+  end
+
+  describe "dispatch VerifyEmail" do
+    test "with invalid command" do
+      cmd = %VerifyEmail{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %VerifyEmail{
+        user_id: uuid4(),
+        verification_token: uuid4()
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      user_id = uuid4()
+      token = uuid4()
+      user_stream([
+        %UserAdded{
+          account_id: uuid4(),
+          user_id: user_id,
+          type: "standard",
+          role: "owner"
+        },
+        %EmailVerificationTokenGenerated{
+          user_id: user_id,
+          token: token,
+          expires_at: Timex.shift(Timex.now(), hours: 24)
+        }
+      ])
+      cmd = %VerifyEmail{
+        user_id: user_id,
+        verification_token: token
+      }
+
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(EmailVerified, fn(event) ->
+        assert event.user_id == cmd.user_id
       end)
     end
   end

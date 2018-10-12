@@ -1,4 +1,6 @@
 defmodule FCIdentity.User do
+  @moduledoc false
+
   use TypedStruct
 
   import FCIdentity.{Changeset, Support}
@@ -14,7 +16,8 @@ defmodule FCIdentity.User do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
-    EmailVerificationTokenGenerated
+    EmailVerificationTokenGenerated,
+    EmailVerified
   }
 
   typedstruct do
@@ -99,5 +102,13 @@ defmodule FCIdentity.User do
     |> cast(event, event.effective_keys)
     |> Translation.put_change(translatable_fields(), locale, default_locale)
     |> apply_changes()
+  end
+
+  def apply(state, %EmailVerified{}) do
+    %{state |
+      email_verified: true,
+      email_verification_token: nil,
+      email_verification_token_expires_at: nil
+    }
   end
 end

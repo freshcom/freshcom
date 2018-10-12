@@ -1,4 +1,6 @@
 defmodule FCIdentity.AccountHandler do
+  @moduledoc false
+
   @behaviour Commanded.Commands.Handler
 
   use OK.Pipe

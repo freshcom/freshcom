@@ -1,4 +1,6 @@
 defmodule FCIdentity.UserPolicy do
+  @moduledoc false
+
   use OK.Pipe
 
   alias FCIdentity.{
@@ -8,7 +10,8 @@ defmodule FCIdentity.UserPolicy do
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
-    GenerateEmailVerificationToken
+    GenerateEmailVerificationToken,
+    VerifyEmail
   }
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
@@ -56,6 +59,16 @@ defmodule FCIdentity.UserPolicy do
 
   def authorize(%GenerateEmailVerificationToken{} = cmd, %{role: "customer"} = state),
     do: default_authorize(cmd, state, ["owner", "administrator", "support_specialist"])
+
+  # Using verification token does not require requester to be identified
+  def authorize(%VerifyEmail{requester_id: nil} = cmd, _),
+    do: {:ok, cmd}
+
+  def authorize(%VerifyEmail{} = cmd, %{role: "customer"} = state),
+    do: default_authorize(cmd, state, ["owner", "administrator", "support_specialist"])
+
+  def authorize(%VerifyEmail{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator"])
 
   def authorize(_, _), do: {:error, :access_denied}
 

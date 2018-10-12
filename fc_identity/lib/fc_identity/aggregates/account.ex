@@ -1,4 +1,6 @@
 defmodule FCIdentity.Account do
+  @moduledoc false
+
   use TypedStruct
 
   import FCIdentity.{Changeset, Support}

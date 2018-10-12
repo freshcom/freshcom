@@ -1,4 +1,6 @@
 defmodule FCIdentity.AccountPolicy do
+  @moduledoc false
+
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}

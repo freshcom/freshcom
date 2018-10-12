@@ -1,4 +1,6 @@
 defmodule FCIdentity.UserHandler do
+  @moduledoc false
+
   @behaviour Commanded.Commands.Handler
 
   use OK.Pipe
@@ -17,7 +19,8 @@ defmodule FCIdentity.UserHandler do
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
-    GenerateEmailVerificationToken
+    GenerateEmailVerificationToken,
+    VerifyEmail
   }
   alias FCIdentity.{
     UserRegistrationRequested,
@@ -29,7 +32,8 @@ defmodule FCIdentity.UserHandler do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
-    EmailVerificationTokenGenerated
+    EmailVerificationTokenGenerated,
+    EmailVerified
   }
 
   def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
@@ -98,6 +102,14 @@ defmodule FCIdentity.UserHandler do
     |> unwrap_ok()
   end
 
+  def handle(state, %VerifyEmail{} = cmd) do
+    cmd
+    |>  authorize(state)
+    ~>> validate_verification_token(state)
+    ~>  merge_to(%EmailVerified{})
+    |>  unwrap_ok()
+  end
+
   def handle(state, %ChangePassword{} = cmd) do
     cmd
     |>  authorize(state)
@@ -156,7 +168,7 @@ defmodule FCIdentity.UserHandler do
 
   defp validate_reset_token(%{reset_token: reset_token} = cmd, state) when is_binary(reset_token) do
     cond do
-      is_password_reset_token_valid?(reset_token, state) ->
+      is_reset_token_valid?(reset_token, state) ->
         {:ok, cmd}
 
       reset_token != state.password_reset_token ->
@@ -169,7 +181,26 @@ defmodule FCIdentity.UserHandler do
 
   defp validate_reset_token(cmd, _), do: {:ok, cmd}
 
-  defp is_password_reset_token_valid?(reset_token, state) do
+  defp is_reset_token_valid?(reset_token, state) do
     reset_token == state.password_reset_token && Timex.before?(Timex.now(), state.password_reset_token_expires_at)
+  end
+
+  defp validate_verification_token(%{verification_token: verification_token} = cmd, state) when is_binary(verification_token) do
+    cond do
+      is_verification_token_valid?(verification_token, state) ->
+        {:ok, cmd}
+
+      verification_token != state.email_verification_token ->
+        {:error, {:validation_failed, [{:error, :verification_token, :invalid}]}}
+
+      !Timex.before?(Timex.now(), state.email_verification_token_expires_at) ->
+        {:error, {:validation_failed, [{:error, :verification_token, :expired}]}}
+    end
+  end
+
+  defp validate_verification_token(cmd, _), do: {:ok, cmd}
+
+  defp is_verification_token_valid?(verification_token, state) do
+    verification_token == state.email_verification_token && Timex.before?(Timex.now(), state.password_reset_token_expires_at)
   end
 end
