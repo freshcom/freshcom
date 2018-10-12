@@ -1,4 +1,4 @@
-defmodule FCIdentity.TypeStore do
+defmodule FCStateStorage.GlobalStore.UserTypeStore do
   @doc """
   Keep the user type for future use.
   """

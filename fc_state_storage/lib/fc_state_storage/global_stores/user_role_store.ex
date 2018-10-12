@@ -1,4 +1,4 @@
-defmodule FCStateStorage.GlobalStore.RoleStore do
+defmodule FCStateStorage.GlobalStore.UserRoleStore do
   @doc """
   Keep the role for future use.
   """

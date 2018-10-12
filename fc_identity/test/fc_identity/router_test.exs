@@ -3,7 +3,7 @@ defmodule FCIdentity.RouterTest do
 
   import Comeonin.Argon2
 
-  alias FCStateStorage.GlobalStore.RoleStore
+  alias FCStateStorage.GlobalStore.UserRoleStore
   alias FCIdentity.Router
   alias FCIdentity.{
     RegisterUser,
@@ -34,7 +34,7 @@ defmodule FCIdentity.RouterTest do
 
   def requester_id(account_id, role) do
     requester_id = uuid4()
-    RoleStore.put(requester_id, account_id, role)
+    UserRoleStore.put(requester_id, account_id, role)
 
     requester_id
   end
@@ -430,7 +430,7 @@ defmodule FCIdentity.RouterTest do
       append_to_stream("account-" <> live_account_id, [event1])
       append_to_stream("account-" <> test_account_id, [event2])
 
-      RoleStore.put(user_id, live_account_id, "administrator")
+      UserRoleStore.put(user_id, live_account_id, "administrator")
 
       cmd = %UpdateAccountInfo{
         requester_id: user_id,
