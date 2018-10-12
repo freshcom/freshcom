@@ -19,7 +19,8 @@ defmodule FCIdentity.UserPolicy do
     {:ok, cmd}
   end
 
-  def authorize(%DeleteUser{requester_role: role} = cmd, _) when role in ["owner", "administrator"] do
+  def authorize(%DeleteUser{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
+      when role in ["owner", "administrator"] and t_aid == aid do
     {:ok, cmd}
   end
 
