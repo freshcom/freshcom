@@ -128,7 +128,7 @@ defmodule FCIdentity.UserHandler do
     end
   end
 
-  defp validate_current_password(cmd, state), do: {:ok, cmd}
+  defp validate_current_password(cmd, _), do: {:ok, cmd}
 
   defp validate_reset_token(%{reset_token: reset_token} = cmd, state) when is_binary(reset_token) do
     cond do
@@ -143,7 +143,7 @@ defmodule FCIdentity.UserHandler do
     end
   end
 
-  defp validate_reset_token(cmd, state), do: {:ok, cmd}
+  defp validate_reset_token(cmd, _), do: {:ok, cmd}
 
   defp is_password_reset_token_valid?(reset_token, state) do
     reset_token == state.password_reset_token && Timex.before?(Timex.now(), state.password_reset_token_expires_at)

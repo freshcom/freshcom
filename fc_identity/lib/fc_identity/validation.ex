@@ -62,4 +62,8 @@ defmodule FCIdentity.Validation do
   defp normalize_error({:error, key, :uuid, _}, _) do
     {:error, key, :must_be_uuid}
   end
+
+  defp normalize_error({:error, key, :inclusion, _}, _) do
+    {:error, key, :invalid}
+  end
 end

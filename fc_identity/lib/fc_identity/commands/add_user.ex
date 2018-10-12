@@ -24,13 +24,29 @@ defmodule FCIdentity.AddUser do
 
   @email_regex Application.get_env(:fc_identity, :email_regex)
 
+  @valid_statuses ["pending", "active"]
+
+  @valid_roles [
+    "owner",
+    "administrator",
+    "developer",
+    "manager",
+    "marketing_specialist",
+    "goods_specialist",
+    "support_specialist",
+    "read_only",
+    "customer"
+  ]
+
+  @valid_types ["standard", "managed"]
+
   validates :account_id, presence: true, uuid: true
 
-  validates :_type_, presence: true, inclusion: ["standard", "managed"]
-  validates :status, presence: true, inclusion: ["pending", "active"]
+  validates :_type_, presence: true, inclusion: @valid_types
+  validates :status, presence: true, inclusion: @valid_statuses
   validates :username, presence: true, length: [min: 3]
   validates :password, presence: true, length: [min: 8]
   validates :email, format: @email_regex
 
-  validates :role, presence: true, inclusion: ["owner", "administrator", "developer"]
+  validates :role, presence: true, inclusion: @valid_roles
 end
