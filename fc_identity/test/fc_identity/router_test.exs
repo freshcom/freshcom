@@ -10,7 +10,8 @@ defmodule FCIdentity.RouterTest do
     DeleteUser,
     GeneratePasswordResetToken,
     ChangePassword,
-    UpdateAccountInfo
+    UpdateAccountInfo,
+    UpdateUserInfo
   }
   alias FCIdentity.{
     AccountCreated,
@@ -23,7 +24,8 @@ defmodule FCIdentity.RouterTest do
     ChangeUserRole,
     PasswordResetTokenGenerated,
     PasswordChanged,
-    UserRoleChanged
+    UserRoleChanged,
+    UserInfoUpdated
   }
 
   def requester_id(account_id, role) do
@@ -241,6 +243,51 @@ defmodule FCIdentity.RouterTest do
       assert_receive_event(UserRoleChanged, fn(event) ->
         assert event.user_id == cmd.user_id
         assert event.role == cmd.role
+      end)
+    end
+  end
+
+  describe "dispatch UpdateUserInfo" do
+    test "with invalid command" do
+      cmd = %UpdateUserInfo{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %UpdateUserInfo{
+        user_id: uuid4(),
+        effective_keys: [:name],
+        name: Faker.Name.name()
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      requester_id = requester_id(account_id, "administrator")
+
+      user_id = uuid4()
+      user_stream([%UserAdded{
+        account_id: account_id,
+        user_id: user_id,
+        type: "managed",
+        role: "read_only"
+      }])
+      cmd = %UpdateUserInfo{
+        requester_id: requester_id,
+        user_id: user_id,
+        account_id: account_id,
+        effective_keys: [:name],
+        name: Faker.Name.name()
+      }
+
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(UserInfoUpdated, fn(event) ->
+        assert event.user_id == cmd.user_id
+        assert event.name == cmd.name
       end)
     end
   end

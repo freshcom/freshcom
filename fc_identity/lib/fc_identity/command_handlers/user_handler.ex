@@ -15,7 +15,8 @@ defmodule FCIdentity.UserHandler do
     DeleteUser,
     GeneratePasswordResetToken,
     ChangePassword,
-    ChangeUserRole
+    ChangeUserRole,
+    UpdateUserInfo
   }
   alias FCIdentity.{
     UserRegistrationRequested,
@@ -25,7 +26,8 @@ defmodule FCIdentity.UserHandler do
     UserDeleted,
     PasswordResetTokenGenerated,
     PasswordChanged,
-    UserRoleChanged
+    UserRoleChanged,
+    UserInfoUpdated
   }
 
   def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
@@ -103,6 +105,13 @@ defmodule FCIdentity.UserHandler do
     cmd
     |> authorize(state)
     ~> merge_to(%UserRoleChanged{})
+    |> unwrap_ok()
+  end
+
+  def handle(state, %UpdateUserInfo{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%UserInfoUpdated{})
     |> unwrap_ok()
   end
 

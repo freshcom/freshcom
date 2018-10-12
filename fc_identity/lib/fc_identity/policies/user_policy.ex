@@ -6,7 +6,8 @@ defmodule FCIdentity.UserPolicy do
     AddUser,
     DeleteUser,
     ChangePassword,
-    ChangeUserRole
+    ChangeUserRole,
+    UpdateUserInfo
   }
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
@@ -31,6 +32,17 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%ChangePassword{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])
 
+  # Updating user's own info
+  def authorize(%UpdateUserInfo{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
+    do: {:ok, cmd}
+
+  # Support specailist can update customer's info
+  def authorize(%UpdateUserInfo{} = cmd, %{role: "customer"} = state),
+    do: default_authorize(cmd, state, ["owner", "administrator", "support_specialist"])
+
+  def authorize(%UpdateUserInfo{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator"])
+
   def authorize(%DeleteUser{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])
 
@@ -38,6 +50,8 @@ defmodule FCIdentity.UserPolicy do
     do: default_authorize(cmd, state, ["owner", "administrator"])
 
   def authorize(_, _), do: {:error, :access_denied}
+
+  defp default_authorize(_, %{role: "owner"}, _), do: {:error, :access_denied}
 
   defp default_authorize(cmd, state, roles) do
     cmd

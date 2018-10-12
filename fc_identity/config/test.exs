@@ -1,6 +1,7 @@
 use Mix.Config
 
 config :logger, level: :warn
+config :ex_unit, capture_log: true
 
 config :argon2_elixir, t_cost: 1, m_cost: 8
 

@@ -1,7 +1,10 @@
 defmodule FCIdentity.User do
   use TypedStruct
 
-  import FCIdentity.Support, only: [struct_merge: 2]
+  import FCIdentity.{Changeset, Support}
+
+  alias FCIdentity.DefaultLocaleKeeper
+  alias FCIdentity.Translation
   alias FCIdentity.{
     UserRegistrationRequested,
     UserAdded,
@@ -9,7 +12,8 @@ defmodule FCIdentity.User do
     UserDeleted,
     PasswordResetTokenGenerated,
     PasswordChanged,
-    UserRoleChanged
+    UserRoleChanged,
+    UserInfoUpdated
   }
 
   typedstruct do
@@ -27,8 +31,17 @@ defmodule FCIdentity.User do
     field :last_name, String.t()
     field :name, String.t()
 
+    field :role, String.t()
+
     field :password_reset_token, String.t()
     field :password_reset_token_expires_at, DateTime.t()
+
+    field :custom_data, map, default: %{}
+    field :translations, map, default: %{}
+  end
+
+  def translatable_fields do
+    [:custom_data]
   end
 
   def apply(state, %UserRegistrationRequested{}), do: state
@@ -60,4 +73,13 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %UserRoleChanged{}), do: state
+
+  def apply(state, %UserInfoUpdated{locale: locale} = event) do
+    default_locale = DefaultLocaleKeeper.get(state.account_id)
+
+    state
+    |> cast(event, event.effective_keys)
+    |> Translation.put_change(translatable_fields(), locale, default_locale)
+    |> apply_changes()
+  end
 end
