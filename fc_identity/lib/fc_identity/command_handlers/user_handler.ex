@@ -16,7 +16,8 @@ defmodule FCIdentity.UserHandler do
     GeneratePasswordResetToken,
     ChangePassword,
     ChangeUserRole,
-    UpdateUserInfo
+    UpdateUserInfo,
+    GenerateEmailVerificationToken
   }
   alias FCIdentity.{
     UserRegistrationRequested,
@@ -27,7 +28,8 @@ defmodule FCIdentity.UserHandler do
     PasswordResetTokenGenerated,
     PasswordChanged,
     UserRoleChanged,
-    UserInfoUpdated
+    UserInfoUpdated,
+    EmailVerificationTokenGenerated
   }
 
   def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
@@ -80,16 +82,20 @@ defmodule FCIdentity.UserHandler do
   end
 
   def handle(_, %GeneratePasswordResetToken{} = cmd) do
-    expires_at =
-      cmd.expires_at
-      |> Timex.Timezone.convert("UTC")
-      |> DateTime.to_iso8601()
-
     %PasswordResetTokenGenerated{
       user_id: cmd.user_id,
       token: uuid4(),
-      expires_at: expires_at
+      expires_at: to_utc_iso8601(cmd.expires_at)
     }
+  end
+
+  def handle(state, %GenerateEmailVerificationToken{} = cmd) do
+    expires_at = to_utc_iso8601(cmd.expires_at)
+
+    cmd
+    |> authorize(state)
+    ~> merge_to(%EmailVerificationTokenGenerated{token: uuid4(), expires_at: expires_at}, except: [:expires_at])
+    |> unwrap_ok()
   end
 
   def handle(state, %ChangePassword{} = cmd) do

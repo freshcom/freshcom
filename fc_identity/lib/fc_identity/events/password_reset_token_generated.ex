@@ -7,6 +7,7 @@ defmodule FCIdentity.PasswordResetTokenGenerated do
     field :__version__, integer(), default: @version
 
     field :user_id, String.t()
+
     field :token, String.t()
     field :expires_at, String.t() # IS8601 Format
   end

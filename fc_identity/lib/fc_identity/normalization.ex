@@ -1,5 +1,11 @@
 defmodule FCIdentity.Normalization do
 
+  def to_utc_iso8601(datetime) do
+    datetime
+    |> Timex.Timezone.convert("UTC")
+    |> DateTime.to_iso8601()
+  end
+
   @doc """
   Trim all values in the struct that are string.
   """

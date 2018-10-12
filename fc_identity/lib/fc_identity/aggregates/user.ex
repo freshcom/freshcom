@@ -13,7 +13,8 @@ defmodule FCIdentity.User do
     PasswordResetTokenGenerated,
     PasswordChanged,
     UserRoleChanged,
-    UserInfoUpdated
+    UserInfoUpdated,
+    EmailVerificationTokenGenerated
   }
 
   typedstruct do
@@ -35,6 +36,10 @@ defmodule FCIdentity.User do
 
     field :password_reset_token, String.t()
     field :password_reset_token_expires_at, DateTime.t()
+
+    field :email_verified, boolean, default: false
+    field :email_verification_token, String.t()
+    field :email_verification_token_expires_at, DateTime.t()
 
     field :custom_data, map, default: %{}
     field :translations, map, default: %{}
@@ -61,7 +66,18 @@ defmodule FCIdentity.User do
 
   def apply(state, %PasswordResetTokenGenerated{} = event) do
     {:ok, datetime, 0} = DateTime.from_iso8601(event.expires_at)
+
     %{state | password_reset_token: event.token, password_reset_token_expires_at: datetime}
+  end
+
+  def apply(state, %EmailVerificationTokenGenerated{} = event) do
+    {:ok, datetime, 0} = DateTime.from_iso8601(event.expires_at)
+
+    %{state |
+      email_verified: false,
+      email_verification_token: event.token,
+      email_verification_token_expires_at: datetime
+    }
   end
 
   def apply(state, %PasswordChanged{} = event) do

@@ -36,6 +36,7 @@ defmodule FCIdentity.UserRegistration do
 
       account_id: live_account_id,
       status: "pending",
+      email_verified: false,
       role: "owner"
     }
     add_user = struct_merge(add_user, event)

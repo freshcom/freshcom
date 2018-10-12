@@ -7,7 +7,8 @@ defmodule FCIdentity.UserPolicy do
     DeleteUser,
     ChangePassword,
     ChangeUserRole,
-    UpdateUserInfo
+    UpdateUserInfo,
+    GenerateEmailVerificationToken
   }
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
@@ -48,6 +49,13 @@ defmodule FCIdentity.UserPolicy do
 
   def authorize(%ChangeUserRole{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])
+
+  # User can generate evt for self
+  def authorize(%GenerateEmailVerificationToken{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
+    do: {:ok, cmd}
+
+  def authorize(%GenerateEmailVerificationToken{} = cmd, %{role: "customer"} = state),
+    do: default_authorize(cmd, state, ["owner", "administrator", "support_specialist"])
 
   def authorize(_, _), do: {:error, :access_denied}
 

@@ -11,7 +11,8 @@ defmodule FCIdentity.RouterTest do
     GeneratePasswordResetToken,
     ChangePassword,
     UpdateAccountInfo,
-    UpdateUserInfo
+    UpdateUserInfo,
+    GenerateEmailVerificationToken
   }
   alias FCIdentity.{
     AccountCreated,
@@ -25,7 +26,8 @@ defmodule FCIdentity.RouterTest do
     PasswordResetTokenGenerated,
     PasswordChanged,
     UserRoleChanged,
-    UserInfoUpdated
+    UserInfoUpdated,
+    EmailVerificationTokenGenerated
   }
 
   def requester_id(account_id, role) do
@@ -153,6 +155,47 @@ defmodule FCIdentity.RouterTest do
       :ok = Router.dispatch(cmd)
 
       assert_receive_event(PasswordResetTokenGenerated, fn(event) ->
+        assert event.user_id == cmd.user_id
+        assert event.token
+        assert event.expires_at
+      end)
+    end
+  end
+
+  describe "dispatch GenerateEmailVerificationToken" do
+    test "with invalid command" do
+      cmd = %GenerateEmailVerificationToken{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %GenerateEmailVerificationToken{
+        user_id: uuid4(),
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      user_id = uuid4()
+      user_stream([%UserAdded{
+        account_id: account_id,
+        user_id: user_id,
+        type: "managed",
+        role: "customer"
+      }])
+
+      cmd = %GenerateEmailVerificationToken{
+        requester_id: user_id,
+        user_id: user_id,
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(EmailVerificationTokenGenerated, fn(event) ->
         assert event.user_id == cmd.user_id
         assert event.token
         assert event.expires_at

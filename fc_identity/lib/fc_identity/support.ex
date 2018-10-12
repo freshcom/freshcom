@@ -19,8 +19,11 @@ defmodule FCIdentity.Support do
   This function is different than `struct/2` as that function will raise if the
   second argument is a struct.
   """
-  def struct_merge(dest, src, keys \\ nil) do
-    keys = keys || Map.keys(dest) -- [:__struct__]
+  def struct_merge(dest, src, opts \\ []) do
+    keys = opts[:only] || Map.keys(dest) -- [:__struct__]
+    excepts = opts[:except] || []
+    keys = keys -- excepts
+
     filtered_src = Map.take(src, keys)
     struct(dest, filtered_src)
   end
@@ -29,7 +32,7 @@ defmodule FCIdentity.Support do
   Similar to `struct_merge/3` except `dest` and `src` are reversed, useful when
   using pipes.
   """
-  def merge_to(src, dest, keys \\ nil) do
-    struct_merge(dest, src, keys)
+  def merge_to(src, dest, opts \\ []) do
+    struct_merge(dest, src, opts)
   end
 end
