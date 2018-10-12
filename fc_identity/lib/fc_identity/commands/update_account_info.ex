@@ -25,6 +25,7 @@ defmodule FCIdentity.UpdateAccountInfo do
   @email_regex Application.get_env(:fc_identity, :email_regex)
 
   validates :account_id, presence: true, uuid: true
+
   validates :name, presence: true
   validates :support_email, format: [with: @email_regex, allow_nil: true]
   validates :tech_email, format: [with: @email_regex, allow_nil: true]
