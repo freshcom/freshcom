@@ -72,7 +72,9 @@ defmodule FCIdentity.User do
     }
   end
 
-  def apply(state, %UserRoleChanged{}), do: state
+  def apply(state, %UserRoleChanged{} = event) do
+    %{state | role: event.role}
+  end
 
   def apply(state, %UserInfoUpdated{locale: locale} = event) do
     default_locale = DefaultLocaleKeeper.get(state.account_id)
