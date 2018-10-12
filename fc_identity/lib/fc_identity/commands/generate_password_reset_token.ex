@@ -8,4 +8,5 @@ defmodule FCIdentity.GeneratePasswordResetToken do
   end
 
   validates :user_id, presence: true, uuid: true
+  validates :expires_at, presence: true
 end

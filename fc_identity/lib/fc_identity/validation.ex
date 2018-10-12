@@ -1,3 +1,8 @@
+defimpl Vex.Blank, for: DateTime do
+  def blank?(%DateTime{}), do: false
+  def blank?(_), do: true
+end
+
 defmodule FCIdentity.Validation do
   def validate(struct) do
     settings = struct.__struct__.__vex_validations__()
