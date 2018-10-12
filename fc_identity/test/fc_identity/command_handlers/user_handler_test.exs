@@ -209,6 +209,24 @@ defmodule FCIdentity.UserHandlerTest do
       assert {:error, :access_denied} = UserHandler.handle(state, cmd)
     end
 
+    test "when changing password for owner" do
+      state = %User{
+        id: uuid4(),
+        role: "owner",
+        account_id: uuid4(),
+        password_hash: hashpwsalt("test1234"),
+      }
+      cmd = %ChangePassword{
+        requester_id: uuid4(),
+        requester_role: "administrator",
+        account_id: state.account_id,
+        user_id: state.id,
+        new_password: "test1234"
+      }
+
+      {:error, :access_denied} = UserHandler.handle(state, cmd)
+    end
+
     test "when changing password of a user in the same account with valid role" do
       state = %User{
         id: uuid4(),
