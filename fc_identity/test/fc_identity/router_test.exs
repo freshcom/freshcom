@@ -1,20 +1,28 @@
 defmodule FCIdentity.RouterTest do
   use FCIdentity.RouterCase, async: true
 
+  import Comeonin.Argon2
+
   alias FCIdentity.Router
   alias FCIdentity.RoleKeeper
   alias FCIdentity.{
     RegisterUser,
     DeleteUser,
     GeneratePasswordResetToken,
+    ChangePassword,
     UpdateAccountInfo
   }
   alias FCIdentity.{
     AccountCreated,
-    AccountInfoUpdated,
-    PasswordResetTokenGenerated
+    AccountInfoUpdated
   }
-  alias FCIdentity.{UserRegistered, UserAdded, UserDeleted}
+  alias FCIdentity.{
+    UserRegistered,
+    UserAdded,
+    UserDeleted,
+    PasswordResetTokenGenerated,
+    PasswordChanged
+  }
 
   def requester_id(account_id, role) do
     requester_id = uuid4()
@@ -143,6 +151,50 @@ defmodule FCIdentity.RouterTest do
         assert event.user_id == cmd.user_id
         assert event.token
         assert event.expires_at
+      end)
+    end
+  end
+
+  describe "dispatch ChangePassword" do
+    test "with invalid command" do
+      cmd = %ChangePassword{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %ChangePassword{
+        user_id: uuid4(),
+        reset_token: uuid4(),
+        new_password: "test1234"
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      user_id = uuid4()
+      original_password_hash = hashpwsalt("test1234")
+      user_stream([%UserAdded{
+        account_id: account_id,
+        user_id: user_id,
+        password_hash: original_password_hash,
+        type: "managed",
+        role: "developer"
+      }])
+
+      cmd = %ChangePassword{
+        requester_id: user_id,
+        user_id: user_id,
+        current_password: "test1234",
+        new_password: "test1234"
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(PasswordChanged, fn(event) ->
+        assert event.user_id == user_id
+        assert event.new_password_hash != original_password_hash
       end)
     end
   end

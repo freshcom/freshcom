@@ -1,4 +1,4 @@
-defmodule FCIdentity.PasswordResetTokenGenerated do
+defmodule FCIdentity.PasswordChanged do
   use TypedStruct
 
   @version 1
@@ -7,7 +7,6 @@ defmodule FCIdentity.PasswordResetTokenGenerated do
     field :__version__, integer(), default: @version
 
     field :user_id, String.t()
-    field :token, String.t()
-    field :expires_at, String.t() # IS8601 Format
+    field :new_password_hash, String.t()
   end
 end

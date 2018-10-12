@@ -7,7 +7,8 @@ defmodule FCIdentity.User do
     UserAdded,
     UserRegistered,
     UserDeleted,
-    PasswordResetTokenGenerated
+    PasswordResetTokenGenerated,
+    PasswordChanged
   }
 
   typedstruct do
@@ -45,6 +46,15 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %PasswordResetTokenGenerated{} = event) do
-    %{state | password_reset_token: event.token, password_reset_token_expires_at: event.expires_at}
+    {:ok, datetime, 0} = DateTime.from_iso8601(event.expires_at)
+    %{state | password_reset_token: event.token, password_reset_token_expires_at: datetime}
+  end
+
+  def apply(state, %PasswordChanged{} = event) do
+    %{state |
+      password_hash: event.new_password_hash,
+      password_reset_token: nil,
+      password_reset_token_expires_at: nil
+    }
   end
 end
