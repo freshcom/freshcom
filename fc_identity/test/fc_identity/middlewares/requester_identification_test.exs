@@ -2,7 +2,7 @@ defmodule FCIdentity.RequesterIdentificationTest do
   use FCIdentity.UnitCase, async: true
 
   alias FCStateStorage.GlobalStore.RoleStore
-  alias FCIdentity.TypeKeeper
+  alias FCIdentity.TypeStore
   alias FCIdentity.RequesterIdentification
   alias FCIdentity.DummyCommand
 
@@ -32,7 +32,7 @@ defmodule FCIdentity.RequesterIdentificationTest do
       user_id = uuid4()
       account_id = uuid4()
       RoleStore.put(user_id, account_id, "developer")
-      TypeKeeper.keep(user_id, "standard")
+      TypeStore.put(user_id, "standard")
 
       original_cmd = %DummyCommand{
         requester_id: user_id,

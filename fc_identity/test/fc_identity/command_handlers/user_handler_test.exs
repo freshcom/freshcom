@@ -3,7 +3,7 @@ defmodule FCIdentity.UserHandlerTest do
 
   import Comeonin.Argon2
 
-  alias FCIdentity.UsernameKeeper
+  alias FCIdentity.UsernameStore
   alias FCIdentity.UserHandler
   alias FCIdentity.User
   alias FCIdentity.{AddUser, ChangePassword}
@@ -52,7 +52,7 @@ defmodule FCIdentity.UserHandlerTest do
 
     test "when given existing username", %{cmd: cmd} do
       username = String.downcase(Faker.String.base64(12))
-      UsernameKeeper.keep(%{type: "standard", username: username})
+      UsernameStore.put(%{type: "standard", username: username})
 
       cmd = %{cmd | name: Faker.Name.name(), username: username}
       {:error, {:validation_failed, errors}} = UserHandler.handle(%User{}, cmd)

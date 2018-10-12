@@ -10,7 +10,7 @@ defmodule FCIdentity.UserHandler do
   import FCSupport.{Validation, Normalization}
   import FCIdentity.UserPolicy
 
-  alias FCIdentity.UsernameKeeper
+  alias FCIdentity.UsernameStore
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -143,7 +143,7 @@ defmodule FCIdentity.UserHandler do
   end
 
   defp validate_username(cmd) do
-    unless UsernameKeeper.exist?(cmd.username) do
+    unless UsernameStore.exist?(cmd.username) do
       {:ok, cmd}
     else
       {:error, {:validation_failed, [{:error, :username, :already_exist}]}}
