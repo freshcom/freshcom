@@ -3,7 +3,7 @@ defmodule FCIdentity.UserHandler do
 
   @behaviour Commanded.Commands.Handler
 
-  use FCSupport, :command_handler
+  use FCBase, :command_handler
 
   import UUID
   import Comeonin.Argon2

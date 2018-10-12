@@ -2,7 +2,7 @@ defmodule FCIdentity.Account do
   @moduledoc false
 
   use TypedStruct
-  use FCSupport, :aggregate
+  use FCBase, :aggregate
 
   alias FCIdentity.{AccountCreated, AccountInfoUpdated}
 

@@ -1,4 +1,4 @@
-defmodule FCIdentity.CommandValidation do
+defmodule FCBase.CommandValidation do
   @behaviour Commanded.Middleware
 
   alias Commanded.Middleware.Pipeline

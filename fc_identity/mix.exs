@@ -30,23 +30,14 @@ defmodule FCIdentity.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:fc_support, path: "../fc_support"},
-      {:fc_state_storage, path: "../fc_state_storage"},
+      {:fc_base, path: "../fc_base"},
       {:commanded, "~> 0.17"},
       {:commanded_eventstore_adapter, "~> 0.3"},
-      {:vex, "~> 0.7"},
-      {:typed_struct, "~> 0.1"},
-      {:ex_aws, "~> 2.1"},
-      {:ex_aws_dynamo, "~> 2.0"},
       {:hackney, "~> 1.9"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.3"},
-      {:ok, "~> 2.0"},
-      {:timex, "~> 3.4"},
       {:faker, "~> 0.11", only: [:test, :dev]},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
     ]
   end
 

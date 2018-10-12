@@ -2,7 +2,7 @@ defmodule FCIdentity.User do
   @moduledoc false
 
   use TypedStruct
-  use FCSupport, :aggregate
+  use FCBase, :aggregate
 
   alias FCStateStorage.GlobalStore.DefaultLocaleStore
   alias FCIdentity.{

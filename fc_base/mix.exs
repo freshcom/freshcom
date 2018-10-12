@@ -1,9 +1,9 @@
-defmodule FCSupport.MixProject do
+defmodule FCBase.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :fc_support,
+      app: :fc_base,
       version: "0.1.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
@@ -21,11 +21,10 @@ defmodule FCSupport.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:vex, "~> 0.7"},
-      {:typed_struct, "~> 0.1"},
-      {:timex, "~> 3.4"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
+      {:fc_support, path: "../fc_support"},
+      {:fc_state_storage, path: "../fc_state_storage"},
+      {:commanded, "~> 0.17"},
+      {:ok, "~> 2.0"}
     ]
   end
 end

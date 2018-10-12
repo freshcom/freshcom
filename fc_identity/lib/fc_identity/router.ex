@@ -18,9 +18,9 @@ defmodule FCIdentity.Router do
   alias FCIdentity.{User, Account}
   alias FCIdentity.{UserHandler, AccountHandler}
 
-  middleware FCIdentity.CommandValidation
-  middleware FCIdentity.RequesterIdentification
-  middleware FCIdentity.IdentifierGeneration
+  middleware FCBase.CommandValidation
+  middleware FCBase.RequesterIdentification
+  middleware FCBase.IdentifierGeneration
 
   identify User, by: :user_id, prefix: "user-"
   identify Account, by: :account_id, prefix: "account-"

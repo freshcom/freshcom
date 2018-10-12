@@ -3,7 +3,7 @@ defmodule FCIdentity.AccountHandler do
 
   @behaviour Commanded.Commands.Handler
 
-  use FCSupport, :command_handler
+  use FCBase, :command_handler
 
   import FCIdentity.AccountPolicy
 

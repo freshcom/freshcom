@@ -1,4 +1,4 @@
-defmodule FCIdentity.RequesterIdentification do
+defmodule FCBase.RequesterIdentification do
   @behaviour Commanded.Middleware
 
   alias Commanded.Middleware.Pipeline
