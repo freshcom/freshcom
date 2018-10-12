@@ -1,4 +1,6 @@
 defmodule FCIdentity.UserPolicy do
+  use OK.Pipe
+
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -11,39 +13,51 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
 
-  def authorize(%AddUser{requester_role: role} = cmd, _) when role in ["owner", "administrator"] do
-    {:ok, cmd}
-  end
+  def authorize(%AddUser{requester_role: role} = cmd, _) when role in ["owner", "administrator"],
+    do: {:ok, cmd}
 
-  def authorize(%RegisterUser{} = cmd, _) do
-    {:ok, cmd}
-  end
-
-  def authorize(%DeleteUser{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
-      when role in ["owner", "administrator"] and t_aid == aid do
-    {:ok, cmd}
-  end
+  def authorize(%RegisterUser{} = cmd, _),
+    do: {:ok, cmd}
 
   # Changing user's own password
-  def authorize(%ChangePassword{requester_id: rid, user_id: uid} = cmd, _) when rid == uid do
-    {:ok, cmd}
-  end
+  def authorize(%ChangePassword{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
+    do: {:ok, cmd}
 
   # Reseting password
-  def authorize(%ChangePassword{requester_id: nil} = cmd, _) do
-    {:ok, cmd}
-  end
+  def authorize(%ChangePassword{requester_id: nil} = cmd, _),
+    do: {:ok, cmd}
 
   # Managing other user's password
-  def authorize(%ChangePassword{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
-      when role in ["owner", "administrator"] and t_aid == aid do
-    {:ok, cmd}
-  end
+  def authorize(%ChangePassword{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator"])
 
-  def authorize(%ChangeUserRole{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
-      when role in ["owner", "administrator"] and t_aid == aid do
-    {:ok, cmd}
-  end
+  def authorize(%DeleteUser{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator"])
+
+  def authorize(%ChangeUserRole{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator"])
 
   def authorize(_, _), do: {:error, :access_denied}
+
+  defp default_authorize(cmd, state, roles) do
+    cmd
+    |> authorize_by_account(state.account_id)
+    ~>> authorize_by_role(roles)
+  end
+
+  defp authorize_by_account(%{account_id: t_aid} = cmd, aid) when t_aid == aid do
+    {:ok, cmd}
+  end
+
+  defp authorize_by_account(_, _), do: {:error, :access_denied}
+
+  defp authorize_by_role(%{requester_role: role} = cmd, roles) do
+    if role in roles do
+      {:ok, cmd}
+    else
+      {:error, :access_denied}
+    end
+  end
+
+  defp authorize_by_role(_, _), do: {:error, :access_denied}
 end
