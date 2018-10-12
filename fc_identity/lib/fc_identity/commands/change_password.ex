@@ -11,12 +11,14 @@ defmodule FCIdentity.ChangePassword do
     field :user_id, String.t()
     field :reset_token, String.t()
     field :current_password, String.t()
+
     field :new_password, String.t()
   end
 
   validates :user_id, presence: true, uuid: true
   validates :reset_token , presence: [unless: :requester_id]
   validates :current_password, presence: [if: &__MODULE__.changing_own_password/1]
+
   validates :new_password, presence: true, length: [min: 8]
 
   def changing_own_password(%{requester_id: rid, user_id: uid}) when not is_nil(rid) and not is_nil(uid) do
