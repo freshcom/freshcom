@@ -20,8 +20,10 @@ defmodule FCIdentity.RouterTest do
     UserRegistered,
     UserAdded,
     UserDeleted,
+    ChangeUserRole,
     PasswordResetTokenGenerated,
-    PasswordChanged
+    PasswordChanged,
+    UserRoleChanged
   }
 
   def requester_id(account_id, role) do
@@ -195,6 +197,50 @@ defmodule FCIdentity.RouterTest do
       assert_receive_event(PasswordChanged, fn(event) ->
         assert event.user_id == user_id
         assert event.new_password_hash != original_password_hash
+      end)
+    end
+  end
+
+  describe "dispatch ChangeUserRole" do
+    test "with invalid command" do
+      cmd = %ChangeUserRole{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %ChangeUserRole{
+        user_id: uuid4(),
+        account_id: uuid4(),
+        role: "developer"
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      requester_id = requester_id(account_id, "administrator")
+
+      user_id = uuid4()
+      user_stream([%UserAdded{
+        account_id: account_id,
+        user_id: user_id,
+        type: "managed",
+        role: "read_only"
+      }])
+      cmd = %ChangeUserRole{
+        requester_id: requester_id,
+        user_id: user_id,
+        account_id: account_id,
+        role: "developer"
+      }
+
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(UserRoleChanged, fn(event) ->
+        assert event.user_id == cmd.user_id
+        assert event.role == cmd.role
       end)
     end
   end

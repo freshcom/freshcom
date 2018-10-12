@@ -14,7 +14,8 @@ defmodule FCIdentity.UserHandler do
     AddUser,
     DeleteUser,
     GeneratePasswordResetToken,
-    ChangePassword
+    ChangePassword,
+    ChangeUserRole
   }
   alias FCIdentity.{
     UserRegistrationRequested,
@@ -23,7 +24,8 @@ defmodule FCIdentity.UserHandler do
     UserRegistered,
     UserDeleted,
     PasswordResetTokenGenerated,
-    PasswordChanged
+    PasswordChanged,
+    UserRoleChanged
   }
 
   def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
@@ -95,6 +97,13 @@ defmodule FCIdentity.UserHandler do
     ~>> validate_reset_token(state)
     ~>  merge_to(%PasswordChanged{new_password_hash: hashpwsalt(cmd.new_password)})
     |>  unwrap_ok()
+  end
+
+  def handle(state, %ChangeUserRole{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%UserRoleChanged{})
+    |> unwrap_ok()
   end
 
   defp put_name(%{name: name} = cmd) when byte_size(name) > 0 do

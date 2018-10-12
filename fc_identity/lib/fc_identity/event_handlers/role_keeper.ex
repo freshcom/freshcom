@@ -2,10 +2,14 @@ defmodule FCIdentity.RoleKeeper do
   use Commanded.Event.Handler,
     name: "7acce566-f170-4b36-a1da-7655f67c65f8"
 
-  alias FCIdentity.UserAdded
+  alias FCIdentity.{UserAdded, UserRoleChanged}
   alias FCIdentity.SimpleStore
 
-  def handle(%UserAdded{} = event, _metadata) do
+  def handle(%UserAdded{} = event, _) do
+    keep(event.user_id, event.account_id, event.role)
+  end
+
+  def handle(%UserRoleChanged{} = event, _) do
     keep(event.user_id, event.account_id, event.role)
   end
 

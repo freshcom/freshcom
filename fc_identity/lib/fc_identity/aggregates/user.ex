@@ -8,7 +8,8 @@ defmodule FCIdentity.User do
     UserRegistered,
     UserDeleted,
     PasswordResetTokenGenerated,
-    PasswordChanged
+    PasswordChanged,
+    UserRoleChanged
   }
 
   typedstruct do
@@ -57,4 +58,6 @@ defmodule FCIdentity.User do
       password_reset_token_expires_at: nil
     }
   end
+
+  def apply(state, %UserRoleChanged{}), do: state
 end

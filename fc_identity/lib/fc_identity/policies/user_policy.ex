@@ -3,7 +3,8 @@ defmodule FCIdentity.UserPolicy do
     RegisterUser,
     AddUser,
     DeleteUser,
-    ChangePassword
+    ChangePassword,
+    ChangeUserRole
   }
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
@@ -34,6 +35,11 @@ defmodule FCIdentity.UserPolicy do
 
   # Managing other user's password
   def authorize(%ChangePassword{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
+      when role in ["owner", "administrator"] and t_aid == aid do
+    {:ok, cmd}
+  end
+
+  def authorize(%ChangeUserRole{requester_role: role, account_id: t_aid} = cmd, %{account_id: aid})
       when role in ["owner", "administrator"] and t_aid == aid do
     {:ok, cmd}
   end
