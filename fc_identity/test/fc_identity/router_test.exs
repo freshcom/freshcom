@@ -129,7 +129,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with non existing user id" do
       cmd = %GeneratePasswordResetToken{
-        user_id: uuid4()
+        user_id: uuid4(),
+        expires_at: Timex.shift(Timex.now(), hours: 24)
       }
 
       {:error, {:not_found, :user}} = Router.dispatch(cmd)
