@@ -31,7 +31,7 @@ defmodule FCIdentity.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:fc_base, path: "../fc_base"},
+      {:fc_base, path: "../../base/fc_base"},
       {:commanded, "~> 0.17"},
       {:commanded_eventstore_adapter, "~> 0.3"},
       {:hackney, "~> 1.9"},
