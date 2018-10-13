@@ -118,4 +118,4 @@ cart_id = response.data.id
 order_id = response.data.id
 ```
 
-Note the API function name do not follow a RESTful style (i.e `create_cart`, `create_line_item`... etc) because that is a web layer detail, here we just want to use the domain language. You don't create a cart when you are shopping, you get an empty cart to start shopping.
+Note the API function name do not follow a CRUD style naming (i.e `create_cart`, `create_line_item`... etc), here we just want to use the domain language. You don't create a cart when you are shopping, you get an empty cart to start shopping.
