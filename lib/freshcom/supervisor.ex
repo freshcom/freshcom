@@ -4,13 +4,13 @@ defmodule Freshcom.Supervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(:ok) do
+  def init(_) do
     children = [
       Freshcom.Repo,
-      {Freshcom.AccountProjector, []},
+      Freshcom.AccountProjector,
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
