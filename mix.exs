@@ -7,6 +7,7 @@ defmodule Freshcom.MixProject do
       version: "0.1.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -14,6 +15,7 @@ defmodule Freshcom.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {Freshcom.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -21,8 +23,22 @@ defmodule Freshcom.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:fc_identity, path: "services/fc_identity"},
+      {:ecto, "~> 2.1"},
+      {:postgrex, "~> 0.13"},
+      {:commanded_ecto_projections, "~> 0.7"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
+    ]
+  end
+
+  defp aliases do
+    [
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "event_store.setup": ["event_store.create", "event_store.init"],
+      "event_store.reset": ["event_store.drop", "event_store.setup"],
+      "test": ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
 end

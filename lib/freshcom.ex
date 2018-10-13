@@ -1,18 +1,20 @@
 defmodule Freshcom do
-  @moduledoc """
-  Documentation for Freshcom.
-  """
+  def projector do
+    quote do
+      alias Ecto.{Changeset, Multi}
+    end
+  end
 
-  @doc """
-  Hello world.
+  def projection do
+    quote do
+      use Ecto.Schema
+      alias Ecto.UUID
+      @primary_key {:id, :binary_id, autogenerate: false}
+      @foreign_key_type :binary_id
+    end
+  end
 
-  ## Examples
-
-      iex> Freshcom.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  defmacro __using__(which) when is_atom(which) do
+    apply(__MODULE__, which, [])
   end
 end

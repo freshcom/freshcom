@@ -13,10 +13,9 @@ defmodule FCIdentity.Account do
     field :mode, String.t(), default: "live"
     field :live_account_id, String.t()
     field :test_account_id, String.t()
-
-    field :name, String.t()
     field :default_locale, String.t()
 
+    field :name, String.t()
     field :legal_name, String.t()
     field :website_url, String.t()
     field :support_email, String.t()
@@ -31,7 +30,7 @@ defmodule FCIdentity.Account do
   def translatable_fields do
     [
       :name,
-      :company_name,
+      :legal_name,
       :website_url,
       :support_email,
       :tech_email,
