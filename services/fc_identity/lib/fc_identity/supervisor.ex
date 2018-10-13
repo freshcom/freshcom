@@ -4,10 +4,10 @@ defmodule FCIdentity.Supervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(:ok) do
+  def init(_) do
     children = [
       # Event Handler
       {FCIdentity.RoleKeeper, [start_from: :current]},
