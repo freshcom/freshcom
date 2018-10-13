@@ -35,3 +35,87 @@ Freshcom provides native support for test mode (similar Stripe). This means you 
 ### Email Templating
 
 Freshcom provides native support for email templating. This means you can customize your email template without redeployment, and each account can have different email template. If you implement a proper front-end you can allow non-developer to easily customize the email for their store.
+
+## Example Usage
+The example below serve as a reference to what will be available when freshcom reaches beta. 
+
+```elixir
+alias Freshcom.Request
+alias Freshcom.{Identity, Goods, Catalogue, Storefront}
+
+# Register a user
+{:ok, response} = Identity.regsiter_user(%Request{
+  fields: %{
+    username: "rbao",
+    email: "test@example.com"
+    password: "test1234",
+    name: "Roy"
+  }
+})
+
+user_id = response.data.id
+account_id = response.data.default_account_id
+
+# Add a stockable
+{:ok, response} = Goods.add_stockable(%Request{
+  requester: %{id: user_id, account_id: account_id},
+  fields: %{
+    name: "Warp Drive",
+    unit_of_measure: "EA"
+  }
+})
+
+stockable_id = response.data.id
+
+# Add a product
+{:ok, response} = Catalogue.add_product(%Request{
+  requester: %{id: user_id, account_id: account_id},
+  fields: %{
+    type: "simple",
+    goods_id: stockable_id,
+    goods_type: "Stockable",
+    prices: [
+      %{
+        name: "Regular Price",
+        charge_amount_cents: 500000000000,
+        charge_unit: "EA"
+      }
+    ]
+  }
+})
+
+product_id = response.data.id
+
+# Setup a cart
+{:ok, response} = Storefront.get_empty_cart(%Request{
+  requester: %{id: user_id, account_id: account_id}
+})
+
+cart_id = response.data.id
+
+# Add product to a cart
+{:ok, response} = Storefront.add_item_to_cart(%Request{
+  requester: %{id: user_id, account_id: account_id},
+  identifiers: %{id: cart_id},
+  fields: %{
+    product_id: product_id,
+    quantity: 2
+  }
+})
+
+# Checkout a cart
+{:ok, response} = Storefront.checkout(%Request{
+  requester: %{id: user_id, account_id: account_id},
+  identifiers: %{id: cart.id},
+  fields: %{
+    name: "Roy Bao",
+    payment_gateway: "freshcom",
+    payment_source: "stripetoken",
+    capture_payment: true
+  }
+})
+
+order_id = response.data.id
+```
+
+Note the API function name do not follow a RESTful style (i.e `create_cart`, `create_line_item`... etc) because that is a web layer detail, here we just want to use the domain language. You don't create a cart when you are shopping, you get an empty cart to start shopping.
