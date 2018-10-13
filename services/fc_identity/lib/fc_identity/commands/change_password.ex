@@ -17,13 +17,13 @@ defmodule FCIdentity.ChangePassword do
 
   validates :user_id, presence: true, uuid: true
   validates :reset_token , presence: [unless: :requester_id]
-  validates :current_password, presence: [if: &__MODULE__.changing_own_password/1]
+  validates :current_password, presence: [if: &__MODULE__.changing_own_password?/1]
 
   validates :new_password, presence: true, length: [min: 8]
 
-  def changing_own_password(%{requester_id: rid, user_id: uid}) when not is_nil(rid) and not is_nil(uid) do
+  def changing_own_password?(%{requester_id: rid, user_id: uid}) when not is_nil(rid) and not is_nil(uid) do
     rid == uid
   end
 
-  def changing_own_password(_), do: false
+  def changing_own_password?(_), do: false
 end
