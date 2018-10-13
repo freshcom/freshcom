@@ -2,6 +2,8 @@
 
 **Fast, scalable and extensible eCommerce backend in Elixir.**
 
+_Note: Freshcom does not include a web layer. Please see [Freshcom Web](https://github.com/freshcom/freshcom-api) if you need a web layer._
+
 ## Status of development
 
 Currently a work in progress.
