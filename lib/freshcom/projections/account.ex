@@ -4,6 +4,8 @@ defmodule Freshcom.Account do
   schema "accounts" do
     field :owner_id, UUID
     field :mode, :string
+    field :live_account_id, UUID
+    field :test_account_id, UUID
     field :default_locale, :string
 
     field :name, :string
@@ -14,12 +16,10 @@ defmodule Freshcom.Account do
 
     field :caption, :string
     field :description, :string
-    field :custom_data, :map
-    field :translations, :map
+
+    field :custom_data, :map, default: %{}
+    field :translations, :map, default: %{}
 
     timestamps()
-
-    belongs_to :live_account, __MODULE__
-    belongs_to :test_account, __MODULE__
   end
 end
