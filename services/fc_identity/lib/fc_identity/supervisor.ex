@@ -15,8 +15,8 @@ defmodule FCIdentity.Supervisor do
       {FCIdentity.TypeKeeper, [start_from: :current]},
 
       # Process Manager
-      {FCIdentity.UserRegistration, [start_from: :current]}
-      # worker(FCIdentity.RoleKeeper, [[start_from: :current]], id: :fc_identity_role_keeper)
+      {FCIdentity.DefaultAccountSetup, [start_from: :current]},
+      {FCIdentity.TestAccountSetup, [start_from: :current]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

@@ -9,6 +9,7 @@ defmodule FCIdentity.UserRegistered do
     field :user_id, String.t()
     field :default_account_id, String.t()
 
+    field :status, String.t()
     field :username, String.t()
     field :password_hash, String.t()
     field :email, String.t()
@@ -17,5 +18,10 @@ defmodule FCIdentity.UserRegistered do
     field :first_name, String.t()
     field :last_name, String.t()
     field :name, String.t()
+
+    field :role, String.t()
+
+    field :account_name, String.t()
+    field :default_locale, String.t()
   end
 end

@@ -6,7 +6,6 @@ defmodule FCIdentity.User do
 
   alias FCStateStorage.GlobalStore.DefaultLocaleStore
   alias FCIdentity.{
-    UserRegistrationRequested,
     UserAdded,
     UserRegistered,
     UserDeleted,
@@ -50,15 +49,14 @@ defmodule FCIdentity.User do
     [:custom_data]
   end
 
-  def apply(state, %UserRegistrationRequested{}), do: state
-
-  def apply(state, %UserAdded{} = event) do
-    %{state | id: event.user_id}
+  def apply(state, %UserRegistered{} = event) do
+    %{state | id: event.user_id, type: "standard"}
     |> merge(event)
   end
 
-  def apply(state, %UserRegistered{} = event) do
-    %{state | status: "active", default_account_id: event.default_account_id}
+  def apply(state, %UserAdded{} = event) do
+    %{state | id: event.user_id, type: "managed"}
+    |> merge(event)
   end
 
   def apply(state, %UserDeleted{}) do

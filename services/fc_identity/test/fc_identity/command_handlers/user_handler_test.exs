@@ -5,8 +5,17 @@ defmodule FCIdentity.UserHandlerTest do
 
   alias FCIdentity.UserHandler
   alias FCIdentity.User
-  alias FCIdentity.{AddUser, ChangePassword}
-  alias FCIdentity.{UserAdded, PasswordChanged}
+  alias FCIdentity.{
+    RegisterUser,
+    AddUser,
+    ChangePassword
+  }
+  alias FCIdentity.{
+    UserRegistered,
+    UserAdded,
+    PasswordChanged,
+    EmailVerificationTokenGenerated
+  }
 
   describe "handle AddUser" do
     setup do
@@ -217,6 +226,16 @@ defmodule FCIdentity.UserHandlerTest do
 
       assert %PasswordChanged{} = event
       assert event.new_password_hash
+    end
+  end
+
+  describe "handle RegisterUser" do
+    test "when command is good" do
+      state = %User{}
+      cmd = %RegisterUser{}
+      events = UserHandler.handle(state, cmd)
+
+      assert [%UserRegistered{} = user_registered, %EmailVerificationTokenGenerated{} = evt_generated] = events
     end
   end
 end

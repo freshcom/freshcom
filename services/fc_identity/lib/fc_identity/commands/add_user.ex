@@ -8,7 +8,6 @@ defmodule FCIdentity.AddUser do
     field :requester_role, String.t()
     field :account_id, String.t()
 
-    field :_type_, String.t(), default: "managed"
     field :user_id, String.t()
     field :status, String.t(), default: "active"
     field :username, String.t(), default: ""

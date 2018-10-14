@@ -22,7 +22,6 @@ defmodule FCIdentity.UserHandler do
     VerifyEmail
   }
   alias FCIdentity.{
-    UserRegistrationRequested,
     FinishUserRegistration,
     UserAdded,
     UserRegistered,
@@ -35,10 +34,25 @@ defmodule FCIdentity.UserHandler do
     EmailVerified
   }
 
-  def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
+  def handle(%{id: nil}, %RegisterUser{} = cmd) do
+    user_registered = %UserRegistered{
+      default_account_id: uuid4(),
+      status: "active",
+      role: "owner"
+    }
+    evt_generated = %EmailVerificationTokenGenerated{
+      user_id: cmd.user_id,
+      token: uuid4(),
+      expires_at: to_utc_iso8601(Timex.shift(Timex.now, hours: 24))
+    }
+
     cmd
-    |> authorize(state)
-    ~> merge_to(%UserRegistrationRequested{})
+    |> trim_strings()
+    |> downcase_strings([:username, :email])
+    |> merge_to(user_registered)
+    |> put_password_hash(cmd)
+    |> List.wrap()
+    |> Kernel.++([evt_generated])
     |> unwrap_ok()
   end
 
@@ -49,7 +63,7 @@ defmodule FCIdentity.UserHandler do
     |>  authorize(state)
     ~>  trim_strings()
     ~>  downcase_strings([:username, :email])
-    ~>  merge_to(%UserAdded{type: cmd._type_})
+    ~>  merge_to(%UserAdded{})
     ~>  put_password_hash(cmd)
     |>  unwrap_ok()
   end

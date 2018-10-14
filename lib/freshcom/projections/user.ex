@@ -10,6 +10,7 @@ defmodule Freshcom.User do
     field :username, :string
     field :password_hash, :string
     field :email, :string
+    field :is_term_accepted, :boolean
 
     field :first_name, :string
     field :last_name, :string
