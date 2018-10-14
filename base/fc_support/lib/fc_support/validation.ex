@@ -20,7 +20,8 @@ defmodule FCSupport.Validation do
   def validate(struct, settings) do
     case Vex.validate(struct, settings) do
       {:error, errors} ->
-        {:error, {:validation_failed, normalize_errors(errors, settings)}}
+        normalized_errors = normalize_errors(errors, settings, struct.__struct__)
+        {:error, {:validation_failed, normalized_errors}}
 
       other ->
         other
@@ -30,7 +31,7 @@ defmodule FCSupport.Validation do
   def errors(struct, settings) do
     struct
     |> Vex.errors(settings)
-    |> normalize_errors(settings)
+    |> normalize_errors(settings, struct.__struct__)
   end
 
   def errors(struct) do
@@ -38,12 +39,20 @@ defmodule FCSupport.Validation do
 
     struct
     |> Vex.errors()
-    |> normalize_errors(settings)
+    |> normalize_errors(settings, struct.__struct__)
   end
 
-  defp normalize_errors(errors, settings) do
+  defp normalize_errors(errors, settings, struct_module) do
     Enum.reduce(errors, [], fn(error, acc) ->
-      acc ++ [normalize_error(error, settings)]
+      normalized_error = if Keyword.has_key?(struct_module.__info__(:functions), :normalize_error) do
+        struct_module
+        |> apply(:normalize_error, [error])
+        |> normalize_error(settings)
+      else
+        normalize_error(error, settings)
+      end
+
+      acc ++ [normalized_error]
     end)
   end
 
@@ -71,4 +80,6 @@ defmodule FCSupport.Validation do
   defp normalize_error({:error, key, :inclusion, _}, _) do
     {:error, key, :invalid}
   end
+
+  defp normalize_error(tagged_error, _), do: tagged_error
 end
