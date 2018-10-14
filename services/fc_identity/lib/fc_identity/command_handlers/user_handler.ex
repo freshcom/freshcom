@@ -7,10 +7,9 @@ defmodule FCIdentity.UserHandler do
 
   import UUID
   import Comeonin.Argon2
-  import FCSupport.{Validation, Normalization}
+  import FCSupport.Normalization
   import FCIdentity.UserPolicy
 
-  alias FCIdentity.UsernameStore
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -50,9 +49,6 @@ defmodule FCIdentity.UserHandler do
     |>  authorize(state)
     ~>  trim_strings()
     ~>  downcase_strings([:username, :email])
-    ~>  put_name()
-    ~>> validate(name: [presence: true])
-    ~>> validate_username()
     ~>  merge_to(%UserAdded{type: cmd._type_})
     ~>  put_password_hash(cmd)
     |>  unwrap_ok()
@@ -131,23 +127,6 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~> merge_to(%UserInfoUpdated{})
     |> unwrap_ok()
-  end
-
-  defp put_name(%{name: name} = cmd) when byte_size(name) > 0 do
-    cmd
-  end
-
-  defp put_name(cmd) do
-    name = String.trim("#{cmd.first_name} #{cmd.last_name}")
-    %{cmd | name: name}
-  end
-
-  defp validate_username(cmd) do
-    unless UsernameStore.exist?(cmd.username) do
-      {:ok, cmd}
-    else
-      {:error, {:validation_failed, [{:error, :username, :already_exist}]}}
-    end
   end
 
   defp put_password_hash(event, %{password: password}) when byte_size(password) > 0 do

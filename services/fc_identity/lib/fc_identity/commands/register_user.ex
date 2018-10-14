@@ -2,6 +2,8 @@ defmodule FCIdentity.RegisterUser do
   use TypedStruct
   use Vex.Struct
 
+  alias FCIdentity.UsernameStore
+
   typedstruct do
     field :user_id, String.t()
 
@@ -20,11 +22,27 @@ defmodule FCIdentity.RegisterUser do
 
   @email_regex Application.get_env(:fc_identity, :email_regex)
 
-  validates :username, presence: true, length: [min: 3]
+  validates :username, presence: true, length: [min: 3], by: &__MODULE__.unique_username/1
   validates :password, presence: true, length: [min: 8]
   validates :email, presence: true, format: @email_regex
   validates :is_term_accepted, acceptance: true
 
+  validates :name, presence: true
+
   validates :account_name, presence: true
   validates :default_locale, presence: true
+
+  def unique_username(username) do
+    unless UsernameStore.exist?(username) do
+      :ok
+    else
+      {:error, :taken}
+    end
+  end
+
+  def normalize_error({:error, key, :by, error_code}) do
+    {:error, key, error_code}
+  end
+
+  def normalize_error(tagged_error), do: tagged_error
 end
