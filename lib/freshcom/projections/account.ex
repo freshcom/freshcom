@@ -1,5 +1,5 @@
 defmodule Freshcom.Account do
-  use Freshcom, :projection
+  use Freshcom.Projection
 
   schema "accounts" do
     field :owner_id, UUID
