@@ -17,6 +17,7 @@ defmodule FCIdentity.UserAdded do
     field :username, String.t()
     field :password_hash, String.t()
     field :email, String.t()
+    field :email_verified, boolean()
 
     field :first_name, String.t()
     field :last_name, String.t()

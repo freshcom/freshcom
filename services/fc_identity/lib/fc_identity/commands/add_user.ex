@@ -14,7 +14,7 @@ defmodule FCIdentity.AddUser do
     field :username, String.t(), default: ""
     field :password, String.t(), default: ""
     field :email, String.t(), default: ""
-    field :email_verified, String.t(), default: true
+    field :email_verified, boolean(), default: true
 
     field :first_name, String.t(), default: ""
     field :last_name, String.t(), default: ""
