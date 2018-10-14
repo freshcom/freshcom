@@ -11,6 +11,7 @@ defmodule Freshcom.Supervisor do
     children = [
       Freshcom.Repo,
       Freshcom.AccountProjector,
+      Freshcom.UserProjector,
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
