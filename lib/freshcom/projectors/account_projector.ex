@@ -9,7 +9,12 @@ defmodule Freshcom.AccountProjector do
   }
 
   project(%AccountCreated{} = event, _metadata) do
-    changeset = change(%Account{id: event.account_id}, Map.from_struct(event))
-    Multi.insert(multi, :account, changeset)
+    account = struct_merge(%Account{id: event.account_id}, event)
+    Multi.insert(multi, :account, account)
+  end
+
+  def after_update(event, metadata, changes) do
+    PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.account})
+    :ok
   end
 end

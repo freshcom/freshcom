@@ -1,33 +1,37 @@
 defmodule Freshcom do
   import FCSupport.Struct
+  import FCSupport.ControlFlow, only: [tt_wrap: 1]
 
   use OK.Pipe
 
-  alias Freshcom.{Router, Repo}
+  alias Phoenix.PubSub
   alias FCIdentity.RegisterUser
+  alias FCIdentity.UserRegistered
+  alias Freshcom.PubSubServer
+  alias Freshcom.{Router, Repo, Projector}
+  alias Freshcom.{UserProjector, AccountProjector}
 
   def register_user(%{fields: fields}) do
-    {:ok, result} = %RegisterUser{}
-    |>  merge(fields)
-    |>  Router.dispatch(consistency: :strong, include_execution_result: true)
-    |>  IO.inspect()
+    Projector.subscribe()
 
-    wait_for(result, "9708460c-a25a-4a14-b049-ea78af279746")
-    Repo.all(Freshcom.User)
+    result =
+      %RegisterUser{}
+      |> merge(fields)
+      |> Router.dispatch(include_execution_result: true)
+      ~> find_event(UserRegistered)
+      ~>> Projector.wait_for()
+      |> normalize_wait_result()
+      ~> Map.get(:user)
+
+    Projector.unsubscribe()
+
+    result
   end
 
-  def wait_for(result, handler, timeout \\ 5_000) do
-    stream_id = Map.get(result, :aggregate_uuid)
-    stream_version = Map.get(result, :aggregate_version) + 5
+  def normalize_wait_result({:error, {:timeout, _}}), do: {:error, {:timeout, :projector_wait}}
+  def normalize_wait_result(other), do: other
 
-    IO.inspect Commanded.Subscriptions.handled?(stream_id, 3, consistency: :strong)
-    IO.inspect stream_id
-    IO.inspect stream_version
-    Commanded.Subscriptions.wait_for(
-      stream_id,
-      stream_version,
-      [consistency: :strong],
-      timeout
-    )
+  def find_event(%{events: events}, module) do
+    Enum.find(events, &(&1.__struct__ == module))
   end
 end

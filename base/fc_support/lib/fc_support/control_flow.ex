@@ -11,4 +11,7 @@ defmodule FCSupport.ControlFlow do
 
   @spec unwrap_ok(any) :: any
   def unwrap_ok(any), do: any
+
+  def tt_wrap({:error, any}), do: {:error, any}
+  def tt_wrap(any), do: {:ok, any}
 end

@@ -8,10 +8,10 @@ defmodule Freshcom.Supervisor do
   end
 
   def init(_) do
-    children = [
+    children = Freshcom.PubSub.child_spec() ++ [
       Freshcom.Repo,
       Freshcom.AccountProjector,
-      Freshcom.UserProjector,
+      Freshcom.UserProjector
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

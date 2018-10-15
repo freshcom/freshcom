@@ -1,5 +1,7 @@
 use Mix.Config
 
+config :logger, level: :warn
+
 config :eventstore, EventStore.Storage,
   serializer: Commanded.Serialization.JsonSerializer,
   username: System.get_env("DB_USERNAME"),
