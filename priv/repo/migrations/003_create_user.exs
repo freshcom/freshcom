@@ -13,6 +13,7 @@ defmodule BlueJet.Repo.Migrations.CreateUser do
       add :username, :string
       add :password_hash, :string
       add :email, :string
+      add :is_term_accepted, :boolean
 
       add :first_name, :string
       add :last_name, :string
