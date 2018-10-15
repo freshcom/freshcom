@@ -27,7 +27,7 @@ defmodule Freshcom.Projector do
     PubSub.unsubscribe(PubSubServer, topic())
   end
 
-  def wait_for(%UserRegistered{user_id: user_id} = event) do
+  def wait_for(%UserRegistered{user_id: user_id}) do
     wait([
       {:user, UserProjector, &(&1.id == user_id)},
       {:live_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "live")},
@@ -54,7 +54,7 @@ defmodule Freshcom.Projector do
 
   defp fulfill_condition(conditions, target_projector, projection) do
     matching_condition =
-      Enum.find(conditions, fn({name, projector, tester}) ->
+      Enum.find(conditions, fn({_, projector, tester}) ->
         projector == target_projector && tester.(projection)
       end)
 

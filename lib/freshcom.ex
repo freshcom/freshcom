@@ -1,15 +1,11 @@
 defmodule Freshcom do
   import FCSupport.Struct
-  import FCSupport.ControlFlow, only: [tt_wrap: 1]
 
   use OK.Pipe
 
-  alias Phoenix.PubSub
   alias FCIdentity.RegisterUser
   alias FCIdentity.UserRegistered
-  alias Freshcom.PubSubServer
-  alias Freshcom.{Router, Repo, Projector}
-  alias Freshcom.{UserProjector, AccountProjector}
+  alias Freshcom.{Router, Projector}
 
   def register_user(%{fields: fields}) do
     Projector.subscribe()

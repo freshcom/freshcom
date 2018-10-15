@@ -14,7 +14,7 @@ defmodule Freshcom.UserProjector do
     Multi.insert(multi, :user, user)
   end
 
-  def after_update(event, metadata, changes) do
+  def after_update(_, _, changes) do
     PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.user})
     :ok
   end

@@ -4,8 +4,7 @@ defmodule Freshcom.AccountProjector do
 
   alias Freshcom.Account
   alias FCIdentity.{
-    AccountCreated,
-    AccountInfoUpdated
+    AccountCreated
   }
 
   project(%AccountCreated{} = event, _metadata) do
@@ -13,7 +12,7 @@ defmodule Freshcom.AccountProjector do
     Multi.insert(multi, :account, account)
   end
 
-  def after_update(event, metadata, changes) do
+  def after_update(_, _, changes) do
     PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.account})
     :ok
   end
