@@ -2,13 +2,9 @@ defmodule FCIdentity.UsernameStore do
   @doc """
   Keep the the username from the given event for future use.
   """
-  @spec put(%{
-    required(:username) => String.t(),
-    required(:type) => String.t(),
-    optional(:account_id) => String.t()
-  }) :: :ok | {:error, :key_already_exist}
-  def put(event) do
-    key = generate_key(event)
+  @spec put(String.t(), String.t() | nil) :: :ok | {:error, :key_already_exist}
+  def put(username, account_id \\ nil) do
+    key = generate_key(username, account_id)
 
     case FCStateStorage.put(key, %{}, allow_overwrite: false) do
       {:ok, _} -> :ok
@@ -19,15 +15,9 @@ defmodule FCIdentity.UsernameStore do
   @doc """
   Return `true` if username exist, otherwise `false`
   """
-  @spec exist?(String.t()) :: boolean
-  def exist?(username) do
-    generate_key(%{type: "standard", username: username})
-    |> do_exist?()
-  end
-
-  @spec exist?(String.t(), String.t()) :: boolean
-  def exist?(username, account_id) do
-    generate_key(%{type: "managed", account_id: account_id, username: username})
+  @spec exist?(String.t(), String.t() | nil) :: boolean
+  def exist?(username, account_id \\ nil) do
+    generate_key(username, account_id)
     |> do_exist?()
   end
 
@@ -38,11 +28,11 @@ defmodule FCIdentity.UsernameStore do
     end
   end
 
-  defp generate_key(%{type: "standard", username: username}) do
+  defp generate_key(username, nil) do
     "fc_identity/username/#{username}"
   end
 
-  defp generate_key(%{type: "managed", account_id: account_id, username: username}) do
+  defp generate_key(username, account_id) do
     "fc_identity/username/#{account_id}/#{username}"
   end
 end

@@ -5,9 +5,13 @@ defmodule FCIdentity.TypeKeeper do
     name: "a64a6d5d-fc8c-4911-9715-d5e0ecdc9a82"
 
   alias FCStateStorage.GlobalStore.UserTypeStore
-  alias FCIdentity.UserAdded
+  alias FCIdentity.{UserRegistered, UserAdded}
 
-  def handle(%UserAdded{} = event, _metadata) do
-    UserTypeStore.put(event.user_id, event.type)
+  def handle(%UserRegistered{} = event, _) do
+    UserTypeStore.put(event.user_id, "standard")
+  end
+
+  def handle(%UserAdded{} = event, _) do
+    UserTypeStore.put(event.user_id, "managed")
   end
 end

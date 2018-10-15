@@ -5,9 +5,13 @@ defmodule FCIdentity.UsernameKeeper do
     name: "750e4669-c458-472a-a9a3-6b00d27ec14f"
 
   alias FCIdentity.UsernameStore
-  alias FCIdentity.UserAdded
+  alias FCIdentity.{UserRegistered, UserAdded}
 
-  def handle(%UserAdded{} = event, _metadata) do
-    UsernameStore.put(event)
+  def handle(%UserRegistered{} = event, _) do
+    UsernameStore.put(event.username)
+  end
+
+  def handle(%UserAdded{} = event, _) do
+    UsernameStore.put(event.username, event.account_id)
   end
 end
