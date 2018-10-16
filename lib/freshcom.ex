@@ -5,12 +5,12 @@ defmodule Freshcom do
 
   alias FCIdentity.RegisterUser
   alias FCIdentity.UserRegistered
-  alias Freshcom.{Router, Projector}
+  alias Freshcom.{Response, Router, Projector}
 
   def register_user(%{fields: fields}) do
     Projector.subscribe()
 
-    result =
+    response =
       %RegisterUser{}
       |> merge(fields)
       |> Router.dispatch(include_execution_result: true)
@@ -18,10 +18,11 @@ defmodule Freshcom do
       ~>> Projector.wait_for()
       |> normalize_wait_result()
       ~> Map.get(:user)
+      |> to_response()
 
     Projector.unsubscribe()
 
-    result
+    response
   end
 
   def normalize_wait_result({:error, {:timeout, _}}), do: {:error, {:timeout, :projector_wait}}
@@ -29,5 +30,17 @@ defmodule Freshcom do
 
   def find_event(%{events: events}, module) do
     Enum.find(events, &(&1.__struct__ == module))
+  end
+
+  defp to_response({:ok, data}) do
+    {:ok, %Response{data: data}}
+  end
+
+  defp to_response({:error, {:validation_failed, errors}}) do
+    {:error, %Response{errors: errors}}
+  end
+
+  defp to_response(result) do
+    raise "unexpected result returned: #{result}"
   end
 end

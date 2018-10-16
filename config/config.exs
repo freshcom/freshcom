@@ -1,8 +1,5 @@
 use Mix.Config
 
-config :freshcom,
-  ecto_repos: [Freshcom.Repo]
-
 config :commanded,
   event_store_adapter: Commanded.EventStore.Adapters.EventStore,
   pubsub: [
@@ -20,6 +17,9 @@ config :ex_aws, :retries,
   max_backoff_in_ms: 10_000
 
 config :fc_identity, :email_regex, ~r/^[A-Za-z0-9._%+-+']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/
+
+config :freshcom,
+  ecto_repos: [Freshcom.Repo]
 
 config :freshcom,
   pubsub: [
