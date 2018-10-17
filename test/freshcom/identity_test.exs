@@ -1,9 +1,11 @@
-defmodule FreshcomTest do
+defmodule Freshcom.IdentityTest do
   use Freshcom.IntegrationCase
+
+  alias Freshcom.Identity
 
   describe "register_user/1" do
     test "with invalid request" do
-      assert {:error, %{errors: errors}} = Freshcom.register_user(%Request{})
+      assert {:error, %{errors: errors}} = Identity.register_user(%Request{})
       assert length(errors) > 0
     end
 
@@ -18,7 +20,7 @@ defmodule FreshcomTest do
         }
       }
 
-      assert {:ok, %{data: data}} = Freshcom.register_user(request)
+      assert {:ok, %{data: data}} = Identity.register_user(request)
       assert data.id
     end
   end
