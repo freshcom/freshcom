@@ -8,8 +8,15 @@ defmodule Freshcom.Supervisor do
   end
 
   def init(_) do
-    children = Freshcom.PubSub.child_spec() ++ [
+    children = [
+      # Services
+      FCIdentity.Supervisor,
+
+      # Infrastructure
+      Freshcom.PubSub,
       Freshcom.Repo,
+
+      # Projectors
       Freshcom.AccountProjector,
       Freshcom.UserProjector
     ]

@@ -16,13 +16,17 @@ defmodule Freshcom.MixProject do
   def application do
     [
       mod: {Freshcom.Application, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      included_applications: [
+        :fc_identity
+      ]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:fc_base, path: "base/fc_base"},
       {:fc_identity, path: "services/fc_identity"},
       {:ecto, "~> 2.1"},
       {:postgrex, "~> 0.13"},
