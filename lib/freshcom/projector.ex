@@ -1,9 +1,6 @@
 defmodule Freshcom.Projector do
-
-  alias FCIdentity.UserRegistered
   alias Phoenix.PubSub
   alias Freshcom.PubSubServer
-  alias Freshcom.{UserProjector, AccountProjector}
 
   defmacro __using__(_) do
     quote do
@@ -25,14 +22,6 @@ defmodule Freshcom.Projector do
 
   def unsubscribe() do
     PubSub.unsubscribe(PubSubServer, topic())
-  end
-
-  def wait_for(%UserRegistered{user_id: user_id}) do
-    wait([
-      {:user, UserProjector, &(&1.id == user_id)},
-      {:live_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "live")},
-      {:test_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "test")}
-    ])
   end
 
   def wait(conditions, opts \\ []) do

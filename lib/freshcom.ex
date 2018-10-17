@@ -5,7 +5,7 @@ defmodule Freshcom do
 
   alias FCIdentity.RegisterUser
   alias FCIdentity.UserRegistered
-  alias Freshcom.{Response, Router, Projector}
+  alias Freshcom.{Response, Router, Projector, ProjectionWaiter}
 
   def register_user(%{fields: fields}) do
     Projector.subscribe()
@@ -15,7 +15,7 @@ defmodule Freshcom do
       |> merge(fields)
       |> Router.dispatch(include_execution_result: true)
       ~> find_event(UserRegistered)
-      ~>> Projector.wait_for()
+      ~>> ProjectionWaiter.wait_for()
       |> normalize_wait_result()
       ~> Map.get(:user)
       |> to_response()
