@@ -14,9 +14,7 @@ defmodule FCIdentity.RouterCase do
     {:ok, _} = Application.ensure_all_started(:fc_identity)
 
     on_exit(fn ->
-      :ok = Application.stop(:fc_identity)
       :ok = Application.stop(:commanded)
-      :ok = Application.stop(:eventstore)
 
       FCBase.EventStore.reset!()
     end)
