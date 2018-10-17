@@ -9,6 +9,9 @@ config :commanded,
     ]
   ]
 
+config :commanded_ecto_projections,
+  repo: Freshcom.Repo
+
 config :ex_aws, region: System.get_env("AWS_REGION")
 
 config :ex_aws, :retries,

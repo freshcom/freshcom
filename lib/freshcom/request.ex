@@ -3,7 +3,7 @@ defmodule Freshcom.Request do
 
   typedstruct do
     field :requester, map()
-    field :fields, map()
+    field :fields, map(), default: %{}
     field :identifiers, map()
   end
 end
