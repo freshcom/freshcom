@@ -18,7 +18,7 @@ defmodule FCIdentity.RouterCase do
       :ok = Application.stop(:commanded)
       :ok = Application.stop(:eventstore)
 
-      FCIdentity.Storage.reset!()
+      FCBase.EventStore.reset!()
     end)
 
     :ok

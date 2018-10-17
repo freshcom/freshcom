@@ -1,6 +1,5 @@
 use Mix.Config
 
-config :logger, level: :warn
 config :ex_unit, capture_log: true
 
 config :argon2_elixir, t_cost: 1, m_cost: 8
@@ -12,8 +11,6 @@ config :eventstore, EventStore.Storage,
   hostname: "localhost",
   pool_size: 10
 
-# config :commanded, default_consistency: :strong
-
-# config :fc_identity, FCIdentity.SimpleStore, FCIdentity.DynamoStore
+config :logger, level: :warn
 
 config :fc_state_storage, adapter: FCStateStorage.MemoryAdapter
