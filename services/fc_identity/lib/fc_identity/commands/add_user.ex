@@ -45,7 +45,7 @@ defmodule FCIdentity.AddUser do
   validates :status, presence: true, inclusion: @valid_statuses
   validates :username, presence: true, length: [min: 3]
   validates :password, presence: true, length: [min: 8]
-  validates :email, format: @email_regex
+  validates :email, format: [with: @email_regex, allow_nil: true]
 
   validates :role, presence: true, inclusion: @valid_roles
 end
