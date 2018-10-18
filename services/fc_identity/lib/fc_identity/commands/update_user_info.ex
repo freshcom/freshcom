@@ -8,7 +8,7 @@ defmodule FCIdentity.UpdateUserInfo do
     field :requester_role, String.t()
     field :account_id, String.t()
 
-    field :effective_keys, [atom], default: []
+    field :effective_keys, [String.t()], default: []
     field :locale, String.t()
 
     field :user_id, String.t()
