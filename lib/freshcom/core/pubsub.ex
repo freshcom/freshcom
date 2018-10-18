@@ -1,4 +1,6 @@
 defmodule Freshcom.PubSub do
+  @moduledoc false
+
   def child_spec(_) do
     config = Application.get_env(:freshcom, :pubsub)
     {adapter, config} = Keyword.pop(config, :adapter)

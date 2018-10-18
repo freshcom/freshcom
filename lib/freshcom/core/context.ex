@@ -5,6 +5,7 @@ defmodule Freshcom.Context do
   alias Freshcom.Response
   alias Freshcom.{Projector, Router}
 
+  @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
   def to_response({:ok, data}) do
     {:ok, %Response{data: data}}
   end
