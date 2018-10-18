@@ -1,5 +1,7 @@
 defmodule Freshcom.Context do
+  alias FCSupport.Struct
   alias Freshcom.Response
+  alias Freshcom.Router
 
   def to_response({:ok, data}) do
     {:ok, %Response{data: data}}
@@ -28,9 +30,18 @@ defmodule Freshcom.Context do
     Enum.find(events, &(&1.__struct__ == module))
   end
 
-  def put_requester(cmd, %{requester: requester}) do
+  def dispatch(cmd) do
+    Router.dispatch(cmd, include_execution_result: true)
+  end
+
+  def to_command(req, cmd) do
+    fields = Struct.atomize_keys(req.fields, Map.keys(cmd))
+
     cmd
-    |> Map.put(:requester_id, requester[:id])
-    |> Map.put(:account_id, requester[:account_id])
+    |> Struct.merge(fields)
+    |> Struct.put(:requester_id, req.requester[:id])
+    |> Struct.put(:account_id, req.requester[:account_id])
+    |> Struct.put(:effective_keys, Map.keys(fields))
+    |> Struct.put(:locale, req.locale)
   end
 end
