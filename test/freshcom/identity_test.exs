@@ -63,12 +63,15 @@ defmodule Freshcom.IdentityTest do
     test "with valid request" do
       user = register_user()
 
+      new_name = Faker.Name.name()
       request = %Request{
         requester: %{id: user.id, account_id: user.default_account_id},
         identifiers: %{"id" => user.id},
-        fields: %{"name" => Faker.Name.name()}
+        fields: %{"name" => new_name}
       }
+
       assert {:ok, %{data: data}} = Identity.update_user_info(request)
+      assert data.name == new_name
     end
   end
 end

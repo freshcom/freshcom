@@ -7,8 +7,7 @@ defmodule Freshcom.Projector do
       alias Ecto.{Changeset, Multi}
       alias Phoenix.PubSub
       alias Freshcom.{Projector, PubSubServer}
-
-      defdelegate struct_merge(dest, stc), to: FCSupport.Struct, as: :merge
+      alias FCSupport.Struct
     end
   end
 

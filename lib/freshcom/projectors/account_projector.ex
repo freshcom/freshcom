@@ -8,7 +8,7 @@ defmodule Freshcom.AccountProjector do
   }
 
   project(%AccountCreated{} = event, _metadata) do
-    account = struct_merge(%Account{id: event.account_id}, event)
+    account = Struct.merge(%Account{id: event.account_id}, event)
     Multi.insert(multi, :account, account)
   end
 

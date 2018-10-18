@@ -3,19 +3,35 @@ defmodule Freshcom.UserProjector do
   use Commanded.Projections.Ecto, name: "9708460c-a25a-4a14-b049-ea78af279746"
 
   alias Phoenix.PubSub
-  alias Freshcom.PubSubServer
+  alias Freshcom.{Repo, PubSubServer}
   alias Freshcom.User
   alias FCIdentity.{
-    UserRegistered
+    UserRegistered,
+    UserInfoUpdated
   }
 
   project(%UserRegistered{} = event, _metadata) do
-    user = struct_merge(%User{id: event.user_id}, event)
+    user = Struct.merge(%User{id: event.user_id}, event)
     Multi.insert(multi, :user, user)
+  end
+
+  project(%UserInfoUpdated{} = event, _metadata) do
+    changeset =
+      User
+      |> Repo.get(event.user_id)
+      |> changeset(event)
+
+    Multi.update(multi, :user, changeset)
   end
 
   def after_update(_, _, changes) do
     PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.user})
     :ok
+  end
+
+  def changeset(projection, event) do
+    effective_keys = Enum.map(event.effective_keys, &String.to_existing_atom/1)
+    changes = Map.take(event, effective_keys)
+    change(projection, changes)
   end
 end

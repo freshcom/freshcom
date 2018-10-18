@@ -1,7 +1,9 @@
 defmodule Freshcom.Context do
+  use OK.Pipe
+
   alias FCSupport.Struct
   alias Freshcom.Response
-  alias Freshcom.Router
+  alias Freshcom.{Projector, Router}
 
   def to_response({:ok, data}) do
     {:ok, %Response{data: data}}
@@ -26,12 +28,24 @@ defmodule Freshcom.Context do
   def normalize_wait_result({:error, {:timeout, _}}), do: {:error, {:timeout, :projection_wait}}
   def normalize_wait_result(other), do: other
 
-  def find_event(%{events: events}, module) do
+  def find_event(events, module) do
     Enum.find(events, &(&1.__struct__ == module))
   end
 
-  def dispatch(cmd) do
-    Router.dispatch(cmd, include_execution_result: true)
+  def dispatch_and_wait(cmd, event_module, wait_func) do
+    Projector.subscribe()
+
+    result =
+      cmd
+      |> Router.dispatch(include_execution_result: true)
+      ~> Map.get(:events)
+      ~> find_event(event_module)
+      ~>> wait_func.()
+      |> normalize_wait_result()
+
+    Projector.unsubscribe()
+
+    result
   end
 
   def to_command(req, cmd) do

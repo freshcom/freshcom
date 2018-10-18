@@ -9,25 +9,19 @@ defmodule Freshcom.Identity do
     RegisterUser,
     UpdateUserInfo
   }
-  alias FCIdentity.UserRegistered
-  alias Freshcom.{Projector, ProjectionWaiter}
+  alias FCIdentity.{
+    UserRegistered,
+    UserInfoUpdated
+  }
+  alias Freshcom.Projector
+  alias Freshcom.{UserProjector, AccountProjector}
 
   def register_user(%Request{} = req) do
-    Projector.subscribe()
-
-    response =
-      req
-      |> to_command(%RegisterUser{})
-      |> dispatch()
-      ~> find_event(UserRegistered)
-      ~>> ProjectionWaiter.wait_for()
-      |> normalize_wait_result()
-      ~> Map.get(:user)
-      |> to_response()
-
-    Projector.unsubscribe()
-
-    response
+    req
+    |> to_command(%RegisterUser{})
+    |> dispatch_and_wait(UserRegistered)
+    ~> Map.get(:user)
+    |> to_response()
   end
 
   def update_user_info(%Request{} = req) do
@@ -36,8 +30,26 @@ defmodule Freshcom.Identity do
     req
     |> to_command(%UpdateUserInfo{})
     |> Map.put(:user_id, identifiers[:id])
-    |> dispatch()
+    |> dispatch_and_wait(UserInfoUpdated)
     ~> Map.get(:user)
     |> to_response()
+  end
+
+  defp dispatch_and_wait(cmd, event) do
+    dispatch_and_wait(cmd, event, &wait/1)
+  end
+
+  defp wait(%UserRegistered{user_id: user_id}) do
+    Projector.wait([
+      {:user, UserProjector, &(&1.id == user_id)},
+      {:live_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "live")},
+      {:test_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "test")}
+    ])
+  end
+
+  defp wait(%UserInfoUpdated{user_id: user_id}) do
+    Projector.wait([
+      {:user, UserProjector, &(&1.id == user_id)}
+    ])
   end
 end
