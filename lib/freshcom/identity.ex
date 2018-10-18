@@ -26,6 +26,14 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def add_user(%Request{} = req) do
+    req
+    |> to_command(%AddUser{})
+    |> dispatch_and_wait(UserAdded)
+    ~> Map.get(:user)
+    |> to_response()
+  end
+
   def update_user_info(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -33,14 +41,6 @@ defmodule Freshcom.Identity do
     |> to_command(%UpdateUserInfo{})
     |> Map.put(:user_id, identifiers[:id])
     |> dispatch_and_wait(UserInfoUpdated)
-    ~> Map.get(:user)
-    |> to_response()
-  end
-
-  def add_user(%Request{} = req) do
-    req
-    |> to_command(%AddUser{})
-    |> dispatch_and_wait(UserAdded)
     ~> Map.get(:user)
     |> to_response()
   end
@@ -57,7 +57,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%event{user_id: user_id}) when event in [UserInfoUpdated, UserAdded] do
+  defp wait(%event{user_id: user_id}) when event in [UserAdded, UserInfoUpdated] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])

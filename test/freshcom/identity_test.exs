@@ -59,7 +59,6 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.add_user(request)
     end
 
-    @tag :wip
     test "with valid request" do
       user = register_user()
 
