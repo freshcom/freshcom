@@ -9,8 +9,16 @@ defmodule Freshcom.Context do
     {:error, %Response{errors: errors}}
   end
 
+  def to_response({:error, {:not_found, _}}) do
+    {:error, :not_found}
+  end
+
+  def to_response({:error, :access_denied}) do
+    {:error, :access_denied}
+  end
+
   def to_response(result) do
-    raise "unexpected result returned: #{result}"
+    raise "unexpected result returned: #{inspect result}"
   end
 
   def normalize_wait_result({:error, {:timeout, _}}), do: {:error, {:timeout, :projection_wait}}
@@ -22,7 +30,7 @@ defmodule Freshcom.Context do
 
   def put_requester(cmd, %{requester: requester}) do
     cmd
-    |> Map.put(:requester_id, requester[:requester_id])
+    |> Map.put(:requester_id, requester[:id])
     |> Map.put(:account_id, requester[:account_id])
   end
 end
