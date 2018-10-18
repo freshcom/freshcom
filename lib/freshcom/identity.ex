@@ -4,7 +4,10 @@ defmodule Freshcom.Identity do
 
   use OK.Pipe
 
-  alias FCIdentity.RegisterUser
+  alias FCIdentity.{
+    RegisterUser,
+    UpdateUserInfo
+  }
   alias FCIdentity.UserRegistered
   alias Freshcom.{Router, Projector, ProjectionWaiter}
 
@@ -24,5 +27,21 @@ defmodule Freshcom.Identity do
     Projector.unsubscribe()
 
     response
+  end
+
+  def update_user_info(%{identifiers: identifiers, fields: fields, locale: locale} = request) do
+    cmd = %UpdateUserInfo{}
+    identifiers = atomize_keys(identifiers, ["id"])
+    fields = atomize_keys(fields, Map.keys(%UpdateUserInfo{}))
+
+    cmd
+    |> merge(fields)
+    |> put_requester(request)
+    |> Map.put(:locale, locale)
+    |> Map.put(:effective_keys, Map.keys(fields))
+    |> Map.put(:user_id, identifiers[:id])
+    |> Router.dispatch(include_execution_result: true)
+    ~> Map.get(:user)
+    |> to_response()
   end
 end

@@ -24,4 +24,10 @@ defmodule Freshcom.IdentityTest do
       assert data.id
     end
   end
+
+  describe "update_user_info/1" do
+    test "with invalid request" do
+      assert {:error, _} = Identity.update_user_info(%Request{})
+    end
+  end
 end

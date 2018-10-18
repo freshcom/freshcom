@@ -19,4 +19,10 @@ defmodule Freshcom.Context do
   def find_event(%{events: events}, module) do
     Enum.find(events, &(&1.__struct__ == module))
   end
+
+  def put_requester(cmd, %{requester: requester}) do
+    cmd
+    |> Map.put(:requester_id, requester[:requester_id])
+    |> Map.put(:account_id, requester[:account_id])
+  end
 end
