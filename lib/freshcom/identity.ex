@@ -7,10 +7,12 @@ defmodule Freshcom.Identity do
   alias Freshcom.Request
   alias FCIdentity.{
     RegisterUser,
-    UpdateUserInfo
+    UpdateUserInfo,
+    AddUser
   }
   alias FCIdentity.{
     UserRegistered,
+    UserAdded,
     UserInfoUpdated
   }
   alias Freshcom.Projector
@@ -35,6 +37,14 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def add_user(%Request{} = req) do
+    req
+    |> to_command(%AddUser{})
+    |> dispatch_and_wait(UserAdded)
+    ~> Map.get(:user)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
@@ -47,7 +57,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%UserInfoUpdated{user_id: user_id}) do
+  defp wait(%event{user_id: user_id}) when event in [UserInfoUpdated, UserAdded] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])

@@ -41,6 +41,43 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "add_user/1" do
+    test "with invalid request" do
+      assert {:error, %{errors: errors}} = Identity.add_user(%Request{})
+      assert length(errors) > 0
+    end
+
+    test "with unauthorized requester" do
+      request = %Request{
+        requester: %{id: nil, account_id: uuid4()},
+        fields: %{
+          "username" => Faker.Internet.user_name(),
+          "role" => "developer",
+          "password" => Faker.String.base64(12)
+        }
+      }
+      assert {:error, :access_denied} = Identity.add_user(request)
+    end
+
+    @tag :wip
+    test "with valid request" do
+      user = register_user()
+
+      request = %Request{
+        requester: %{id: user.id, account_id: user.default_account_id},
+        fields: %{
+          "username" => Faker.Internet.user_name(),
+          "role" => "developer",
+          "password" => Faker.String.base64(12)
+        }
+      }
+
+      assert {:ok, %{data: data}} = Identity.add_user(request)
+      assert data.id
+      assert data.username == request.fields["username"]
+    end
+  end
+
   describe "update_user_info/1" do
     test "with missing identifiers" do
       assert {:error, %{errors: errors}} = Identity.update_user_info(%Request{})
@@ -59,7 +96,6 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.update_user_info(request)
     end
 
-    @tag :focus
     test "with valid request" do
       user = register_user()
 

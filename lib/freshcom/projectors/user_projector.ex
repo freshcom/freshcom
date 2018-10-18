@@ -9,10 +9,16 @@ defmodule Freshcom.UserProjector do
   alias Freshcom.User
   alias FCIdentity.{
     UserRegistered,
+    UserAdded,
     UserInfoUpdated
   }
 
   project(%UserRegistered{} = event, _metadata) do
+    user = Struct.merge(%User{id: event.user_id}, event)
+    Multi.insert(multi, :user, user)
+  end
+
+  project(%UserAdded{} = event, _metadata) do
     user = Struct.merge(%User{id: event.user_id}, event)
     Multi.insert(multi, :user, user)
   end
