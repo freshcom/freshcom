@@ -22,6 +22,21 @@ defmodule FCSupport.Struct do
     merge(dest, src, opts)
   end
 
+  @doc """
+  Similar to `Map.put/3` except this function will safely ignore any given `key`
+  that is not part of the given `struct`.
+  """
+  @spec put(struct, atom, any) :: struct
+  def put(struct, key, value) do
+    keys = Map.keys(struct)
+
+    if Enum.member?(keys, key) do
+      Map.put(struct, key, value)
+    else
+      struct
+    end
+  end
+
   def atomize_keys(m, permitted \\ nil) do
     permitted = permitted || Map.keys(m)
     permitted = stringify_list(permitted)
