@@ -42,7 +42,6 @@ defmodule FCIdentity.AddUser do
 
   validates :account_id, presence: true, uuid: true
 
-  validates :_type_, presence: true, inclusion: @valid_types
   validates :status, presence: true, inclusion: @valid_statuses
   validates :username, presence: true, length: [min: 3]
   validates :password, presence: true, length: [min: 8]
