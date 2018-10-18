@@ -19,7 +19,7 @@ defmodule Freshcom.UserProjector do
     changeset =
       User
       |> Repo.get(event.user_id)
-      |> changeset(event)
+      |> Projection.changeset(event)
 
     Multi.update(multi, :user, changeset)
   end
@@ -27,11 +27,5 @@ defmodule Freshcom.UserProjector do
   def after_update(_, _, changes) do
     PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.user})
     :ok
-  end
-
-  def changeset(projection, event) do
-    effective_keys = Enum.map(event.effective_keys, &String.to_existing_atom/1)
-    changes = Map.take(event, effective_keys)
-    change(projection, changes)
   end
 end

@@ -7,4 +7,10 @@ defmodule Freshcom.Projection do
       @foreign_key_type :binary_id
     end
   end
+
+  def changeset(projection, event) do
+    effective_keys = Enum.map(event.effective_keys, &String.to_existing_atom/1)
+    changes = Map.take(event, effective_keys)
+    Ecto.Changeset.change(projection, changes)
+  end
 end
