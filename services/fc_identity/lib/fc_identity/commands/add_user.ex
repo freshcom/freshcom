@@ -10,14 +10,14 @@ defmodule FCIdentity.AddUser do
 
     field :user_id, String.t()
     field :status, String.t(), default: "active"
-    field :username, String.t(), default: ""
-    field :password, String.t(), default: ""
-    field :email, String.t(), default: ""
+    field :username, String.t()
+    field :password, String.t()
+    field :email, String.t()
     field :email_verified, boolean(), default: true
 
-    field :first_name, String.t(), default: ""
-    field :last_name, String.t(), default: ""
-    field :name, String.t(), default: ""
+    field :first_name, String.t()
+    field :last_name, String.t()
+    field :name, String.t()
 
     field :role, String.t()
   end
@@ -38,14 +38,12 @@ defmodule FCIdentity.AddUser do
     "customer"
   ]
 
-  @valid_types ["standard", "managed"]
-
   validates :account_id, presence: true, uuid: true
 
   validates :status, presence: true, inclusion: @valid_statuses
   validates :username, presence: true, length: [min: 3]
   validates :password, presence: true, length: [min: 8]
-  validates :email, format: [with: @email_regex, allow_nil: true]
+  validates :email, format: [with: @email_regex, allow_blank: true]
 
   validates :role, presence: true, inclusion: @valid_roles
 end

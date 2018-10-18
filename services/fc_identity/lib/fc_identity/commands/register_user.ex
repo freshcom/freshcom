@@ -7,14 +7,14 @@ defmodule FCIdentity.RegisterUser do
   typedstruct do
     field :user_id, String.t()
 
-    field :username, String.t(), default: ""
-    field :password, String.t(), default: ""
-    field :email, String.t(), default: ""
+    field :username, String.t()
+    field :password, String.t()
+    field :email, String.t()
     field :is_term_accepted, boolean, default: false
 
-    field :first_name, String.t(), default: ""
-    field :last_name, String.t(), default: ""
-    field :name, String.t(), default: ""
+    field :first_name, String.t()
+    field :last_name, String.t()
+    field :name, String.t()
 
     field :account_name, String.t(), default: "Unamed Account"
     field :default_locale, String.t(), default: "en"
