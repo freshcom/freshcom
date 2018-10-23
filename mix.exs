@@ -36,6 +36,7 @@ defmodule Freshcom.MixProject do
       {:postgrex, "~> 0.13"},
       {:commanded, "~> 0.17"},
       {:commanded_ecto_projections, "~> 0.7"},
+      {:inflex, "~> 1.10"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:faker, "~> 0.11", only: [:test, :dev]}
     ]

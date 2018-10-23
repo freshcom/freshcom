@@ -2,7 +2,6 @@ defmodule Freshcom.Account do
   use Freshcom.Projection
 
   schema "accounts" do
-    field :owner_id, UUID
     field :mode, :string
     field :live_account_id, UUID
     field :test_account_id, UUID
@@ -21,5 +20,7 @@ defmodule Freshcom.Account do
     field :translations, :map, default: %{}
 
     timestamps()
+
+    belongs_to :owner, Freshcom.User
   end
 end

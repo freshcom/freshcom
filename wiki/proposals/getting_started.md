@@ -24,7 +24,7 @@ Once freshcom is installed you can start iex to play around with the modules tha
 
 ```elixir
 iex> alias Freshcom.{Request, Identity}
-iex> Identity.Service.register_user(%Request{fields: %{account_name: "Starship Inc.", username: "roybao", name: "Roy Bao", password: "test1234"}})
+iex> Identity.register_user(%Request{fields: %{account_name: "Starship Inc.", username: "roybao", name: "Roy Bao", password: "test1234"}})
 ```
 
 For a list of all available modules and the function they provide please the [documentation](#).

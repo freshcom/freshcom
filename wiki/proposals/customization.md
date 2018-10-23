@@ -174,16 +174,10 @@ config :freshcom, :event_handlers, %{
 }
 ```
 
-## Customize Router
+## Using Projection Repo
 
-If you want to replace the entire logic for handling a specific command then you can disable the router which handle the dispatching of that command and then use your own router which dispatch that command to the your custom handler and then add your custom router to freshcom.
+You can also use the Projection Repo directly, however we do not recommand directly using the projection Repo in your web layer.
 
 ```elixir
-config :fc_identity, :commands, %{
-  except: [FCIdentity.RegisterUser]
-}
-
-config :freshcom, :routers, [
-  MyApp.Router
-]
+Freshcom.Repo.all(User)
 ```
