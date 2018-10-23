@@ -54,7 +54,7 @@ defmodule MonkQL do
       assoc_assoc_queries = assoc_queries(assoc_queries, assoc)
       compared_assoc_query = comparison(assoc_query, assoc_field, comparison, assoc_assoc_queries)
 
-      %{owner_key: owner_key, related_key: related_key} = relfection(query, assoc)
+      %{owner_key: owner_key, related_key: related_key} = reflection(query, assoc)
       from(q in query,
         join: caq in subquery(compared_assoc_query),
         on: field(q, ^owner_key) == field(caq, ^related_key),
@@ -140,12 +140,12 @@ defmodule MonkQL do
     if assoc_queries[assoc] do
       assoc_queries[assoc]
     else
-      reflection = relfection(query, assoc)
+      reflection = reflection(query, assoc)
       default_query = Queryable.to_query(reflection.queryable)
     end
   end
 
-  def relfection(query, assoc) do
+  def reflection(query, assoc) do
     {_, queryable} = query.from
     queryable.__schema__(:association, String.to_existing_atom(assoc))
   end
