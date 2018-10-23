@@ -8,6 +8,9 @@ defmodule Freshcom.Request do
     field :filter, map(), default: %{}
     field :include, [String.t()]
     field :locale, String.t()
-    field :_include_, map(), default: %{paths: [], filters: []}
+
+    field :_include_filters_, map(), default: %{}
+    field :_filterable_fields_, atom | list, default: :all
+
   end
 end

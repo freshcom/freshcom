@@ -45,6 +45,15 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  # def list_user(%Request{} = req) do
+  #   req
+  #   |> authorize()
+  #   |> to_query(User)
+  #   |> Repo.all()
+  #   |> preload(req)
+  #   |> to_response
+  # end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end

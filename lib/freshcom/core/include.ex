@@ -1,31 +1,32 @@
 defmodule Freshcom.Include do
   alias Ecto.Queryable
 
-  def to_preloads(schema, include, filters \\ [])
+  @spec to_ecto_preloads(module, String.t() | list, map) :: list
+  def to_ecto_preloads(schema, include, filters \\ %{})
 
-  def to_preloads(_, [], _), do: []
-  def to_preloads(_, nil, _), do: []
+  def to_ecto_preloads(_, [], _), do: []
+  def to_ecto_preloads(_, nil, _), do: []
 
-  def to_preloads(schema, include, filters) when is_binary(include) do
-    to_preloads(schema, to_preload_paths(include), filters)
+  def to_ecto_preloads(schema, include, filters) when is_binary(include) do
+    to_ecto_preloads(schema, to_preload_paths(include), filters)
   end
 
-  def to_preloads(schema, [assoc | rest], filters) do
-    to_preloads(schema, assoc, filters) ++ to_preloads(schema, rest, filters)
+  def to_ecto_preloads(schema, [assoc | rest], filters) do
+    to_ecto_preloads(schema, assoc, filters) ++ to_ecto_preloads(schema, rest, filters)
   end
 
-  def to_preloads(schema, {assoc, nested}, filters) do
+  def to_ecto_preloads(schema, {assoc, nested}, filters) do
     reflection = schema.__schema__(:association, assoc)
     query = Queryable.to_query(reflection.queryable)
 
     assoc_schema = reflection.related
-    nested_preload = to_preloads(assoc_schema, nested, filters)
+    nested_preload = to_ecto_preloads(assoc_schema, nested, filters)
 
     Keyword.put([], assoc, {query, nested_preload})
   end
 
-  def to_preloads(schema, assoc, filters) when is_atom(assoc) do
-    to_preloads(schema, {assoc, nil}, filters)
+  def to_ecto_preloads(schema, assoc, filters) when is_atom(assoc) do
+    to_ecto_preloads(schema, {assoc, nil}, filters)
   end
 
   @doc """
