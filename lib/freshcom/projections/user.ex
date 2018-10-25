@@ -2,7 +2,6 @@ defmodule Freshcom.User do
   use Freshcom.Projection
 
   schema "users" do
-    field :account_id, :binary_id
     field :default_account_id, :binary_id
 
     field :type, :string
@@ -29,5 +28,7 @@ defmodule Freshcom.User do
     field :translations, :map, default: %{}
 
     timestamps()
+
+    belongs_to :account, Freshcom.Account
   end
 end
