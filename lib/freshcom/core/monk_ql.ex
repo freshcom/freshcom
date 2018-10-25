@@ -8,51 +8,70 @@ defmodule MonkQL do
   to_ecto_query(query, %{
     "$or" => [
       %{"label" => %{"$eq" => "test"}},
-      %{"quantity" => %{"$not" => %{"$gt" => 1.99}}}
+      %{"quantity" => %{"$not" => %{"$not" => %{"$gt" => 1.99}}}}
+    ],
+    "type" => %{"$in" => ["standard", "custom"]}
+  })
+
+  to_ecto_query(query, %{
+    "$or" => [
+      %{"$and" => [
+        %{"test1" => "lol"},
+        %{"test2" => "woot"}
+      ]},
+      %{"quantity" => %{"$not" => %{"$not" => %{"$gt" => 1.99}}}},
+      %{"$and" => [
+        %{"test1" => "lol"},
+        %{"test2" => "woot"}
+      ]}
     ],
     "type" => %{"$in" => ["standard", "custom"]}
   })
   """
 
+  # (test1 = 'lol' AND test2 = 'woot')
+
   import Ecto.Query
   alias Ecto.Queryable
 
-  def to_ecto_query(query, statments, permitted_fields, assoc_queries) do
-    statments(query, "$and", statments, permitted_fields, assoc_queries)
+  def to_ecto_query(query, statements, permitted_fields, assoc_queries) do
+    statements(query, statements, permitted_fields, assoc_queries)
   end
 
-  def statments(query, "$and", statments, permitted_fields, assoc_queries) do
-    Enum.reduce(statments, query, fn({operator_or_field, statments_or_comparison}, acc_query) ->
-      statments(acc_query, operator_or_field, statments_or_comparison, permitted_fields, assoc_queries)
+  def statements(query, %{"$and" => statements}, permitted_fields, assoc_queries) do
+    Enum.reduce(statements, query, fn(statement, acc_query) ->
+      statements(acc_query, statement, permitted_fields, assoc_queries)
     end)
   end
 
-  def statments(query, "$or", statments, permitted_fields, assoc_queries) do
-
+  def statements(query, %{"$or" => statements}, permitted_fields, assoc_queries) do
+    Enum.reduce(statements, query, fn(statement, acc_query) ->
+      statements(acc_query, statement, permitted_fields, assoc_queries)
+    end)
   end
 
-  def statments(query, "$not", statments, permitted_fields, assoc_queries) do
+  def statements(_, "$"<>_ = lop, _, _, _), do: {:error, {:invalid_operator, lop}}
 
-  end
+  def statements(query, comparison, permitted_fields, assoc_queries) when map_size(comparison) == 1 do
+    {field, expression} = Enum.at(comparison, 0)
 
-  def statments(_, "$"<>_ = lop, _, _, _), do: {:error, {:invalid_operator, lop}}
-
-  def statments(query, field, comparison, permitted_fields, assoc_queries) do
-    if field in permitted_fields do
-      compare_field(query, field, comparison, assoc_queries)
+    if permitted_fields == :all || field in permitted_fields do
+      compare_field(query, field, expression, assoc_queries)
     else
       {:error, {:invalid_field, field}}
     end
   end
 
-  def compare_field(query, field, comparison, assoc_queries) do
+  def statements(_, comparison, _, _), do: {:error, {:invalid_comparison, comparison}}
+
+  def compare_field(query, field, expression, assoc_queries) do
     splitted = String.split(field, ".")
 
     if length(splitted) > 1 do
       {assoc, assoc_field} = assoc(field)
       assoc_query = assoc_query(query, assoc, assoc_queries)
       assoc_assoc_queries = assoc_queries(assoc_queries, assoc)
-      compared_assoc_query = comparison(assoc_query, assoc_field, comparison, assoc_assoc_queries)
+      compared_assoc_query = compare_field(assoc_query, assoc_field, expression, assoc_assoc_queries)
 
       %{owner_key: owner_key, related_key: related_key} = reflection(query, assoc)
       from(q in query,
@@ -61,7 +80,7 @@ defmodule MonkQL do
         select: q
       )
     else
-      compare_attr(query, String.to_existing_atom(field), comparison)
+      compare_attr(query, String.to_existing_atom(field), expression)
     end
   end
 
