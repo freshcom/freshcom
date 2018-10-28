@@ -3,6 +3,7 @@ defmodule Freshcom.Context do
 
   import Ecto.Query
 
+  alias Ecto.{Query, Queryable}
   alias FCSupport.Struct
   alias Freshcom.{Request, Response}
   alias Freshcom.{Repo, Filter, Include, Projector, Router}
@@ -75,22 +76,36 @@ defmodule Freshcom.Context do
     Repo.preload(struct_or_structs, preloads)
   end
 
-  def to_query(req, query) do
+  @spec to_query(Request.t(), Query.t() | map) :: Query.t()
+  def to_query(req, %Query{} = query) do
+    {_, queryable} = query.from
+    translatable_fields = if Keyword.has_key?(queryable.__info__(:functions), :translatable_fields) do
+      queryable.translatable_fields()
+    else
+      []
+    end
+
     query
     |> for_account(req.requester[:account_id])
-    |> filter_by(req.filter, req._filterable_fields_)
-    |> search(req.search, req._searchable_fields_)
-    |> sort(req.sort)
+    |> filter(req.filter, req._filterable_fields_)
+    |> search(req.search, req._searchable_fields_, req.locale, req._default_locale_, translatable_fields)
+    |> sort(req.sort, req._sortable_fields_)
     |> paginate(req.pagination)
   end
 
-  defp for_account(query, nil), do: query
+  def to_query(req, queryable) do
+    to_query(req, Queryable.to_query(queryable))
+  end
 
-  defp for_account(query, account_id) do
+  @spec for_account(Query.t(), String.t() | nil) :: Query.t()
+  def for_account(query, nil), do: query
+
+  def for_account(query, account_id) do
     from(q in query, where: q.account_id == ^account_id)
   end
 
-  defp filter_by(query, filter, filterable_fields) do
+  @spec filter(Query.t(), [map], [String.t()]) :: Query.t()
+  def filter(query, filter, filterable_fields) do
     if has_assoc_field(filterable_fields) do
       Filter.with_assoc(query, filter, filterable_fields)
     else
@@ -104,15 +119,69 @@ defmodule Freshcom.Context do
     end)
   end
 
-  defp paginate(query, pagination) do
+  def search(query, search, searchable_fields, locale, default_locale, translatable_fields) do
     query
   end
 
-  defp sort(query, sort) do
-    query
+  @spec sort(Query.t(), [map], [String.t()]) :: Query.t()
+  def sort(query, [], _), do: query
+  def sort(query, _, []), do: query
+
+  def sort(query, sort, sortable_fields) do
+    orderings =
+      Enum.reduce(sort, [], fn(sorter, acc) ->
+        {field, ordering} = Enum.at(sorter, 0)
+
+        if (field in sortable_fields) && (ordering in ["asc", "desc"]) do
+          acc ++ [{String.to_existing_atom(ordering), String.to_existing_atom(field)}]
+        else
+          acc
+        end
+      end)
+
+    order_by(query, ^orderings)
   end
 
-  defp search(query, search, searchable_fields) do
+  @spec paginate(Query.t(), map) :: Query.t()
+  def paginate(query, %{number: number} = pagination) when is_integer(number) do
+    size = pagination[:size] || 25
+    offset = size * (number - 1)
+
     query
+    |> limit(^size)
+    |> offset(^offset)
+  end
+
+  def paginate(query, pagination) do
+    before_sid = sid(query, pagination[:before_id])
+    after_sid = sid(query, pagination[:after_id])
+    size = pagination[:size] || 25
+    query = limit(query, ^size)
+
+    if before_sid || after_sid do
+      query
+      |> exclude(:order_by)
+      |> order_by(desc: :sid)
+      |> apply_cursor(before_sid, after_sid)
+    else
+      query
+    end
+  end
+
+  defp apply_cursor(query, before_sid, _) when is_integer(before_sid) do
+    where(query, [q], q.sid > ^before_sid)
+  end
+
+  defp apply_cursor(query, _, after_sid) when is_integer(after_sid) do
+    where(query, [q], q.sid < ^after_sid)
+  end
+
+  defp sid(_, nil), do: nil
+
+  defp sid(query, id) do
+    {_, queryable} = query.from
+    data = Repo.get(queryable, id)
+
+    if data, do: data.sid, else: nil
   end
 end

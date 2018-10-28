@@ -4,6 +4,7 @@ defmodule BlueJet.Repo.Migrations.CreateUser do
   def change do
     create table(:users, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :sid, :bigserial
 
       add :account_id, :binary_id
       add :default_account_id, :binary_id
@@ -36,6 +37,7 @@ defmodule BlueJet.Repo.Migrations.CreateUser do
       timestamps()
     end
 
+    create index(:users, :sid)
     create index(:users, [:account_id])
     create index(:users, [:account_id, :username])
     create index(:users, [:username])
@@ -43,5 +45,7 @@ defmodule BlueJet.Repo.Migrations.CreateUser do
     create index(:users, [:email])
     create index(:users, [:account_id, :status])
     create index(:users, [:status])
+
+    execute "ALTER SEQUENCE users_sid_seq START with 72018102 RESTART"
   end
 end

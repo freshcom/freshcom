@@ -4,6 +4,7 @@ defmodule BlueJet.Repo.Migrations.CreateAccount do
   def change do
     create table(:accounts, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :sid, :bigserial
 
       add :owner_id, :binary_id
       add :mode, :string
@@ -25,8 +26,11 @@ defmodule BlueJet.Repo.Migrations.CreateAccount do
       timestamps()
     end
 
+    create index(:accounts, :sid)
     create index(:accounts, :live_account_id)
     create index(:accounts, :test_account_id)
     create index(:accounts, :owner_id)
+
+    execute "ALTER SEQUENCE accounts_sid_seq START with 72018102 RESTART"
   end
 end

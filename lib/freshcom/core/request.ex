@@ -15,5 +15,6 @@ defmodule Freshcom.Request do
     field :_include_filters_, map(), default: %{}
     field :_filterable_fields_, atom | list, default: :all
     field :_searchable_fields_, list, default: []
+    field :_sortable_fields_, list, default: []
   end
 end
