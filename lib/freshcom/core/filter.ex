@@ -127,7 +127,8 @@ defmodule Freshcom.Filter do
     end
   end
 
-  defp is_assoc(field) do
+  @spec is_assoc(String.t()) :: boolean
+  def is_assoc(field) do
     length(String.split(field, ".")) > 1
   end
 

@@ -1,9 +1,11 @@
 defmodule Freshcom.Context do
   use OK.Pipe
 
+  import Ecto.Query
+
   alias FCSupport.Struct
   alias Freshcom.{Request, Response}
-  alias Freshcom.{Repo, Include, Projector, Router}
+  alias Freshcom.{Repo, Filter, Include, Projector, Router}
 
   @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
   def to_response({:ok, data}) do
@@ -73,7 +75,44 @@ defmodule Freshcom.Context do
     Repo.preload(struct_or_structs, preloads)
   end
 
-  def to_query(query, req) do
-    # MonkQL.to_ecto_query(query, req.filter, req._filterable_fields_, assoc_query)
+  def to_query(req, query) do
+    query
+    |> for_account(req.requester[:account_id])
+    |> filter_by(req.filter, req._filterable_fields_)
+    |> search(req.search, req._searchable_fields_)
+    |> sort(req.sort)
+    |> paginate(req.pagination)
+  end
+
+  defp for_account(query, nil), do: query
+
+  defp for_account(query, account_id) do
+    from(q in query, where: q.account_id == ^account_id)
+  end
+
+  defp filter_by(query, filter, filterable_fields) do
+    if has_assoc_field(filterable_fields) do
+      Filter.with_assoc(query, filter, filterable_fields)
+    else
+      Filter.attr_only(query, filter, filterable_fields)
+    end
+  end
+
+  defp has_assoc_field(fields) do
+    Enum.any?(fields, fn(field) ->
+      Filter.is_assoc(field)
+    end)
+  end
+
+  defp paginate(query, pagination) do
+    query
+  end
+
+  defp sort(query, sort) do
+    query
+  end
+
+  defp search(query, search, searchable_fields) do
+    query
   end
 end
