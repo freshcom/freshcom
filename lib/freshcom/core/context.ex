@@ -119,8 +119,39 @@ defmodule Freshcom.Context do
     end)
   end
 
-  def search(query, search, searchable_fields, locale, default_locale, translatable_fields) do
-    query
+  @spec search(Query.t(), String.t(), [String.t()], String.t(), String.t(), [String.t()]) :: Query.t()
+  def search(query, nil, _, _, _, _), do: query
+  def search(query, "", _, _, _, _), do: query
+  def search(query, _, [], _, _, _), do: query
+
+  def search(query, keyword, searchable_fields, locale, default_locale, _) when is_nil(locale) or (locale == default_locale) do
+    search_fields(query, keyword, searchable_fields)
+  end
+
+  def search(query, keyword, searchable_fields, locale, translatable_fields) do
+    search_translations(query, keyword, searchable_fields, locale, translatable_fields)
+  end
+
+  defp search_fields(query, keyword, searchable_fields) do
+    keyword = "%#{keyword}%"
+
+    Enum.reduce(searchable_fields, query, fn(field, query) ->
+      field = String.to_existing_atom(field)
+      from(q in query, or_where: ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
+    end)
+  end
+
+  defp search_translations(query, keyword, searchable_fields, locale, translatable_fields) do
+    keyword = "%#{keyword}%"
+
+    Enum.reduce(searchable_fields, query, fn(field, query) ->
+      if Enum.member?(translatable_fields, field) do
+        from q in query, or_where: ilike(fragment("?->?->>?", q.translations, ^locale, ^field), ^keyword)
+      else
+        field = String.to_existing_atom(field)
+        from q in query, or_where: ilike(fragment("?::varchar", field(q, ^field)), ^keyword)
+      end
+    end)
   end
 
   @spec sort(Query.t(), [map], [String.t()]) :: Query.t()
