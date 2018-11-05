@@ -19,6 +19,22 @@ defmodule Freshcom.IdentityTest do
     user
   end
 
+  defp add_user(account_id) do
+    request = %Request{
+      account_id: account_id,
+      fields: %{
+        "username" => Faker.Internet.user_name(),
+        "role" => "developer",
+        "password" => Faker.String.base64(12)
+      },
+      _role_: "sysdev"
+    }
+
+    {:ok, %{data: user}} = Identity.add_user(request)
+
+    user
+  end
+
   describe "register_user/1" do
     test "with invalid request" do
       assert {:error, %{errors: errors}} = Identity.register_user(%Request{})
@@ -49,7 +65,7 @@ defmodule Freshcom.IdentityTest do
 
     test "with unauthorized requester" do
       request = %Request{
-        requester: %{id: nil, account_id: uuid4()},
+        account_id: uuid4(),
         fields: %{
           "username" => Faker.Internet.user_name(),
           "role" => "developer",
@@ -63,7 +79,8 @@ defmodule Freshcom.IdentityTest do
       user = register_user()
 
       request = %Request{
-        requester: %{id: user.id, account_id: user.default_account_id},
+        requester_id: user.id,
+        account_id: user.default_account_id,
         fields: %{
           "username" => Faker.Internet.user_name(),
           "role" => "developer",
@@ -100,13 +117,30 @@ defmodule Freshcom.IdentityTest do
 
       new_name = Faker.Name.name()
       request = %Request{
-        requester: %{id: user.id, account_id: user.default_account_id},
+        requester_id: user.id,
+        account_id: user.default_account_id,
         identifiers: %{"id" => user.id},
         fields: %{"name" => new_name}
       }
 
       assert {:ok, %{data: data}} = Identity.update_user_info(request)
       assert data.name == new_name
+    end
+  end
+
+  describe "list_user/1" do
+    test "with valid request" do
+      user = register_user()
+      add_user(user.default_account_id)
+      add_user(user.default_account_id)
+
+      request = %Request{
+        requester_id: user.id,
+        account_id: user.default_account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.list_user(request)
+      assert length(data) == 2
     end
   end
 end

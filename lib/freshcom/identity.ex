@@ -1,6 +1,7 @@
 defmodule Freshcom.Identity do
-  import Freshcom.Context
   import FCSupport.Struct
+  import Freshcom.Context
+  import Freshcom.IdentityPolicy
 
   use OK.Pipe
 
@@ -15,8 +16,9 @@ defmodule Freshcom.Identity do
     UserAdded,
     UserInfoUpdated
   }
-  alias Freshcom.Projector
+  alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
+  alias Freshcom.User
 
   def register_user(%Request{} = req) do
     req
@@ -45,14 +47,15 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  # def list_user(%Request{} = req) do
-  #   req
-  #   |> authorize()
-  #   |> to_query(User)
-  #   |> Repo.all()
-  #   |> preload(req)
-  #   |> to_response
-  # end
+  def list_user(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:list_user)
+    ~> to_query(User)
+    ~> Repo.all()
+    ~> preload(req)
+    |> to_response()
+  end
 
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)

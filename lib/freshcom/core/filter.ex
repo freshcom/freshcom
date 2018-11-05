@@ -7,6 +7,8 @@ defmodule Freshcom.Filter do
   alias Ecto.Queryable
 
   @spec attr_only(Ecto.Query.t(), [map], [String.t()]) :: Ecto.Query.t()
+  def attr_only(query, [], _), do: query
+
   def attr_only(%Ecto.Query{} = query, statements, permitted_fields) do
     dynamic = do_attr_only("$and", statements, permitted_fields)
     from(q in query, where: ^dynamic)

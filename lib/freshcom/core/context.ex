@@ -7,6 +7,7 @@ defmodule Freshcom.Context do
   alias FCSupport.Struct
   alias Freshcom.{Request, Response}
   alias Freshcom.{Repo, Filter, Include, Projector, Router}
+  alias Freshcom.{Account, User}
 
   @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
   def to_response({:ok, data}) do
@@ -23,6 +24,10 @@ defmodule Freshcom.Context do
 
   def to_response({:error, :access_denied}) do
     {:error, :access_denied}
+  end
+
+  def to_response(data) when is_list(data) or is_map(data) do
+    {:ok, %Response{data: data}}
   end
 
   def to_response(result) do
@@ -59,11 +64,32 @@ defmodule Freshcom.Context do
 
     cmd
     |> Struct.merge(fields)
-    |> Struct.put(:requester_id, req.requester[:id])
-    |> Struct.put(:account_id, req.requester[:account_id])
+    |> Struct.put(:requester_id, req.requester_id)
+    |> Struct.put(:requester_role, req._role_)
+    |> Struct.put(:account_id, req.account_id)
     |> Struct.put(:effective_keys, Map.keys(fields))
     |> Struct.put(:locale, req.locale)
   end
+
+  def expand(req) do
+    req
+    |> put_account()
+    |> put_default_locale()
+    |> put_requester()
+    |> put_role()
+  end
+
+  defp put_account(%{account_id: nil} = req), do: req
+  defp put_account(%{account_id: id} = req), do: %{req | _account_: Repo.get_by(Account, id: id)}
+
+  defp put_default_locale(%{_account_: nil} = req), do: req
+  defp put_default_locale(%{_account_: account} = req), do: %{req | _default_locale_: account.default_locale}
+
+  defp put_requester(%{requester_id: nil} = req), do: req
+  defp put_requester(%{requester_id: id} = req), do: %{req | _requester_: Repo.get_by(User, id: id)}
+
+  defp put_role(%{_requester_: nil} = req), do: req
+  defp put_role(%{_requester_: %{role: role}} = req), do: %{req | _role_: role}
 
   @spec preload(nil | list | struct, Request.t()) :: struct | [struct] | nil
   def preload(nil, _), do: nil
@@ -86,7 +112,7 @@ defmodule Freshcom.Context do
     end
 
     query
-    |> for_account(req.requester[:account_id])
+    |> for_account(req.account_id)
     |> filter(req.filter, req._filterable_fields_)
     |> search(req.search, req._searchable_fields_, req.locale, req._default_locale_, translatable_fields)
     |> sort(req.sort, req._sortable_fields_)
@@ -112,6 +138,8 @@ defmodule Freshcom.Context do
       Filter.attr_only(query, filter, filterable_fields)
     end
   end
+
+  defp has_assoc_field(:all), do: false
 
   defp has_assoc_field(fields) do
     Enum.any?(fields, fn(field) ->
