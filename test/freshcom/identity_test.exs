@@ -4,7 +4,7 @@ defmodule Freshcom.IdentityTest do
   alias Freshcom.Identity
 
   defp register_user() do
-   request = %Request{
+    request = %Request{
       fields: %{
         name: Faker.Name.name(),
         username: Faker.Internet.user_name(),

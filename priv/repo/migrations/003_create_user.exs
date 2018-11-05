@@ -1,4 +1,4 @@
-defmodule BlueJet.Repo.Migrations.CreateUser do
+defmodule Freshcom.Repo.Migrations.CreateUser do
   use Ecto.Migration
 
   def change do

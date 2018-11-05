@@ -2,7 +2,7 @@ defmodule Freshcom.User do
   use Freshcom.Projection
 
   schema "users" do
-    field :default_account_id, :binary_id
+    field :default_account_id, UUID
 
     field :type, :string
     field :status, :string
