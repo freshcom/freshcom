@@ -17,12 +17,17 @@ defmodule Freshcom.Include do
 
   def to_ecto_preloads(schema, {assoc, nested}, filters) do
     reflection = schema.__schema__(:association, assoc)
-    query = Queryable.to_query(reflection.queryable)
 
-    assoc_schema = reflection.related
-    nested_preload = to_ecto_preloads(assoc_schema, nested, filters)
+    if reflection do
+      query = Queryable.to_query(reflection.queryable)
 
-    Keyword.put([], assoc, {query, nested_preload})
+      assoc_schema = reflection.related
+      nested_preload = to_ecto_preloads(assoc_schema, nested, filters)
+
+      Keyword.put([], assoc, {query, nested_preload})
+    else
+      []
+    end
   end
 
   def to_ecto_preloads(schema, assoc, filters) when is_atom(assoc) do
