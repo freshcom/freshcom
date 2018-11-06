@@ -63,7 +63,7 @@ defmodule FCIdentity.UserHandler do
     |>  authorize(state)
     ~>  trim_strings()
     ~>  downcase_strings([:username, :email])
-    ~>  merge_to(%UserAdded{})
+    ~>  merge_to(%UserAdded{type: "managed"})
     ~>  put_password_hash(cmd)
     |>  unwrap_ok()
   end
