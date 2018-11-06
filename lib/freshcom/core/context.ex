@@ -79,27 +79,40 @@ defmodule Freshcom.Context do
     |> put_role()
   end
 
-  defp put_account(%{account_id: nil} = req), do: req
+  defp put_account(%{account_id: nil} = req), do: %{req | _account_: nil}
   defp put_account(%{account_id: id} = req), do: %{req | _account_: Repo.get_by(Account, id: id)}
 
-  defp put_default_locale(%{_account_: nil} = req), do: req
+  defp put_default_locale(%{_account_: nil} = req), do: %{req | _default_locale_: nil}
   defp put_default_locale(%{_account_: account} = req), do: %{req | _default_locale_: account.default_locale}
 
-  defp put_requester(%{requester_id: nil} = req), do: req
-  defp put_requester(%{requester_id: id} = req), do: %{req | _requester_: Repo.get_by(User, id: id)}
+  defp put_requester(%{_account_: nil} = req), do: %{req | _requester_: nil}
+  defp put_requester(%{requester_id: nil} = req), do: %{req | _requester_: nil}
 
-  defp put_role(%{_requester_: nil} = req), do: req
+  defp put_requester(%{requester_id: id, _account_: %{owner_id: owner_id}} = req) when id == owner_id,
+    do: %{req | _requester_: Repo.get_by(User, id: id)}
+
+  defp put_requester(%{requester_id: id, _account_: account} = req),
+    do: %{req | _requester_: Repo.get_by(User, id: id, account_id: account.id)}
+
+  defp put_role(%{_account_: nil} = req), do: %{req | _role_: "anonymous"}
+  defp put_role(%{_requester_: nil} = req), do: %{req | _role_: "guest"}
   defp put_role(%{_requester_: %{role: role}} = req), do: %{req | _role_: role}
 
   @spec preload(nil | list | struct, Request.t()) :: struct | [struct] | nil
   def preload(nil, _), do: nil
   def preload([], _), do: []
 
-  def preload(struct_or_structs, req) do
-    struct = Enum.at(struct_or_structs, 0)
+  def preload(structs, req) when is_list(structs) do
+    struct = Enum.at(structs, 0)
     preloads = Include.to_ecto_preloads(struct.__struct__, req.include, req._include_filters_)
 
-    Repo.preload(struct_or_structs, preloads)
+    Repo.preload(structs, preloads)
+  end
+
+  def preload(struct, req) do
+    preloads = Include.to_ecto_preloads(struct.__struct__, req.include, req._include_filters_)
+
+    Repo.preload(struct, preloads)
   end
 
   @spec to_query(Request.t(), Query.t() | map) :: Query.t()
