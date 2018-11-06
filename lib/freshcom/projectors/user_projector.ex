@@ -14,12 +14,12 @@ defmodule Freshcom.UserProjector do
   }
 
   project(%UserRegistered{} = event, _metadata) do
-    user = Struct.merge(%User{id: event.user_id}, event)
+    user = Struct.merge(%User{id: event.user_id, type: "standard"}, event)
     Multi.insert(multi, :user, user)
   end
 
   project(%UserAdded{} = event, _metadata) do
-    user = Struct.merge(%User{id: event.user_id}, event)
+    user = Struct.merge(%User{id: event.user_id, type: "managed"}, event)
     Multi.insert(multi, :user, user)
   end
 
