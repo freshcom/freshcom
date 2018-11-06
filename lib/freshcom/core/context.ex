@@ -10,6 +10,10 @@ defmodule Freshcom.Context do
   alias Freshcom.{Account, User}
 
   @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
+  def to_response({:ok, nil}) do
+    {:error, :not_found}
+  end
+
   def to_response({:ok, data}) do
     {:ok, %Response{data: data}}
   end
@@ -126,6 +130,7 @@ defmodule Freshcom.Context do
 
     query
     |> for_account(req.account_id)
+    |> identify(req.identifiers, req._identifiable_fields_)
     |> filter(req.filter, req._filterable_fields_)
     |> search(req.search, req._searchable_fields_, req.locale, req._default_locale_, translatable_fields)
     |> sort(req.sort, req._sortable_fields_)
@@ -141,6 +146,16 @@ defmodule Freshcom.Context do
 
   def for_account(query, account_id) do
     from(q in query, where: q.account_id == ^account_id)
+  end
+
+  @spec identify(Query.t(), map, [String.t()]) :: Query.t()
+  def identify(query, identifiers, identifiable_fields) do
+    filter =
+      Enum.reduce(identifiers, [], fn({k, v}, acc) ->
+        acc ++ [%{k => v}]
+      end)
+
+    Filter.attr_only(query, filter, identifiable_fields)
   end
 
   @spec filter(Query.t(), [map], [String.t()]) :: Query.t()

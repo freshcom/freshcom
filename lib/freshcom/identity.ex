@@ -57,6 +57,16 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def get_user(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_user)
+    ~> to_query(User)
+    ~> Repo.one()
+    ~> preload(req)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end

@@ -17,6 +17,7 @@ defmodule Freshcom.Request do
     field :_role_, String.t()
     field :_account_, map()
     field :_default_locale_, String.t()
+    field :_identifiable_fields_, atom | [String.t()], default: :all
     field :_include_filters_, map(), default: %{}
     field :_filterable_fields_, atom | [String.t()], default: :all
     field :_searchable_fields_, [String.t()], default: []
