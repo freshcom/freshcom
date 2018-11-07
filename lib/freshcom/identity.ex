@@ -88,7 +88,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%event{user_id: user_id}) when event in [UserAdded, UserInfoUpdated] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])
