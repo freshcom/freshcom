@@ -25,6 +25,7 @@ defmodule Freshcom.Identity do
     |> to_command(%RegisterUser{})
     |> dispatch_and_wait(UserRegistered)
     ~> Map.get(:user)
+    ~> preload(req)
     |> to_response()
   end
 
@@ -33,6 +34,7 @@ defmodule Freshcom.Identity do
     |> to_command(%AddUser{})
     |> dispatch_and_wait(UserAdded)
     ~> Map.get(:user)
+    ~> preload(req)
     |> to_response()
   end
 
@@ -44,6 +46,7 @@ defmodule Freshcom.Identity do
     |> Map.put(:user_id, identifiers[:id])
     |> dispatch_and_wait(UserInfoUpdated)
     ~> Map.get(:user)
+    ~> preload(req)
     |> to_response()
   end
 

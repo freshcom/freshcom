@@ -6,9 +6,8 @@ defmodule Freshcom.RefreshTokenProjector do
 
   import UUID
 
-  alias Phoenix.PubSub
-  alias Freshcom.PubSubServer
-  alias Freshcom.RefreshToken
+  alias Freshcom.Repo
+  alias Freshcom.{Account, RefreshToken}
   alias FCIdentity.{
     AccountCreated,
     UserAdded
@@ -24,12 +23,15 @@ defmodule Freshcom.RefreshTokenProjector do
   end
 
   project(%UserAdded{} = event, _metadata) do
-    urt = %RefreshToken{id: uuid4(), user_id: event.user_id, account_id: event.account_id}
-    Multi.insert(multi, :urt, urt)
-  end
+    target_urt = %RefreshToken{id: uuid4(), user_id: event.user_id, account_id: event.account_id}
+    multi = Multi.insert(multi, :target_urt, target_urt)
 
-  def after_update(_, _, changes) do
-    PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.urt})
-    :ok
+    %{test_account_id: test_account_id} = Repo.get!(Account, event.account_id)
+    if test_account_id do
+      test_urt = %RefreshToken{id: uuid4(), user_id: event.user_id, account_id: test_account_id}
+      Multi.insert(multi, :test_urt, test_urt)
+    else
+      multi
+    end
   end
 end

@@ -77,20 +77,23 @@ defmodule Freshcom.IdentityTest do
 
     test "with valid request" do
       requester = register_user()
+      account_id = requester.default_account_id
 
       request = %Request{
         requester_id: requester.id,
-        account_id: requester.default_account_id,
+        account_id: account_id,
         fields: %{
           "username" => Faker.Internet.user_name(),
           "role" => "developer",
           "password" => Faker.String.base64(12)
-        }
+        },
+        include: "refresh_tokens"
       }
 
       assert {:ok, %{data: data}} = Identity.add_user(request)
       assert data.id
       assert data.username == request.fields["username"]
+      assert length(data.refresh_tokens) == 2
     end
   end
 

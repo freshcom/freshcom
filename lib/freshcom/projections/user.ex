@@ -30,5 +30,6 @@ defmodule Freshcom.User do
     timestamps()
 
     belongs_to :account, Freshcom.Account
+    has_many :refresh_tokens, Freshcom.RefreshToken
   end
 end
