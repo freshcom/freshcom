@@ -224,9 +224,10 @@ defmodule Freshcom.IdentityTest do
 
     test "with valid request" do
       user = register_user()
+      account_id = user.default_account_id
 
       req = %Request{
-        account_id: user.default_account_id,
+        account_id: account_id,
         identifiers: %{
           "user_id" => user.id
         },
@@ -234,7 +235,9 @@ defmodule Freshcom.IdentityTest do
       }
 
       assert {:ok, %{data: data}} = Identity.get_refresh_token(req)
-      assert String.starts_with?(data, "urt-live-")
+      assert data.account_id == account_id
+      assert data.user_id == user.id
+      assert data.prefixed_id
     end
   end
 
@@ -252,7 +255,7 @@ defmodule Freshcom.IdentityTest do
 
       req = %Request{
         account_id: target_account_id,
-        identifiers: %{"id" => urt}
+        identifiers: %{"id" => urt.prefixed_id}
       }
 
       assert {:error, :not_found} = Identity.exchange_refresh_token(req)
@@ -265,12 +268,13 @@ defmodule Freshcom.IdentityTest do
 
       req = %Request{
         account_id: test_account_id,
-        identifiers: %{"id" => urt}
+        identifiers: %{"id" => urt.prefixed_id}
       }
 
       assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
-      assert data
-      assert data != urt
+      assert data.prefixed_id
+      assert data.account_id == test_account_id
+      assert data.user_id == requester.id
     end
 
     test "target the same account" do
@@ -280,12 +284,12 @@ defmodule Freshcom.IdentityTest do
 
       req = %Request{
         account_id: account_id,
-        identifiers: %{"id" => urt}
+        identifiers: %{"id" => urt.prefixed_id}
       }
 
       assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
-      assert data
-      assert data == urt
+      assert data.prefixed_id
+      assert data.id == urt.id
     end
   end
 

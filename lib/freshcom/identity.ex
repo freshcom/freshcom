@@ -77,7 +77,7 @@ defmodule Freshcom.Identity do
     |> authorize(:get_refresh_token)
     ~> to_query(RefreshToken)
     ~> Repo.one()
-    ~> RefreshToken.prefixed_id(req._account_)
+    ~> RefreshToken.put_prefixed_id(req._account_)
     |> to_response()
   end
 
@@ -98,7 +98,7 @@ defmodule Freshcom.Identity do
     req
     |> authorize(:exchange_refresh_token)
     ~> do_exchange_refresh_token()
-    ~> RefreshToken.prefixed_id(req._account_)
+    ~> RefreshToken.put_prefixed_id(req._account_)
     |> to_response()
   end
 
