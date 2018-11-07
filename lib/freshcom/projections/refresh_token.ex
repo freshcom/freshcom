@@ -20,9 +20,9 @@ defmodule Freshcom.RefreshToken do
   def put_prefixed_id(nil, _), do: nil
   def put_prefixed_id(rt, acct), do: %{rt | prefixed_id: prefixed_id(rt, acct)}
 
-  def unprefix_id(nil), do: nil
+  def bare_id(nil), do: nil
 
-  def unprefix_id(id) do
+  def bare_id(id) do
     id
     |> String.replace_prefix("prt-test-", "")
     |> String.replace_prefix("prt-live-", "")

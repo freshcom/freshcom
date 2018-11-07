@@ -83,7 +83,7 @@ defmodule Freshcom.Identity do
   end
 
   defp get_refresh_token_normalize(%{identifiers: %{"id" => id}} = req) do
-    Request.put(req, :identifiers, "id", RefreshToken.unprefix_id(id))
+    Request.put(req, :identifiers, "id", RefreshToken.bare_id(id))
   end
 
   defp get_refresh_token_normalize(req), do: req
@@ -112,7 +112,7 @@ defmodule Freshcom.Identity do
   defp do_exchange_refresh_token(%{_account_: nil}), do: nil
 
   defp do_exchange_refresh_token(%{_account_: account, identifiers: %{"id" => id}}) do
-    refresh_token = Repo.get(RefreshToken, RefreshToken.unprefix_id(id))
+    refresh_token = Repo.get(RefreshToken, RefreshToken.bare_id(id))
 
     cond do
       is_nil(refresh_token) ->
