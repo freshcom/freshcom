@@ -198,4 +198,28 @@ defmodule Freshcom.IdentityTest do
       assert data.id == user.id
     end
   end
+
+  describe "get_refresh_token/1" do
+    test "with unauthorized requester" do
+      request = %Request{}
+
+      assert {:error, :access_denied} = Identity.get_refresh_token(request)
+    end
+
+    test "with valid request" do
+      user = register_user()
+
+      request = %Request{
+        _role_: "system",
+        identifiers: %{
+          "account_id" => user.default_account_id,
+          "user_id" => user.id
+        }
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_refresh_token(request)
+      assert data.account_id == user.default_account_id
+      assert data.user_id == user.id
+    end
+  end
 end

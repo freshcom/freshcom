@@ -18,7 +18,7 @@ defmodule Freshcom.Identity do
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
-  alias Freshcom.User
+  alias Freshcom.{User, RefreshToken}
 
   def register_user(%Request{} = req) do
     req
@@ -64,6 +64,15 @@ defmodule Freshcom.Identity do
     ~> to_query(User)
     ~> Repo.one()
     ~> preload(req)
+    |> to_response()
+  end
+
+  def get_refresh_token(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_refresh_token)
+    ~> to_query(RefreshToken)
+    ~> Repo.one()
     |> to_response()
   end
 
