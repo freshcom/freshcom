@@ -98,9 +98,10 @@ defmodule Freshcom.Context do
   defp put_requester(%{requester_id: id, _account_: account} = req),
     do: %{req | _requester_: Repo.get_by(User, id: id, account_id: account.id)}
 
-  defp put_role(%{_account_: nil} = req), do: %{req | _role_: "anonymous"}
-  defp put_role(%{_requester_: nil} = req), do: %{req | _role_: "guest"}
-  defp put_role(%{_requester_: %{role: role}} = req), do: %{req | _role_: role}
+  defp put_role(%{_account_: nil, _role_: nil} = req), do: %{req | _role_: "anonymous"}
+  defp put_role(%{_requester_: nil, _role_: nil} = req), do: %{req | _role_: "guest"}
+  defp put_role(%{_requester_: %{role: role}, _role_: nil} = req), do: %{req | _role_: role}
+  defp put_role(req), do: req
 
   @spec preload(nil | list | struct, Request.t()) :: struct | [struct] | nil
   def preload(nil, _), do: nil
