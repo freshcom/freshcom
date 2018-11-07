@@ -157,7 +157,7 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.get_user(request)
     end
 
-    test "with non existing user" do
+    test "target non existing user" do
       requester = register_user()
       add_user(requester.default_account_id)
 
@@ -170,7 +170,21 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :not_found} = Identity.get_user(request)
     end
 
-    test "with valid user" do
+    test "target user of another account" do
+      requester = register_user()
+      other_user = register_user()
+      target_user = add_user(other_user.default_account_id)
+
+      request = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => target_user.id}
+      }
+
+      assert {:error, :not_found} = Identity.get_user(request)
+    end
+
+    test "target valid user" do
       requester = register_user()
       user = add_user(requester.default_account_id)
 
