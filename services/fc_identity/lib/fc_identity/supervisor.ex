@@ -13,6 +13,7 @@ defmodule FCIdentity.Supervisor do
       {FCIdentity.RoleKeeper, [start_from: :current]},
       {FCIdentity.UsernameKeeper, [start_from: :current]},
       {FCIdentity.TypeKeeper, [start_from: :current]},
+      {FCIdentity.TestAccountIdKeeper, [start_from: :current]},
 
       # Process Manager
       {FCIdentity.DefaultAccountSetup, [start_from: :current]},
