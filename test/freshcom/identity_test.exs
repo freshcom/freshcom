@@ -225,4 +225,24 @@ defmodule Freshcom.IdentityTest do
       assert data.user_id == user.id
     end
   end
+
+  describe "get_account/1" do
+    test "with unauthorized requester" do
+      request = %Request{}
+
+      assert {:error, :access_denied} = Identity.get_account(request)
+    end
+
+    test "with valid request" do
+      user = register_user()
+
+      request = %Request{
+        requester_id: user.id,
+        account_id: user.default_account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_account(request)
+      assert data.id == user.default_account_id
+    end
+  end
 end

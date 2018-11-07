@@ -79,6 +79,14 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def get_account(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_account)
+    ~> Map.get(:_account_)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
