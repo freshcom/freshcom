@@ -23,4 +23,13 @@ defmodule Freshcom.Request do
     field :_searchable_fields_, [String.t()], default: []
     field :_sortable_fields_, [String.t()], default: []
   end
+
+  def put(req, root_key, key, value) do
+    root_value =
+      req
+      |> Map.get(root_key)
+      |> Map.put(key, value)
+
+    Map.put(req, root_key, root_value)
+  end
 end

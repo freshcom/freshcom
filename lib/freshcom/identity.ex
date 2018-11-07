@@ -75,11 +75,18 @@ defmodule Freshcom.Identity do
 
     req
     |> authorize(:get_refresh_token)
+    ~> get_refresh_token_normalize()
     ~> to_query(RefreshToken)
     ~> Repo.one()
     ~> RefreshToken.put_prefixed_id(req._account_)
     |> to_response()
   end
+
+  defp get_refresh_token_normalize(%{identifiers: %{"id" => id}} = req) do
+    Request.put(req, :identifiers, "id", RefreshToken.unprefix_id(id))
+  end
+
+  defp get_refresh_token_normalize(req), do: req
 
   @doc """
   Exchange the given refresh token identified by its ID for a refresh token of
