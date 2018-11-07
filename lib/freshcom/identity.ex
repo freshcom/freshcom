@@ -5,7 +5,7 @@ defmodule Freshcom.Identity do
 
   use OK.Pipe
 
-  alias Freshcom.Request
+  alias Freshcom.{Request, Response}
   alias FCIdentity.{
     RegisterUser,
     UpdateUserInfo,
@@ -71,12 +71,55 @@ defmodule Freshcom.Identity do
   end
 
   def get_refresh_token(%Request{} = req) do
+    req = expand(req)
+
     req
-    |> expand()
     |> authorize(:get_refresh_token)
     ~> to_query(RefreshToken)
     ~> Repo.one()
+    ~> RefreshToken.prefixed_id(req._account_)
     |> to_response()
+  end
+
+  @doc """
+  Exchange the given refresh token identified by its ID for a refresh token of
+  the same user but for the account specified by `account_id` of the request.
+
+  If the given refresh token is already for the specified account, then it is simply
+  returned.
+
+  This function is intended for exchanging a live refresh token for a corresponding
+  test refresh token.
+  """
+  @spec exchange_refresh_token(Request.t()) :: {:ok | :error, Response.t()}
+  def exchange_refresh_token(%Request{} = req) do
+    req = expand(req)
+
+    req
+    |> authorize(:exchange_refresh_token)
+    ~> do_exchange_refresh_token()
+    ~> RefreshToken.prefixed_id(req._account_)
+    |> to_response()
+  end
+
+  defp do_exchange_refresh_token(%{_account_: nil}), do: nil
+
+  defp do_exchange_refresh_token(%{_account_: account, identifiers: %{"id" => id}}) do
+    refresh_token = Repo.get(RefreshToken, RefreshToken.unprefix_id(id))
+
+    cond do
+      is_nil(refresh_token) ->
+        nil
+
+      refresh_token.account_id == account.id ->
+        refresh_token
+
+      refresh_token.account_id == account.live_account_id ->
+        Repo.get_by(RefreshToken, account_id: account.id, user_id: refresh_token.user_id)
+
+      true ->
+        nil
+    end
   end
 
   def get_account(%Request{} = req) do

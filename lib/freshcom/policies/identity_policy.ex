@@ -32,5 +32,8 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: role} = req, :get_account) when role in @operators,
     do: {:ok, req}
 
+  def authorize(req, :exchange_refresh_token),
+    do: {:ok, req}
+
   def authorize(_, _), do: {:error, :access_denied}
 end

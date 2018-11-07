@@ -3,24 +3,25 @@ defmodule Freshcom.IdentityTest do
 
   alias Freshcom.Identity
 
-  defp register_user() do
-    request = %Request{
+  defp register_user(opts \\ []) do
+    req = %Request{
       fields: %{
         name: Faker.Name.name(),
         username: Faker.Internet.user_name(),
         email: Faker.Internet.email(),
         password: Faker.String.base64(12),
         is_term_accepted: true
-      }
+      },
+      include: opts[:include]
     }
 
-    {:ok, %{data: user}} = Identity.register_user(request)
+    {:ok, %{data: user}} = Identity.register_user(req)
 
     user
   end
 
   defp add_user(account_id) do
-    request = %Request{
+    req = %Request{
       account_id: account_id,
       fields: %{
         "username" => Faker.Internet.user_name(),
@@ -30,9 +31,21 @@ defmodule Freshcom.IdentityTest do
       _role_: "sysdev"
     }
 
-    {:ok, %{data: user}} = Identity.add_user(request)
+    {:ok, %{data: user}} = Identity.add_user(req)
 
     user
+  end
+
+  defp get_urt(account_id, user_id) do
+    req = %Request{
+      account_id: account_id,
+      identifiers: %{"user_id" => user_id},
+      _role_: "system"
+    }
+
+    {:ok, %{data: urt}} = Identity.get_refresh_token(req)
+
+    urt
   end
 
   describe "register_user/1" do
@@ -42,7 +55,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with valid request" do
-      request = %Request{
+      req = %Request{
         fields: %{
           "name" => Faker.Name.name(),
           "username" => Faker.Internet.user_name(),
@@ -52,7 +65,7 @@ defmodule Freshcom.IdentityTest do
         }
       }
 
-      assert {:ok, %{data: data}} = Identity.register_user(request)
+      assert {:ok, %{data: data}} = Identity.register_user(req)
       assert data.id
     end
   end
@@ -64,7 +77,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with unauthorized requester" do
-      request = %Request{
+      req = %Request{
         account_id: uuid4(),
         fields: %{
           "username" => Faker.Internet.user_name(),
@@ -72,14 +85,14 @@ defmodule Freshcom.IdentityTest do
           "password" => Faker.String.base64(12)
         }
       }
-      assert {:error, :access_denied} = Identity.add_user(request)
+      assert {:error, :access_denied} = Identity.add_user(req)
     end
 
     test "with valid request" do
       requester = register_user()
       account_id = requester.default_account_id
 
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: account_id,
         fields: %{
@@ -90,9 +103,9 @@ defmodule Freshcom.IdentityTest do
         include: "refresh_tokens"
       }
 
-      assert {:ok, %{data: data}} = Identity.add_user(request)
+      assert {:ok, %{data: data}} = Identity.add_user(req)
       assert data.id
-      assert data.username == request.fields["username"]
+      assert data.username == req.fields["username"]
       assert length(data.refresh_tokens) == 2
     end
   end
@@ -104,38 +117,38 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with invalid identifiers" do
-      request = %Request{identifiers: %{"id" => uuid4()}}
-      assert {:error, :not_found} = Identity.update_user_info(request)
+      req = %Request{identifiers: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Identity.update_user_info(req)
     end
 
     test "with unauthorize requester" do
       requester = register_user()
 
-      request = %Request{identifiers: %{"id" => requester.id}}
-      assert {:error, :access_denied} = Identity.update_user_info(request)
+      req = %Request{identifiers: %{"id" => requester.id}}
+      assert {:error, :access_denied} = Identity.update_user_info(req)
     end
 
     test "with valid request" do
       requester = register_user()
 
       new_name = Faker.Name.name()
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => requester.id},
         fields: %{"name" => new_name}
       }
 
-      assert {:ok, %{data: data}} = Identity.update_user_info(request)
+      assert {:ok, %{data: data}} = Identity.update_user_info(req)
       assert data.name == new_name
     end
   end
 
   describe "list_user/1" do
     test "with unauthorized requester" do
-      request = %Request{}
+      req = %Request{}
 
-      assert {:error, :access_denied} = Identity.list_user(request)
+      assert {:error, :access_denied} = Identity.list_user(req)
     end
 
     test "with valid request" do
@@ -143,34 +156,34 @@ defmodule Freshcom.IdentityTest do
       add_user(requester.default_account_id)
       add_user(requester.default_account_id)
 
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id
       }
 
-      assert {:ok, %{data: data}} = Identity.list_user(request)
+      assert {:ok, %{data: data}} = Identity.list_user(req)
       assert length(data) == 2
     end
   end
 
   describe "get_user/1" do
     test "with unauthorized requester" do
-      request = %Request{}
+      req = %Request{}
 
-      assert {:error, :access_denied} = Identity.get_user(request)
+      assert {:error, :access_denied} = Identity.get_user(req)
     end
 
     test "target non existing user" do
       requester = register_user()
       add_user(requester.default_account_id)
 
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => uuid4()}
       }
 
-      assert {:error, :not_found} = Identity.get_user(request)
+      assert {:error, :not_found} = Identity.get_user(req)
     end
 
     test "target user of another account" do
@@ -178,70 +191,120 @@ defmodule Freshcom.IdentityTest do
       other_user = register_user()
       target_user = add_user(other_user.default_account_id)
 
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => target_user.id}
       }
 
-      assert {:error, :not_found} = Identity.get_user(request)
+      assert {:error, :not_found} = Identity.get_user(req)
     end
 
     test "target valid user" do
       requester = register_user()
       user = add_user(requester.default_account_id)
 
-      request = %Request{
+      req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id}
       }
 
-      assert {:ok, %{data: data}} = Identity.get_user(request)
+      assert {:ok, %{data: data}} = Identity.get_user(req)
       assert data.id == user.id
     end
   end
 
   describe "get_refresh_token/1" do
     test "with unauthorized requester" do
-      request = %Request{}
+      req = %Request{}
 
-      assert {:error, :access_denied} = Identity.get_refresh_token(request)
+      assert {:error, :access_denied} = Identity.get_refresh_token(req)
     end
 
     test "with valid request" do
       user = register_user()
 
-      request = %Request{
-        _role_: "system",
+      req = %Request{
+        account_id: user.default_account_id,
         identifiers: %{
-          "account_id" => user.default_account_id,
           "user_id" => user.id
-        }
+        },
+        _role_: "system"
       }
 
-      assert {:ok, %{data: data}} = Identity.get_refresh_token(request)
-      assert data.account_id == user.default_account_id
-      assert data.user_id == user.id
+      assert {:ok, %{data: data}} = Identity.get_refresh_token(req)
+      assert String.starts_with?(data, "urt-live-")
+    end
+  end
+
+  describe "exchange_refresh_token/1" do
+    test "with no refresh token given" do
+      req = %Request{}
+
+      assert {:error, :not_found} = Identity.exchange_refresh_token(req)
+    end
+
+    test "target account with no user refresh token" do
+      requester = register_user()
+      %{default_account_id: target_account_id} = register_user()
+      urt = get_urt(requester.default_account_id, requester.id)
+
+      req = %Request{
+        account_id: target_account_id,
+        identifiers: %{"id" => urt}
+      }
+
+      assert {:error, :not_found} = Identity.exchange_refresh_token(req)
+    end
+
+    test "target corresponding test account" do
+      requester = register_user(include: "default_account")
+      urt = get_urt(requester.default_account_id, requester.id)
+      test_account_id = requester.default_account.test_account_id
+
+      req = %Request{
+        account_id: test_account_id,
+        identifiers: %{"id" => urt}
+      }
+
+      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert data
+      assert data != urt
+    end
+
+    test "target the same account" do
+      requester = register_user(include: "default_account")
+      account_id = requester.default_account_id
+      urt = get_urt(account_id, requester.id)
+
+      req = %Request{
+        account_id: account_id,
+        identifiers: %{"id" => urt}
+      }
+
+      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert data
+      assert data == urt
     end
   end
 
   describe "get_account/1" do
     test "with unauthorized requester" do
-      request = %Request{}
+      req = %Request{}
 
-      assert {:error, :access_denied} = Identity.get_account(request)
+      assert {:error, :access_denied} = Identity.get_account(req)
     end
 
     test "with valid request" do
       user = register_user()
 
-      request = %Request{
+      req = %Request{
         requester_id: user.id,
         account_id: user.default_account_id
       }
 
-      assert {:ok, %{data: data}} = Identity.get_account(request)
+      assert {:ok, %{data: data}} = Identity.get_account(req)
       assert data.id == user.default_account_id
     end
   end

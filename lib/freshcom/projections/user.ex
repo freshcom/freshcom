@@ -1,9 +1,8 @@
 defmodule Freshcom.User do
   use Freshcom.Projection
+  alias Freshcom.Account
 
   schema "users" do
-    field :default_account_id, UUID
-
     field :type, :string
     field :status, :string
     field :username, :string
@@ -29,7 +28,8 @@ defmodule Freshcom.User do
 
     timestamps()
 
-    belongs_to :account, Freshcom.Account
+    belongs_to :account, Account
+    belongs_to :default_account, Account
     has_many :refresh_tokens, Freshcom.RefreshToken
   end
 end
