@@ -66,9 +66,22 @@ defmodule Freshcom.Identity do
     |> authorize(:get_user)
     ~> to_query(User)
     ~> Repo.one()
+    ~> check_password(req)
     ~> preload(req)
     |> to_response()
   end
+
+  defp check_password(nil, _), do: nil
+
+  defp check_password(user, %{identifiers: %{"password" => password}}) do
+    if User.is_password_valid?(user, password) do
+      user
+    else
+      nil
+    end
+  end
+
+  defp check_password(user, _), do: user
 
   def get_refresh_token(%Request{} = req) do
     req = expand(req)

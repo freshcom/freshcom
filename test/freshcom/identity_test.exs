@@ -9,7 +9,7 @@ defmodule Freshcom.IdentityTest do
         name: Faker.Name.name(),
         username: Faker.Internet.user_name(),
         email: Faker.Internet.email(),
-        password: Faker.String.base64(12),
+        password: "test1234",
         is_term_accepted: true
       },
       include: opts[:include]
@@ -198,6 +198,29 @@ defmodule Freshcom.IdentityTest do
       }
 
       assert {:error, :not_found} = Identity.get_user(req)
+    end
+
+    test "target user with invalid password" do
+      user = register_user()
+
+      req = %Request{
+        identifiers: %{"username" => user.username, "password" => "invalid"},
+        _role_: "system"
+      }
+
+      assert {:error, :not_found} = Identity.get_user(req)
+    end
+
+    test "target user with valid password" do
+      user = register_user()
+
+      req = %Request{
+        identifiers: %{"username" => user.username, "password" => "test1234"},
+        _role_: "system"
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_user(req)
+      assert data.id == user.id
     end
 
     test "target valid user" do

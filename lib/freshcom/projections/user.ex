@@ -32,4 +32,14 @@ defmodule Freshcom.User do
     belongs_to :default_account, Account
     has_many :refresh_tokens, Freshcom.RefreshToken
   end
+
+  @type t :: Ecto.Schema.t()
+
+  @spec is_password_valid?(__MODULE__.t(), String.t()) :: boolean
+  def is_password_valid?(user, password) do
+    case Comeonin.Argon2.check_pass(user, password) do
+      {:ok, _} -> true
+      _ -> false
+    end
+  end
 end

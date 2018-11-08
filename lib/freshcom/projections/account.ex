@@ -23,4 +23,6 @@ defmodule Freshcom.Account do
 
     belongs_to :owner, Freshcom.User
   end
+
+  @type t :: Ecto.Schema.t()
 end
