@@ -40,4 +40,14 @@ defmodule FCSupport.Normalization do
       end
     end)
   end
+
+  def stringify_list(l) do
+    Enum.reduce(l, [], fn(item, acc) ->
+      if is_atom(item) do
+        acc ++ [Atom.to_string(item)]
+      else
+        acc ++ [item]
+      end
+    end)
+  end
 end

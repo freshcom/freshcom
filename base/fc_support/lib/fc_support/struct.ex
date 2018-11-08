@@ -1,4 +1,6 @@
 defmodule FCSupport.Struct do
+  import FCSupport.Normalization, only: [stringify_list: 1]
+
   @doc """
   Merge the `src` struct into the `dest` struct. Keys that are not part of `dest`
   will be safely ignored.
@@ -46,16 +48,6 @@ defmodule FCSupport.Struct do
         Map.put(acc, String.to_existing_atom(k), v)
       else
         Map.put(acc, k, v)
-      end
-    end)
-  end
-
-  defp stringify_list(l) do
-    Enum.reduce(l, [], fn(item, acc) ->
-      if is_atom(item) do
-        acc ++ [Atom.to_string(item)]
-      else
-        acc ++ [item]
       end
     end)
   end
