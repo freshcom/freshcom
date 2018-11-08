@@ -4,12 +4,22 @@ defmodule Freshcom.Filter do
   """
 
   import Ecto.Query
+  import FCSupport.Normalization, only: [stringify_list: 1]
+
   alias Ecto.Queryable
 
   @spec attr_only(Ecto.Query.t(), [map], [String.t()]) :: Ecto.Query.t()
   def attr_only(query, [], _), do: query
 
-  def attr_only(%Ecto.Query{} = query, statements, permitted_fields) do
+  def attr_only(%Ecto.Query{} = query, statements, :all) do
+    {_, queryable} = query.from
+    permitted_fields = stringify_list(queryable.__schema__(:fields))
+
+    dynamic = do_attr_only("$and", statements, permitted_fields)
+    from(q in query, where: ^dynamic)
+  end
+
+  def attr_only(%Ecto.Query{} = query, statements, permitted_fields) when is_list(permitted_fields) do
     dynamic = do_attr_only("$and", statements, permitted_fields)
     from(q in query, where: ^dynamic)
   end
@@ -24,15 +34,18 @@ defmodule Freshcom.Filter do
     if is_field_permitted(attr, permitted_fields) do
       compare_attr(String.to_existing_atom(attr), expression)
     else
-      {:error, {:invalid_field, attr}}
+      nil
     end
   end
 
   defp collect_dynamics(statements, permitted_fields) do
-    Enum.reduce(statements, [], fn(statement_or_expression, acc) ->
-      {operator_or_attr, statements_or_expression} = Enum.at(statement_or_expression, 0)
-      acc ++ [do_attr_only(operator_or_attr, statements_or_expression, permitted_fields)]
-    end)
+    dynamics =
+      Enum.reduce(statements, [], fn(statement_or_expression, acc) ->
+        {operator_or_attr, statements_or_expression} = Enum.at(statement_or_expression, 0)
+        acc ++ [do_attr_only(operator_or_attr, statements_or_expression, permitted_fields)]
+      end)
+
+    Enum.reject(dynamics, &is_nil/1)
   end
 
   defp combine_dynamics([d], _), do: d
