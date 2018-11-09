@@ -27,7 +27,7 @@ defmodule Freshcom.Fixture do
         "role" => "developer",
         "password" => "test1234"
       },
-      _role_: "sysdev"
+      _role_: "system"
     }
 
     {:ok, %{data: user}} = Identity.add_user(req)

@@ -1,19 +1,8 @@
 defmodule Freshcom.IdentityTest do
   use Freshcom.IntegrationCase
-  import Freshcom.Fixture
+  import Freshcom.{Fixture, Shortcut}
+
   alias Freshcom.Identity
-
-  defp get_urt(account_id, user_id) do
-    req = %Request{
-      account_id: account_id,
-      identifiers: %{"user_id" => user_id},
-      _role_: "system"
-    }
-
-    {:ok, %{data: urt}} = Identity.get_refresh_token(req)
-
-    urt
-  end
 
   describe "register_user/1" do
     test "with invalid request" do
