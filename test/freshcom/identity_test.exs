@@ -1,40 +1,7 @@
 defmodule Freshcom.IdentityTest do
   use Freshcom.IntegrationCase
-
+  import Freshcom.Fixture
   alias Freshcom.Identity
-
-  defp register_user(opts \\ []) do
-    req = %Request{
-      fields: %{
-        name: Faker.Name.name(),
-        username: Faker.Internet.user_name(),
-        email: Faker.Internet.email(),
-        password: "test1234",
-        is_term_accepted: true
-      },
-      include: opts[:include]
-    }
-
-    {:ok, %{data: user}} = Identity.register_user(req)
-
-    user
-  end
-
-  defp add_user(account_id) do
-    req = %Request{
-      account_id: account_id,
-      fields: %{
-        "username" => Faker.Internet.user_name(),
-        "role" => "developer",
-        "password" => Faker.String.base64(12)
-      },
-      _role_: "sysdev"
-    }
-
-    {:ok, %{data: user}} = Identity.add_user(req)
-
-    user
-  end
 
   defp get_urt(account_id, user_id) do
     req = %Request{
@@ -89,7 +56,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with valid request" do
-      requester = register_user()
+      requester = standard_user()
       account_id = requester.default_account_id
 
       req = %Request{
@@ -122,14 +89,14 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with unauthorize requester" do
-      requester = register_user()
+      requester = standard_user()
 
       req = %Request{identifiers: %{"id" => requester.id}}
       assert {:error, :access_denied} = Identity.update_user_info(req)
     end
 
     test "with valid request" do
-      requester = register_user()
+      requester = standard_user()
 
       new_name = Faker.Name.name()
       req = %Request{
@@ -152,9 +119,9 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with valid request" do
-      requester = register_user()
-      add_user(requester.default_account_id)
-      add_user(requester.default_account_id)
+      requester = standard_user()
+      managed_user(requester.default_account_id)
+      managed_user(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
@@ -174,8 +141,8 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target non existing user" do
-      requester = register_user()
-      add_user(requester.default_account_id)
+      requester = standard_user()
+      managed_user(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
@@ -187,9 +154,9 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target user of another account" do
-      requester = register_user()
-      other_user = register_user()
-      target_user = add_user(other_user.default_account_id)
+      requester = standard_user()
+      other_user = standard_user()
+      target_user = managed_user(other_user.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
@@ -201,7 +168,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target user with invalid password" do
-      user = register_user()
+      user = standard_user()
 
       req = %Request{
         identifiers: %{"username" => user.username, "password" => "invalid"},
@@ -212,7 +179,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target user with valid password" do
-      user = register_user()
+      user = standard_user()
 
       req = %Request{
         identifiers: %{"username" => user.username, "password" => "test1234"},
@@ -224,8 +191,8 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target valid user" do
-      requester = register_user()
-      user = add_user(requester.default_account_id)
+      requester = standard_user()
+      user = managed_user(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
@@ -246,7 +213,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with valid request" do
-      user = register_user()
+      user = standard_user()
       account_id = user.default_account_id
 
       req = %Request{
@@ -272,8 +239,8 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target account with no user refresh token" do
-      requester = register_user()
-      %{default_account_id: target_account_id} = register_user()
+      requester = standard_user()
+      %{default_account_id: target_account_id} = standard_user()
       urt = get_urt(requester.default_account_id, requester.id)
 
       req = %Request{
@@ -285,7 +252,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target corresponding test account" do
-      requester = register_user(include: "default_account")
+      requester = standard_user(include: "default_account")
       urt = get_urt(requester.default_account_id, requester.id)
       test_account_id = requester.default_account.test_account_id
 
@@ -301,7 +268,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "target the same account" do
-      requester = register_user(include: "default_account")
+      requester = standard_user(include: "default_account")
       account_id = requester.default_account_id
       urt = get_urt(account_id, requester.id)
 
@@ -324,7 +291,7 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "with valid request" do
-      user = register_user()
+      user = standard_user()
 
       req = %Request{
         requester_id: user.id,
