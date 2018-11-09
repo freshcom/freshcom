@@ -1,5 +1,5 @@
 defmodule Freshcom.Identity do
-  import FCSupport.Struct
+  import FCSupport.Normalization, only: [atomize_keys: 2]
   import Freshcom.Context
   import Freshcom.IdentityPolicy
 

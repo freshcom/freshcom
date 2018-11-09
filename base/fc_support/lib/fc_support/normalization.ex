@@ -41,6 +41,19 @@ defmodule FCSupport.Normalization do
     end)
   end
 
+  def atomize_keys(m, permitted \\ nil) do
+    permitted = permitted || Map.keys(m)
+    permitted = stringify_list(permitted)
+
+    Enum.reduce(m, %{}, fn({k, v}, acc) ->
+      if is_binary(k) && Enum.member?(permitted, k) do
+        Map.put(acc, String.to_existing_atom(k), v)
+      else
+        Map.put(acc, k, v)
+      end
+    end)
+  end
+
   def stringify_list(l) do
     Enum.reduce(l, [], fn(item, acc) ->
       if is_atom(item) do
