@@ -19,12 +19,12 @@ defmodule Freshcom.Fixture do
     user
   end
 
-  def managed_user(account_id) do
+  def managed_user(account_id, fields \\ []) do
     req = %Request{
       account_id: account_id,
       fields: %{
         "username" => Internet.user_name(),
-        "role" => "developer",
+        "role" => fields[:role] || "developer",
         "password" => "test1234"
       },
       _role_: "system"
