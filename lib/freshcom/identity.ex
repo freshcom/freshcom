@@ -5,7 +5,7 @@ defmodule Freshcom.Identity do
 
   use OK.Pipe
 
-  alias Freshcom.{Context, Request, Response}
+  alias Freshcom.{Context, Request}
   alias FCIdentity.{
     RegisterUser,
     UpdateUserInfo,
