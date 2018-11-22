@@ -179,6 +179,20 @@ defmodule Freshcom.IdentityTest do
       assert data.id == user.id
     end
 
+    test "target requester itself" do
+      %{default_account_id: account_id} = standard_user()
+      requester = managed_user(account_id, role: "customer")
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: account_id,
+        identifiers: %{"id" => requester.id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_user(req)
+      assert data.id == requester.id
+    end
+
     test "target valid user" do
       requester = standard_user()
       user = managed_user(requester.default_account_id)
