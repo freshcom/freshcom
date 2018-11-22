@@ -5,7 +5,7 @@ defmodule Freshcom.Identity do
 
   use OK.Pipe
 
-  alias Freshcom.{Request, Response}
+  alias Freshcom.{Context, Request, Response}
   alias FCIdentity.{
     RegisterUser,
     UpdateUserInfo,
@@ -20,6 +20,7 @@ defmodule Freshcom.Identity do
   alias Freshcom.{UserProjector, AccountProjector}
   alias Freshcom.{User, RefreshToken}
 
+  @spec register_user(Request.t()) :: Context.resp()
   def register_user(%Request{} = req) do
     req
     |> to_command(%RegisterUser{})
@@ -29,6 +30,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec add_user(Request.t()) :: Context.resp()
   def add_user(%Request{} = req) do
     req
     |> to_command(%AddUser{})
@@ -38,6 +40,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec update_user_info(Request.t()) :: Context.resp()
   def update_user_info(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -50,6 +53,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec list_user(Request.t()) :: Context.resp()
   def list_user(%Request{} = req) do
     req
     |> expand()
@@ -60,7 +64,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  @spec get_user(Request.t()) :: {:ok | :error, Response.t()}
+  @spec get_user(Request.t()) :: Context.resp()
   def get_user(%Request{} = req) do
     req
     |> expand()
@@ -97,6 +101,7 @@ defmodule Freshcom.Identity do
   defp check_account_id(%{account_id: aid} = user, %{account_id: t_aid}) when aid == t_aid, do: user
   defp check_account_id(_, _), do: nil
 
+  @spec get_refresh_token(Request.t()) :: Context.resp()
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
 
@@ -125,7 +130,7 @@ defmodule Freshcom.Identity do
   This function is intended for exchanging a live refresh token for a corresponding
   test refresh token.
   """
-  @spec exchange_refresh_token(Request.t()) :: {:ok | :error, Response.t()}
+  @spec exchange_refresh_token(Request.t()) :: Context.resp()
   def exchange_refresh_token(%Request{} = req) do
     req = expand(req)
 
@@ -156,6 +161,7 @@ defmodule Freshcom.Identity do
     end
   end
 
+  @spec get_account(Request.t()) :: Context.resp()
   def get_account(%Request{} = req) do
     req
     |> expand()

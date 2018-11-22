@@ -10,6 +10,8 @@ defmodule Freshcom.Context do
   alias Freshcom.{Repo, Filter, Include, Projector, Router}
   alias Freshcom.{Account, User}
 
+  @type resp :: {:ok, Response.t()} | {:error, Response.t()} | {:error, :not_found} | {:error, :access_denied}
+
   @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
   def to_response({:ok, nil}) do
     {:error, :not_found}
