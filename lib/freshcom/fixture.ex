@@ -23,9 +23,9 @@ defmodule Freshcom.Fixture do
     req = %Request{
       account_id: account_id,
       fields: %{
-        "username" => Internet.user_name(),
+        "username" => fields[:username] || Internet.user_name(),
         "role" => fields[:role] || "developer",
-        "password" => "test1234"
+        "password" => fields[:password] || "test1234"
       },
       _role_: "system"
     }

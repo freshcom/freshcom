@@ -167,11 +167,16 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :not_found} = Identity.get_user(req)
     end
 
-    test "target user with valid password" do
+    test "target standard user with valid password" do
       user = standard_user()
+      managed_user(user.default_account_id, username: user.username, password: "test1234")
 
       req = %Request{
-        identifiers: %{"username" => user.username, "password" => "test1234"},
+        identifiers: %{
+          "type" => "standard",
+          "username" => user.username,
+          "password" => "test1234"
+        },
         _role_: "system"
       }
 
@@ -179,7 +184,39 @@ defmodule Freshcom.IdentityTest do
       assert data.id == user.id
     end
 
-    test "target requester itself" do
+    test "target managed user with valid password" do
+      %{default_account_id: account_id, username: username} = standard_user()
+      user = managed_user(account_id, username: username, password: "test1234")
+
+      req = %Request{
+        account_id: account_id,
+        identifiers: %{
+          "type" => "managed",
+          "username" => user.username,
+          "password" => "test1234"
+        },
+        _role_: "system"
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_user(req)
+      assert data.id == user.id
+    end
+
+    @tag :focus
+    test "target standard user as requester itself" do
+      requester = standard_user()
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => requester.id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_user(req)
+      assert data.id == requester.id
+    end
+
+    test "target managed user as requester itself" do
       %{default_account_id: account_id} = standard_user()
       requester = managed_user(account_id, role: "customer")
 

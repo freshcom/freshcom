@@ -32,4 +32,6 @@ defmodule Freshcom.Request do
 
     Map.put(req, root_key, root_value)
   end
+
+  def put(req, key, value), do: Map.put(req, key, value)
 end

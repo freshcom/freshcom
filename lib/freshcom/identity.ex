@@ -60,16 +60,25 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec get_user(Request.t()) :: {:ok | :error, Response.t()}
   def get_user(%Request{} = req) do
     req
     |> expand()
     |> authorize(:get_user)
+    ~> account_id_by_identifiers()
     ~> to_query(User)
     ~> Repo.one()
     ~> check_password(req)
+    ~> check_account_id(req)
     ~> preload(req)
     |> to_response()
   end
+
+  defp account_id_by_identifiers(%{identifiers: %{"id" => _}} = req) do
+    Request.put(req, :account_id, nil)
+  end
+
+  defp account_id_by_identifiers(req), do: req
 
   defp check_password(nil, _), do: nil
 
@@ -82,6 +91,11 @@ defmodule Freshcom.Identity do
   end
 
   defp check_password(user, _), do: user
+
+  defp check_account_id(nil, _), do: nil
+  defp check_account_id(%{account_id: nil} = user, _), do: user
+  defp check_account_id(%{account_id: aid} = user, %{account_id: t_aid}) when aid == t_aid, do: user
+  defp check_account_id(_, _), do: nil
 
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
