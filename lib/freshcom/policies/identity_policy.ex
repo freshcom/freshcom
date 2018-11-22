@@ -5,9 +5,7 @@ defmodule Freshcom.IdentityPolicy do
     "administrator"
   ]
 
-  @operators [
-    "owner",
-    "administrator",
+  @operators @admins ++ [
     "developer",
     "manager",
     "marketing_specialist",
@@ -15,6 +13,8 @@ defmodule Freshcom.IdentityPolicy do
     "support_specialist",
     "read_only"
   ]
+
+  @guests @operators ++ @admins ++ ["guest"]
 
   def authorize(%{_role_: "sysdev"} = req, _), do: {:ok, req}
   def authorize(%{_role_: "system"} = req, _), do: {:ok, req}
@@ -29,7 +29,7 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: role} = req, :get_user) when role in @admins,
     do: {:ok, req}
 
-  def authorize(%{_role_: role} = req, :get_account) when role in @operators,
+  def authorize(%{_role_: role} = req, :get_account) when role in @guests,
     do: {:ok, req}
 
   def authorize(req, :exchange_refresh_token),
