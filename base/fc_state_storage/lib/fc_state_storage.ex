@@ -6,4 +6,5 @@ defmodule FCStateStorage do
 
   defdelegate get(key, opts \\ []), to: @store
   defdelegate put(key, record, opts \\ []), to: @store
+  defdelegate reset!(), to: @store
 end

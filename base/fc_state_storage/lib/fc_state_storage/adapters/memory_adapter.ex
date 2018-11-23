@@ -34,4 +34,10 @@ defmodule FCStateStorage.MemoryAdapter do
 
     {:ok, record}
   end
+
+  def reset!() do
+    Agent.update(__MODULE__, fn(_) ->
+      %{}
+    end)
+  end
 end
