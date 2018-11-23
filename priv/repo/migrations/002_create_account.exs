@@ -8,7 +8,7 @@ defmodule Freshcom.Repo.Migrations.CreateAccount do
 
       add :owner_id, :binary_id
       add :mode, :string
-      add :is_ready_for_live_transaction, :boolean, null: false, default: false
+      add :is_ready_for_live_transaction, :boolean
       add :live_account_id, :binary_id
       add :test_account_id, :binary_id
       add :default_locale, :string

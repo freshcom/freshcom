@@ -6,6 +6,7 @@ defmodule Freshcom.Account do
     field :live_account_id, UUID
     field :test_account_id, UUID
     field :default_locale, :string
+    field :is_ready_for_live_transaction, :boolean, default: false
 
     field :name, :string
     field :legal_name, :string
