@@ -7,6 +7,8 @@ defmodule FCIdentity.AccountHandler do
 
   import FCIdentity.AccountPolicy
 
+  alias FCStateStorage.GlobalStore.DefaultLocaleStore
+  alias FCIdentity.TestAccountIdStore
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
   alias FCIdentity.{AccountCreated, AccountInfoUpdated}
   alias FCIdentity.Account
@@ -14,9 +16,25 @@ defmodule FCIdentity.AccountHandler do
   def handle(%Account{id: nil} = state, %CreateAccount{} = cmd) do
     cmd
     |> authorize(state)
+    ~> keep_default_locale()
+    ~> keep_test_account_id()
     ~> merge_to(%AccountCreated{})
     |> unwrap_ok()
   end
+
+  defp keep_default_locale(cmd) do
+    DefaultLocaleStore.put(cmd.account_id, cmd.default_locale)
+
+    cmd
+  end
+
+  defp keep_test_account_id(%{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
+    TestAccountIdStore.put(aid, taid)
+
+    cmd
+  end
+
+  defp keep_test_account_id(cmd), do: cmd
 
   def handle(%Account{id: _}, %CreateAccount{}) do
     {:error, {:already_exist, :account}}
