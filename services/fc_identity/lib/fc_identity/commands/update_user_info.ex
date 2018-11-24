@@ -2,6 +2,8 @@ defmodule FCIdentity.UpdateUserInfo do
   use TypedStruct
   use Vex.Struct
 
+  alias FCIdentity.CommandValidator
+
   typedstruct do
     field :requester_id, String.t()
     field :requester_type, String.t()
@@ -27,6 +29,6 @@ defmodule FCIdentity.UpdateUserInfo do
 
   validates :user_id, presence: true, uuid: true
 
-  validates :username, presence: true, length: [min: 3]
+  validates :username, length: [min: 3, allow_blank: true], by: &CommandValidator.unique_username/2
   validates :email, format: [with: @email_regex, allow_blank: true]
 end

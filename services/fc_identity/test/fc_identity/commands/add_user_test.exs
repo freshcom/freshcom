@@ -1,0 +1,23 @@
+defmodule FCIdentity.AddUserTest do
+  use FCIdentity.UnitCase, async: true
+
+  import FCSupport.Validation
+  alias FCIdentity.UsernameStore
+  alias FCIdentity.AddUser
+
+  describe "validations" do
+    test "given existing username" do
+      account_id = uuid4()
+      UsernameStore.put("roy", account_id)
+      cmd = %AddUser{
+        user_id: uuid4(),
+        account_id: account_id,
+        username: "roy"
+      }
+
+      {:error, {:validation_failed, errors}} = validate(cmd)
+
+      assert has_error(errors, :username, :taken)
+    end
+  end
+end

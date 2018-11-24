@@ -2,6 +2,8 @@ defmodule FCIdentity.AddUser do
   use TypedStruct
   use Vex.Struct
 
+  alias FCIdentity.CommandValidator
+
   typedstruct do
     field :requester_id, String.t()
     field :requester_type, String.t()
@@ -41,7 +43,7 @@ defmodule FCIdentity.AddUser do
   validates :account_id, presence: true, uuid: true
 
   validates :status, presence: true, inclusion: @valid_statuses
-  validates :username, presence: true, length: [min: 3]
+  validates :username, presence: true, length: [min: 3], by: &CommandValidator.unique_username/2
   validates :password, presence: true, length: [min: 8]
   validates :email, format: [with: @email_regex, allow_blank: true]
 
