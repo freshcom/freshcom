@@ -4,16 +4,20 @@ defmodule FCSupport.Changeset do
   """
 
   use TypedStruct
+  alias FCSupport.Changeset
 
   typedstruct do
     field :data, map
     field :changes, map, default: %{}
   end
 
-  def cast(data, fields, permitted) do
-    Enum.reduce(permitted, %__MODULE__{data: data}, fn(key, acc) ->
-      if Map.has_key?(fields, key) do
-        put_change(acc, key, Map.get(fields, key))
+  @spec cast(struct, struct) :: Changeset.t()
+  def cast(data, %{effective_keys: effective_keys} = event) do
+    fields = Map.from_struct(event)
+
+    Enum.reduce(fields, %__MODULE__{data: data}, fn({k, v}, acc) ->
+      if Enum.member?(effective_keys, Atom.to_string(k)) do
+        put_change(acc, k, v)
       else
         acc
       end
