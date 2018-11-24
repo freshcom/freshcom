@@ -22,20 +22,6 @@ defmodule FCIdentity.AccountHandler do
     |> unwrap_ok()
   end
 
-  defp keep_default_locale(cmd) do
-    DefaultLocaleStore.put(cmd.account_id, cmd.default_locale)
-
-    cmd
-  end
-
-  defp keep_test_account_id(%{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
-    TestAccountIdStore.put(aid, taid)
-
-    cmd
-  end
-
-  defp keep_test_account_id(cmd), do: cmd
-
   def handle(%Account{id: _}, %CreateAccount{}) do
     {:error, {:already_exist, :account}}
   end
@@ -50,4 +36,16 @@ defmodule FCIdentity.AccountHandler do
     ~> merge_to(%AccountInfoUpdated{})
     |> unwrap_ok()
   end
+
+  defp keep_default_locale(cmd) do
+    DefaultLocaleStore.put(cmd.account_id, cmd.default_locale)
+    cmd
+  end
+
+  defp keep_test_account_id(%{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
+    TestAccountIdStore.put(aid, taid)
+    cmd
+  end
+
+  defp keep_test_account_id(cmd), do: cmd
 end
