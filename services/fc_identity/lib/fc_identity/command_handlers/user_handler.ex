@@ -132,6 +132,7 @@ defmodule FCIdentity.UserHandler do
   def handle(state, %UpdateUserInfo{} = cmd) do
     cmd
     |> authorize(state)
+    ~> keep_username(state)
     ~> merge_to(%UserInfoUpdated{})
     |> unwrap_ok()
   end
@@ -164,6 +165,15 @@ defmodule FCIdentity.UserHandler do
 
   defp keep_username(%AddUser{} = cmd) do
     UsernameStore.put(cmd.username, cmd.account_id)
+    cmd
+  end
+
+  defp keep_username(%UpdateUserInfo{} = cmd, state) do
+    if Enum.member?(cmd.effective_keys, "username") && cmd.username != state.username do
+      UsernameStore.delete(state.username, state.account_id)
+      UsernameStore.put(cmd.username, cmd.account_id)
+    end
+
     cmd
   end
 

@@ -12,6 +12,11 @@ defmodule FCIdentity.UsernameStore do
     end
   end
 
+  def delete(username, account_id \\ nil) do
+    key = generate_key(username, account_id)
+    FCStateStorage.delete(key)
+  end
+
   @doc """
   Return `true` if username exist, otherwise `false`
   """
