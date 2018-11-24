@@ -140,6 +140,44 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "count_user/1" do
+    test "with unauthorized requester" do
+      req = %Request{}
+
+      assert {:error, :access_denied} = Identity.count_user(req)
+    end
+
+    test "with valid request target live account" do
+      requester = standard_user()
+      managed_user(requester.default_account_id)
+      managed_user(requester.default_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id
+      }
+
+      assert {:ok, %{data: 2}} = Identity.count_user(req)
+    end
+
+    test "with valid request target test account" do
+      user = standard_user(include: "default_account")
+      live_account_id = user.default_account_id
+      test_account_id = user.default_account.test_account_id
+
+      requester = managed_user(live_account_id, role: "administrator")
+      managed_user(test_account_id)
+      managed_user(test_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: test_account_id
+      }
+
+      assert {:ok, %{data: 2}} = Identity.count_user(req)
+    end
+  end
+
   describe "get_user/1" do
     test "with unauthorized requester" do
       req = %Request{}

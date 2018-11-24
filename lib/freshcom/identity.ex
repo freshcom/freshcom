@@ -64,6 +64,15 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def count_user(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:list_user)
+    ~> to_query(User)
+    ~> Repo.aggregate(:count, :id)
+    |> to_response()
+  end
+
   @spec get_user(Request.t()) :: Context.resp()
   def get_user(%Request{} = req) do
     req
