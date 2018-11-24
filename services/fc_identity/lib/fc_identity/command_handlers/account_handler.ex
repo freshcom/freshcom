@@ -7,7 +7,7 @@ defmodule FCIdentity.AccountHandler do
 
   import FCIdentity.AccountPolicy
 
-  alias FCStateStorage.GlobalStore.DefaultLocaleStore
+  alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserRoleStore}
   alias FCIdentity.TestAccountIdStore
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
   alias FCIdentity.{AccountCreated, AccountInfoUpdated}
@@ -17,6 +17,7 @@ defmodule FCIdentity.AccountHandler do
     cmd
     |> authorize(state)
     ~> keep_default_locale()
+    ~> keep_owner_role()
     ~> keep_test_account_id()
     ~> merge_to(%AccountCreated{})
     |> unwrap_ok()
@@ -37,12 +38,17 @@ defmodule FCIdentity.AccountHandler do
     |> unwrap_ok()
   end
 
-  defp keep_default_locale(cmd) do
+  defp keep_default_locale(%CreateAccount{} = cmd) do
     DefaultLocaleStore.put(cmd.account_id, cmd.default_locale)
     cmd
   end
 
-  defp keep_test_account_id(%{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
+  defp keep_owner_role(%CreateAccount{account_id: account_id, owner_id: owner_id} = cmd) do
+    UserRoleStore.put(owner_id, account_id, "owner")
+    cmd
+  end
+
+  defp keep_test_account_id(%CreateAccount{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
     TestAccountIdStore.put(aid, taid)
     cmd
   end

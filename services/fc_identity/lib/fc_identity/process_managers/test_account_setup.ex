@@ -1,7 +1,7 @@
 defmodule FCIdentity.TestAccountSetup do
   @moduledoc false
   use Commanded.ProcessManagers.ProcessManager,
-    name: "639c6640-d45d-41a0-b240-490282ab5984",
+    name: "process-manager:639c6640-d45d-41a0-b240-490282ab5984",
     router: FCIdentity.Router
 
   alias FCIdentity.AccountCreated

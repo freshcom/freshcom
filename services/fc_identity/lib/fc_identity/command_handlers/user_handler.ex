@@ -10,6 +10,8 @@ defmodule FCIdentity.UserHandler do
   import FCSupport.Normalization
   import FCIdentity.UserPolicy
 
+  alias FCStateStorage.GlobalStore.{UserTypeStore, UserRoleStore}
+  alias FCIdentity.{UsernameStore, TestAccountIdStore}
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -48,6 +50,8 @@ defmodule FCIdentity.UserHandler do
     cmd
     |> trim_strings()
     |> downcase_strings([:username, :email])
+    |> keep_type()
+    |> keep_username()
     |> merge_to(user_registered)
     |> put_password_hash(cmd)
     |> List.wrap()
@@ -59,12 +63,15 @@ defmodule FCIdentity.UserHandler do
 
   def handle(%{id: nil} = state, %AddUser{} = cmd) do
     cmd
-    |>  authorize(state)
-    ~>  trim_strings()
-    ~>  downcase_strings([:username, :email])
-    ~>  merge_to(%UserAdded{type: "managed"})
-    ~>  put_password_hash(cmd)
-    |>  unwrap_ok()
+    |> authorize(state)
+    ~> trim_strings()
+    ~> downcase_strings([:username, :email])
+    ~> keep_type()
+    ~> keep_role()
+    ~> keep_username()
+    ~> merge_to(%UserAdded{type: "managed"})
+    ~> put_password_hash(cmd)
+    |> unwrap_ok()
   end
 
   def handle(_, %AddUser{}), do: {:error, {:already_exist, :user}}
@@ -117,6 +124,7 @@ defmodule FCIdentity.UserHandler do
   def handle(state, %ChangeUserRole{} = cmd) do
     cmd
     |> authorize(state)
+    ~> keep_role()
     ~> merge_to(%UserRoleChanged{})
     |> unwrap_ok()
   end
@@ -126,6 +134,37 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~> merge_to(%UserInfoUpdated{})
     |> unwrap_ok()
+  end
+
+  defp keep_type(%RegisterUser{} = cmd) do
+    UserTypeStore.put(cmd.user_id, "standard")
+    cmd
+  end
+
+  defp keep_type(%AddUser{} = cmd) do
+    UserTypeStore.put(cmd.user_id, "managed")
+    cmd
+  end
+
+  defp keep_role(%ct{} = cmd) when ct in [AddUser, ChangeUserRole] do
+    UserRoleStore.put(cmd.user_id, cmd.account_id, cmd.role)
+    test_account_id = TestAccountIdStore.get(cmd.account_id)
+
+    if test_account_id do
+      UserRoleStore.put(cmd.user_id, test_account_id, cmd.role)
+    end
+
+    cmd
+  end
+
+  defp keep_username(%RegisterUser{} = cmd) do
+    UsernameStore.put(cmd.username)
+    cmd
+  end
+
+  defp keep_username(%AddUser{} = cmd) do
+    UsernameStore.put(cmd.username, cmd.account_id)
+    cmd
   end
 
   defp put_password_hash(event, %{password: password}) when byte_size(password) > 0 do

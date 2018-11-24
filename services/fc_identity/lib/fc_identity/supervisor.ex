@@ -9,11 +9,6 @@ defmodule FCIdentity.Supervisor do
 
   def init(_) do
     children = [
-      # Event Handler
-      {FCIdentity.RoleKeeper, [start_from: :current]},
-      {FCIdentity.UsernameKeeper, [start_from: :current]},
-      {FCIdentity.TypeKeeper, [start_from: :current]},
-
       # Process Manager
       {FCIdentity.DefaultAccountSetup, [start_from: :current]},
       {FCIdentity.TestAccountSetup, [start_from: :current]}

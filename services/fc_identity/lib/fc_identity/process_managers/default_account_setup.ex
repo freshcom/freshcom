@@ -1,7 +1,7 @@
 defmodule FCIdentity.DefaultAccountSetup do
   @moduledoc false
   use Commanded.ProcessManagers.ProcessManager,
-    name: "b4e57a07-3136-4a9f-8f8b-cbae5f86ed4d",
+    name: "process-manager:b4e57a07-3136-4a9f-8f8b-cbae5f86ed4d",
     router: FCIdentity.Router
 
   import UUID
