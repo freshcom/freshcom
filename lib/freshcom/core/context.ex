@@ -2,7 +2,7 @@ defmodule Freshcom.Context do
   use OK.Pipe
 
   import Ecto.Query
-  import FCSupport.Normalization, only: [atomize_keys: 2]
+  import FCSupport.Normalization, only: [atomize_keys: 2, stringify_list: 1]
 
   alias Ecto.{Query, Queryable}
   alias FCSupport.Struct
@@ -68,13 +68,17 @@ defmodule Freshcom.Context do
   @spec to_command(Request.t(), struct) :: struct
   def to_command(req, cmd) do
     fields = atomize_keys(req.fields, Map.keys(cmd))
+    effective_keys =
+      fields
+      |> Map.keys()
+      |> stringify_list()
 
     cmd
     |> Struct.merge(fields)
     |> Struct.put(:requester_id, req.requester_id)
     |> Struct.put(:requester_role, req._role_)
     |> Struct.put(:account_id, req.account_id)
-    |> Struct.put(:effective_keys, Map.keys(fields))
+    |> Struct.put(:effective_keys, effective_keys)
     |> Struct.put(:locale, req.locale)
   end
 
