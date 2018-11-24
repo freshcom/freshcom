@@ -28,5 +28,5 @@ defmodule FCIdentity.UpdateUserInfo do
   validates :user_id, presence: true, uuid: true
 
   validates :username, presence: true, length: [min: 3]
-  validates :email, format: @email_regex
+  validates :email, format: [with: @email_regex, allow_blank: true]
 end
