@@ -95,7 +95,7 @@ defmodule FCIdentity.User do
     default_locale = DefaultLocaleStore.get(state.account_id)
 
     state
-    |> cast(event, event.effective_keys)
+    |> cast(event)
     |> Translation.put_change(translatable_fields(), locale, default_locale)
     |> apply_changes()
   end
