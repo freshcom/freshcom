@@ -35,6 +35,12 @@ defmodule FCStateStorage.MemoryAdapter do
     {:ok, record}
   end
 
+  def delete(key, _ \\ []) do
+    Agent.update(__MODULE__, fn(table) ->
+      Map.drop(table, [key])
+    end)
+  end
+
   def reset!() do
     Agent.update(__MODULE__, fn(_) ->
       %{}

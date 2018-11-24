@@ -59,19 +59,18 @@ defmodule FCStateStorage.DynamoAdapter do
   defp normalize_error({:error, {"ConditionalCheckFailedException", _}}), do: {:error, :key_already_exist}
   defp normalize_error(other), do: other
 
+  def delete(key, _ \\ []) do
+    @dynamo_table
+    |> Dynamo.delete_item(%{@primary_key_name => key})
+    |> ExAws.request!()
+  end
+
   def reset!() do
     @dynamo_table
     |> Dynamo.scan()
     |> ExAws.request!()
     |> Map.get("Items")
+    |> Enum.map(fn(item) -> item[Atom.to_string(@primary_key_name)]["S"] end)
     |> Enum.each(&delete/1)
-  end
-
-  defp delete(item) do
-    key = item[Atom.to_string(@primary_key_name)]["S"]
-
-    @dynamo_table
-    |> Dynamo.delete_item(%{@primary_key_name => key})
-    |> ExAws.request!()
   end
 end
