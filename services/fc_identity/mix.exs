@@ -58,7 +58,6 @@ defmodule FCIdentity.MixProject do
         FCIdentity.ChangePassword,
         FCIdentity.ChangeUserRole,
         FCIdentity.DeleteUser,
-        FCIdentity.FinishUserRegistration,
         FCIdentity.GenerateEmailVerificationToken,
         FCIdentity.GeneratePasswordResetToken,
         FCIdentity.RegisterUser,

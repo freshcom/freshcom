@@ -5,7 +5,6 @@ defmodule FCIdentity.Router do
 
   alias FCIdentity.{
     RegisterUser,
-    FinishUserRegistration,
     AddUser,
     DeleteUser,
     GeneratePasswordResetToken,
@@ -32,7 +31,6 @@ defmodule FCIdentity.Router do
     [
       RegisterUser,
       AddUser,
-      FinishUserRegistration,
       DeleteUser,
       GeneratePasswordResetToken,
       ChangePassword,

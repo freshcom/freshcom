@@ -22,7 +22,6 @@ defmodule FCIdentity.UserHandler do
     VerifyEmail
   }
   alias FCIdentity.{
-    FinishUserRegistration,
     UserAdded,
     UserRegistered,
     UserDeleted,
@@ -73,20 +72,6 @@ defmodule FCIdentity.UserHandler do
   def handle(%{id: nil}, _), do: {:error, {:not_found, :user}}
 
   def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :user}}
-
-  def handle(%{id: user_id} = state, %FinishUserRegistration{} = cmd) do
-    %UserRegistered{
-      user_id: user_id,
-      default_account_id: state.account_id,
-      username: state.username,
-      password_hash: state.password_hash,
-      email: state.email,
-      is_term_accepted: cmd.is_term_accepted,
-      first_name: state.first_name,
-      last_name: state.last_name,
-      name: state.name
-    }
-  end
 
   def handle(state, %DeleteUser{} = cmd) do
     cmd
