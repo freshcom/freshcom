@@ -107,7 +107,7 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.list_user(req)
     end
 
-    test "with valid request" do
+    test "with valid request target live account" do
       requester = standard_user()
       managed_user(requester.default_account_id)
       managed_user(requester.default_account_id)
@@ -115,6 +115,24 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.list_user(req)
+      assert length(data) == 2
+    end
+
+    test "with valid request target test account" do
+      user = standard_user(include: "default_account")
+      live_account_id = user.default_account_id
+      test_account_id = user.default_account.test_account_id
+
+      requester = managed_user(live_account_id, role: "administrator")
+      managed_user(test_account_id)
+      managed_user(test_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: test_account_id
       }
 
       assert {:ok, %{data: data}} = Identity.list_user(req)
@@ -202,7 +220,6 @@ defmodule Freshcom.IdentityTest do
       assert data.id == user.id
     end
 
-    @tag :focus
     test "target standard user as requester itself" do
       requester = standard_user()
 

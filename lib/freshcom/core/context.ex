@@ -33,7 +33,7 @@ defmodule Freshcom.Context do
     {:error, :access_denied}
   end
 
-  def to_response(data) when is_list(data) or is_map(data) do
+  def to_response(data) when is_list(data) or is_map(data) or is_integer(data) do
     {:ok, %Response{data: data}}
   end
 
@@ -98,8 +98,15 @@ defmodule Freshcom.Context do
   defp put_requester(%{requester_id: id, _account_: %{owner_id: owner_id}} = req) when id == owner_id,
     do: %{req | _requester_: Repo.get_by(User, id: id)}
 
-  defp put_requester(%{requester_id: id, _account_: account} = req),
+  defp put_requester(%{requester_id: id, _account_: %{mode: "live"} = account} = req),
     do: %{req | _requester_: Repo.get_by(User, id: id, account_id: account.id)}
+
+  defp put_requester(%{requester_id: id, _account_: %{mode: "test"} = account} = req) do
+    requester = Repo.get_by(User, id: id, account_id: account.id)
+    requester = requester || Repo.get_by(User, id: id, account_id: account.live_account_id)
+
+    %{req | _requester_: requester}
+  end
 
   defp put_role(%{_account_: nil, _role_: nil} = req), do: %{req | _role_: "anonymous"}
   defp put_role(%{_requester_: nil, _role_: nil} = req), do: %{req | _role_: "guest"}
