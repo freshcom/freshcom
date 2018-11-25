@@ -13,7 +13,7 @@ defmodule FCIdentity.UpdateUserInfoTest do
         user_id: uuid4(),
         account_id: account_id,
         effective_keys: ["username"],
-        username: "roy"
+        username: "ROY"
       }
 
       {:error, {:validation_failed, errors}} = validate(cmd)

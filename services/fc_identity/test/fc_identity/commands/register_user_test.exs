@@ -7,8 +7,8 @@ defmodule FCIdentity.RegisterUserTest do
 
   describe "validations" do
     test "given existing username" do
-      UsernameStore.put("roy")
-      cmd = %RegisterUser{username: "roy"}
+      UsernameStore.put("ROY")
+      cmd = %RegisterUser{username: "rOY"}
 
       {:error, {:validation_failed, errors}} = validate(cmd)
 

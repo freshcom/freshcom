@@ -12,7 +12,7 @@ defmodule FCIdentity.AddUserTest do
       cmd = %AddUser{
         user_id: uuid4(),
         account_id: account_id,
-        username: "roy"
+        username: "ROy"
       }
 
       {:error, {:validation_failed, errors}} = validate(cmd)

@@ -158,6 +158,8 @@ defmodule FCIdentity.UserHandler do
     cmd
   end
 
+  defp keep_username(%{username: nil} = cmd), do: cmd
+
   defp keep_username(%RegisterUser{} = cmd) do
     UsernameStore.put(cmd.username)
     cmd

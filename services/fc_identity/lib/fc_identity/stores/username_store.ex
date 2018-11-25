@@ -3,8 +3,8 @@ defmodule FCIdentity.UsernameStore do
   Keep the the username from the given event for future use.
   """
   @spec put(String.t(), String.t() | nil) :: :ok | {:error, :key_already_exist}
-  def put(username, account_id \\ nil) do
-    key = generate_key(username, account_id)
+  def put(username, account_id \\ nil) when is_binary(username) do
+    key = generate_key(String.downcase(username), account_id)
 
     case FCStateStorage.put(key, %{}, allow_overwrite: false) do
       {:ok, _} -> :ok
@@ -13,7 +13,7 @@ defmodule FCIdentity.UsernameStore do
   end
 
   def delete(username, account_id \\ nil) do
-    key = generate_key(username, account_id)
+    key = generate_key(String.downcase(username), account_id)
     FCStateStorage.delete(key)
   end
 
@@ -22,7 +22,7 @@ defmodule FCIdentity.UsernameStore do
   """
   @spec exist?(String.t(), String.t() | nil) :: boolean
   def exist?(username, account_id \\ nil) do
-    generate_key(username, account_id)
+    generate_key(String.downcase(username), account_id)
     |> do_exist?()
   end
 
