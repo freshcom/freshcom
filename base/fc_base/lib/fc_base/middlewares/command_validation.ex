@@ -1,6 +1,8 @@
 defmodule FCBase.CommandValidation do
   @behaviour Commanded.Middleware
 
+  import FCSupport.Normalization, only: [atomize_list: 1]
+
   alias Commanded.Middleware.Pipeline
   alias FCSupport.Validation
 
@@ -12,7 +14,7 @@ defmodule FCBase.CommandValidation do
     e_keys = e_keys ++ [identity]
 
     cmd
-    |> Validation.validate(effective_keys: e_keys)
+    |> Validation.validate(effective_keys: atomize_list(e_keys))
     |> put_validation_result(pipeline)
   end
 

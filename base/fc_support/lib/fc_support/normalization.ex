@@ -85,4 +85,14 @@ defmodule FCSupport.Normalization do
       end
     end)
   end
+
+  def atomize_list(l) do
+    Enum.reduce(l, [], fn(item, acc) ->
+      if is_binary(item) do
+        acc ++ [String.to_existing_atom(item)]
+      else
+        acc ++ [item]
+      end
+    end)
+  end
 end
