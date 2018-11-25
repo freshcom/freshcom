@@ -161,19 +161,19 @@ defmodule FCIdentity.UserHandler do
   defp keep_username(%{username: nil} = cmd), do: cmd
 
   defp keep_username(%RegisterUser{} = cmd) do
-    UsernameStore.put(cmd.username)
+    UsernameStore.put(cmd.username, cmd.user_id)
     cmd
   end
 
   defp keep_username(%AddUser{} = cmd) do
-    UsernameStore.put(cmd.username, cmd.account_id)
+    UsernameStore.put(cmd.username, cmd.user_id, cmd.account_id)
     cmd
   end
 
   defp keep_username(%UpdateUserInfo{} = cmd, state) do
     if Enum.member?(cmd.effective_keys, "username") && cmd.username != state.username do
       UsernameStore.delete(state.username, state.account_id)
-      UsernameStore.put(cmd.username, cmd.account_id)
+      UsernameStore.put(cmd.username, cmd.user_id, cmd.account_id)
     end
 
     cmd
