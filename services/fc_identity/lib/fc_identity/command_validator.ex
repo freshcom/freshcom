@@ -4,7 +4,9 @@ defmodule FCIdentity.CommandValidator do
   def unique_username(nil, _), do: :ok
 
   def unique_username(username, cmd) do
-    unless UsernameStore.exist?(username, Map.get(cmd, :account_id)) do
+    user_id = UsernameStore.get(username, Map.get(cmd, :account_id))
+
+    if is_nil(user_id) || user_id == cmd.user_id do
       :ok
     else
       {:error, :taken}
