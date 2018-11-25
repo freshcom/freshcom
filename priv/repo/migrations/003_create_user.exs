@@ -11,7 +11,7 @@ defmodule Freshcom.Repo.Migrations.CreateUser do
 
       add :type, :string
       add :status, :string
-      add :username, :string
+      add :username, :citext
       add :password_hash, :string
       add :email, :string
       add :is_term_accepted, :boolean
