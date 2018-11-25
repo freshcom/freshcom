@@ -10,24 +10,34 @@ defmodule Freshcom.UserProjector do
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
-    UserInfoUpdated
+    UserInfoUpdated,
+    UserRoleChanged
   }
 
-  project(%UserRegistered{} = event, _metadata) do
+  project(%UserRegistered{} = event, _) do
     user = Struct.merge(%User{id: event.user_id, type: "standard"}, event)
     Multi.insert(multi, :user, user)
   end
 
-  project(%UserAdded{} = event, _metadata) do
+  project(%UserAdded{} = event, _) do
     user = Struct.merge(%User{id: event.user_id}, event)
     Multi.insert(multi, :user, user)
   end
 
-  project(%UserInfoUpdated{} = event, _metadata) do
+  project(%UserInfoUpdated{} = event, _) do
     changeset =
       User
       |> Repo.get(event.user_id)
       |> Projection.changeset(event)
+
+    Multi.update(multi, :user, changeset)
+  end
+
+  project(%UserRoleChanged{} = event, _) do
+    changeset =
+      User
+      |> Repo.get(event.user_id)
+      |> Ecto.Changeset.change(role: event.role)
 
     Multi.update(multi, :user, changeset)
   end

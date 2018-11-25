@@ -8,13 +8,15 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Context, Request}
   alias FCIdentity.{
     RegisterUser,
+    AddUser,
     UpdateUserInfo,
-    AddUser
+    ChangeUserRole
   }
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
-    UserInfoUpdated
+    UserInfoUpdated,
+    UserRoleChanged
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
@@ -48,6 +50,20 @@ defmodule Freshcom.Identity do
     |> to_command(%UpdateUserInfo{})
     |> Map.put(:user_id, identifiers[:id])
     |> dispatch_and_wait(UserInfoUpdated)
+    ~> Map.get(:user)
+    ~> preload(req)
+    |> to_response()
+  end
+
+  def change_user_role(%Request{} = req) do
+    cmd = %ChangeUserRole{
+      user_id: req.identifiers["id"],
+      role: req.fields["value"]
+    }
+
+    req
+    |> to_command(cmd)
+    |> dispatch_and_wait(UserRoleChanged)
     ~> Map.get(:user)
     ~> preload(req)
     |> to_response()
@@ -191,7 +207,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])
