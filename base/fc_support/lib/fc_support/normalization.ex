@@ -1,9 +1,26 @@
 defmodule FCSupport.Normalization do
-
   def to_utc_iso8601(datetime) do
     datetime
     |> Timex.Timezone.convert("UTC")
     |> DateTime.to_iso8601()
+  end
+
+  def normalize_by(map, root_key, key, test_func, normalize_func) do
+    value =
+      map
+      |> Map.get(root_key)
+      |> Map.get(key)
+
+    if test_func.(value) do
+      root_value =
+        map
+        |> Map.get(root_key)
+        |> Map.put(key, normalize_func.(value))
+
+      Map.put(map, root_key, root_value)
+    else
+      map
+    end
   end
 
   @doc """
