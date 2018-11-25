@@ -66,7 +66,7 @@ defmodule FCIdentity.UserHandlerTest do
 
       assert event.user_id == cmd.user_id
       assert event.account_id == cmd.account_id
-      assert event.username == String.downcase(cmd.username)
+      assert event.username == cmd.username
       assert event.email == cmd.email
     end
   end

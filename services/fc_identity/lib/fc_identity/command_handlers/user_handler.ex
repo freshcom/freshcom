@@ -49,7 +49,7 @@ defmodule FCIdentity.UserHandler do
 
     cmd
     |> trim_strings()
-    |> downcase_strings([:username, :email])
+    |> downcase_strings([:email])
     |> keep_type()
     |> keep_username()
     |> merge_to(user_registered)
@@ -65,7 +65,7 @@ defmodule FCIdentity.UserHandler do
     cmd
     |> authorize(state)
     ~> trim_strings()
-    ~> downcase_strings([:username, :email])
+    ~> downcase_strings([:email])
     ~> keep_type()
     ~> keep_role()
     ~> keep_username()

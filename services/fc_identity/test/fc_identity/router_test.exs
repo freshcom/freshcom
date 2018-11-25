@@ -59,7 +59,7 @@ defmodule FCIdentity.RouterTest do
       :ok = Router.dispatch(cmd)
 
       assert_receive_event(UserRegistered, fn(event) ->
-        assert event.username == String.downcase(cmd.username)
+        assert event.username == cmd.username
         assert event.default_account_id
         assert event.is_term_accepted == cmd.is_term_accepted
         assert event.name == cmd.name

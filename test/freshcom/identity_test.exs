@@ -272,7 +272,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         identifiers: %{
           "type" => "standard",
-          "username" => user.username,
+          "username" => String.upcase(user.username),
           "password" => "test1234"
         },
         _role_: "system"
@@ -290,7 +290,7 @@ defmodule Freshcom.IdentityTest do
         account_id: account_id,
         identifiers: %{
           "type" => "managed",
-          "username" => user.username,
+          "username" => String.upcase(user.username),
           "password" => "test1234"
         },
         _role_: "system"
