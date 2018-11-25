@@ -20,8 +20,10 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: "system"} = req, _), do: {:ok, req}
   def authorize(%{_role_: "appdev"} = req, _), do: {:ok, req}
 
-  def authorize(%{_role_: role} = req, :list_user) when role in @admins,
-    do: {:ok, req}
+  def authorize(%{_role_: role} = req, :list_user) when role in @admins do
+    req = %{req | _searchable_fields_: ["name", "username", "email"]}
+    {:ok, req}
+  end
 
   def authorize(%{requester_id: rid, identifiers: %{"id" => tid}} = req, :get_user) when rid == tid,
     do: {:ok, req}

@@ -203,15 +203,21 @@ defmodule Freshcom.Context do
     search_translations(query, keyword, searchable_fields, locale, translatable_fields)
   end
 
-  defp search_fields(query, keyword, searchable_fields) do
+  defp search_fields(query, keyword, [field | rest]) do
     keyword = "%#{keyword}%"
+    field = String.to_existing_atom(field)
+    dynamics = dynamic([q], ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
 
-    Enum.reduce(searchable_fields, query, fn(field, query) ->
-      field = String.to_existing_atom(field)
-      from(q in query, or_where: ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
-    end)
+    dynamics =
+      Enum.reduce(rest, dynamics, fn(field, dynamics) ->
+        field = String.to_existing_atom(field)
+        dynamic([q], ^dynamics or ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
+      end)
+
+    from(q in query, where: ^dynamics)
   end
 
+  # TODO: use dynamic
   defp search_translations(query, keyword, searchable_fields, locale, translatable_fields) do
     keyword = "%#{keyword}%"
 
