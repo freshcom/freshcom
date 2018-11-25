@@ -27,22 +27,6 @@ defmodule FCIdentity.UsernameStore do
     FCStateStorage.delete(key)
   end
 
-  # @doc """
-  # Return `true` if username exist, otherwise `false`
-  # """
-  # @spec exist?(String.t(), String.t() | nil) :: boolean
-  # def exist?(username, account_id \\ nil) do
-  #   generate_key(String.downcase(username), account_id)
-  #   |> do_exist?()
-  # end
-
-  # defp do_exist?(key) do
-  #   case FCStateStorage.get(key) do
-  #     nil -> false
-  #     _ -> true
-  #   end
-  # end
-
   defp generate_key(username, nil) do
     "fc_identity/username/#{username}"
   end
