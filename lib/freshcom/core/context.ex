@@ -250,7 +250,7 @@ defmodule Freshcom.Context do
     order_by(query, ^orderings)
   end
 
-  @spec paginate(Query.t(), map) :: Query.t()
+  @spec paginate(Query.t(), map | nil) :: Query.t()
   def paginate(query, %{number: number} = pagination) when is_integer(number) do
     size = pagination[:size] || 25
     offset = size * (number - 1)
@@ -275,6 +275,8 @@ defmodule Freshcom.Context do
       query
     end
   end
+
+  def pagination(query, nil), do: query
 
   defp apply_cursor(query, before_sid, _) when is_integer(before_sid) do
     where(query, [q], q.sid > ^before_sid)

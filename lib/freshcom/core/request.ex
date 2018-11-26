@@ -8,7 +8,7 @@ defmodule Freshcom.Request do
     field :identifiers, map(), default: %{}
     field :filter, list(), default: []
     field :search, String.t()
-    field :pagination, map(), default: %{size: 25, number: 1}
+    field :pagination, map() | nil, default: %{size: 25, number: 1}
     field :sort, list(), default: []
     field :include, [String.t()]
     field :locale, String.t()

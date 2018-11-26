@@ -83,6 +83,7 @@ defmodule Freshcom.Identity do
   def count_user(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:pagination, nil)
     |> authorize(:list_user)
     ~> to_query(User)
     ~> Repo.aggregate(:count, :id)
