@@ -2,6 +2,8 @@ defmodule FCIdentity.UpdateAccountInfo do
   use TypedStruct
   use Vex.Struct
 
+  alias FCIdentity.CommandValidator
+
   typedstruct do
     field :requester_id, String.t()
     field :requester_type, String.t()
@@ -22,11 +24,9 @@ defmodule FCIdentity.UpdateAccountInfo do
     field :custom_data, map
   end
 
-  @email_regex Application.get_env(:fc_identity, :email_regex)
-
   validates :account_id, presence: true, uuid: true
 
   validates :name, presence: true
-  validates :support_email, format: [with: @email_regex, allow_nil: true]
-  validates :tech_email, format: [with: @email_regex, allow_nil: true]
+  validates :support_email, by: &CommandValidator.email/2
+  validates :tech_email, by: &CommandValidator.email/2
 end

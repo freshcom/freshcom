@@ -24,8 +24,6 @@ defmodule FCIdentity.AddUser do
     field :role, String.t()
   end
 
-  @email_regex Application.get_env(:fc_identity, :email_regex)
-
   @valid_statuses ["pending", "active"]
 
   @valid_roles [
@@ -43,9 +41,9 @@ defmodule FCIdentity.AddUser do
   validates :account_id, presence: true, uuid: true
 
   validates :status, presence: true, inclusion: @valid_statuses
-  validates :username, presence: true, length: [min: 3], by: &CommandValidator.unique_username/2
+  validates :username, presence: true, by: &CommandValidator.username/2
   validates :password, presence: true, length: [min: 8]
-  validates :email, format: [with: @email_regex, allow_blank: true]
+  validates :email, by: &CommandValidator.email/2
 
   validates :role, presence: true, inclusion: @valid_roles
 end

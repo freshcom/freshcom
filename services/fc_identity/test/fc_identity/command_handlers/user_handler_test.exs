@@ -37,7 +37,7 @@ defmodule FCIdentity.UserHandlerTest do
     test "when string with extra leading and trailing space given", %{cmd: cmd} do
       cmd = %{cmd | email: "  roY@ExAmPle.cOm      ", name: "test"}
       %UserAdded{email: email} = UserHandler.handle(%User{}, cmd)
-      assert email == "roy@example.com"
+      assert email == "roY@ExAmPle.cOm"
     end
 
     test "when no password given password_hash should be nil", %{cmd: cmd} do

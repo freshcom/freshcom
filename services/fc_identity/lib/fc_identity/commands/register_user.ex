@@ -20,11 +20,9 @@ defmodule FCIdentity.RegisterUser do
     field :default_locale, String.t(), default: "en"
   end
 
-  @email_regex Application.get_env(:fc_identity, :email_regex)
-
-  validates :username, presence: true, length: [min: 3], by: &CommandValidator.unique_username/2
+  validates :username, presence: true, by: &CommandValidator.username/2
   validates :password, presence: true, length: [min: 8]
-  validates :email, presence: true, format: @email_regex
+  validates :email, presence: true, by: &CommandValidator.email/2
   validates :is_term_accepted, acceptance: true
 
   validates :name, presence: true

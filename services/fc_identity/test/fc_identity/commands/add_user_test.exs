@@ -19,5 +19,15 @@ defmodule FCIdentity.AddUserTest do
 
       assert has_error(errors, :username, :taken)
     end
+
+    test "given invalid email" do
+      cmd = %AddUser{
+        email: "test"
+      }
+
+      {:error, {:validation_failed, errors}} = validate(cmd)
+
+      assert has_error(errors, :email, :invalid_format)
+    end
   end
 end

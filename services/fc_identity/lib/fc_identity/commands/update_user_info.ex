@@ -25,10 +25,8 @@ defmodule FCIdentity.UpdateUserInfo do
     field :custom_data, map
   end
 
-  @email_regex Application.get_env(:fc_identity, :email_regex)
-
   validates :user_id, presence: true, uuid: true
 
-  validates :username, length: [min: 3, allow_blank: true], by: &CommandValidator.unique_username/2
-  validates :email, format: [with: @email_regex, allow_blank: true]
+  validates :username, by: &CommandValidator.username/2
+  validates :email, by: &CommandValidator.email/2
 end
