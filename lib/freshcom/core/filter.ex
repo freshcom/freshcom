@@ -1,6 +1,10 @@
 defmodule Freshcom.Filter do
   @moduledoc """
-
+  [%{"$and" => [
+    %{"$or" => [%{"role" => "test1Test"}, %{"role" => "test2"}]},
+    %{"role" => "lol"},
+    %{"$or" => [%{"role" => "tt1"}, %{"role" => "tt2"}]}
+  ]}]
   """
 
   import Ecto.Query
@@ -179,5 +183,27 @@ defmodule Freshcom.Filter do
   defp reflection(query, assoc) do
     {_, queryable} = query.from
     queryable.__schema__(:association, String.to_existing_atom(assoc))
+  end
+
+  @spec normalize(list, String.t(), function) :: list
+  def normalize(filter, key, func) when is_list(filter) do
+    Enum.map(filter, fn(statement_or_expression) ->
+      {operator_or_attr, statements_or_expression} = Enum.at(statement_or_expression, 0)
+
+      cond do
+        String.starts_with?(operator_or_attr, "$") ->
+          %{operator_or_attr => normalize(statements_or_expression, key, func)}
+
+        operator_or_attr == key && is_map(statements_or_expression) ->
+          {cmp, value} = Enum.at(statements_or_expression, 0)
+          %{operator_or_attr => %{cmp => func.(value)}}
+
+        operator_or_attr == key ->
+          %{operator_or_attr => func.(statements_or_expression)}
+
+        true ->
+          statement_or_expression
+      end
+    end)
   end
 end
