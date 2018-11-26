@@ -67,7 +67,7 @@ defmodule Freshcom.IdentityTest do
   end
 
   describe "update_user_info/1" do
-    test "given missing identifiers" do
+    test "given no identifiers" do
       assert {:error, %{errors: errors}} = Identity.update_user_info(%Request{})
       assert length(errors) > 1
     end
@@ -78,9 +78,9 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "given unauthorize requester" do
-      requester = standard_user()
+      user = standard_user()
 
-      req = %Request{identifiers: %{"id" => requester.id}}
+      req = %Request{identifiers: %{"id" => user.id}}
       assert {:error, :access_denied} = Identity.update_user_info(req)
     end
 
@@ -101,7 +101,7 @@ defmodule Freshcom.IdentityTest do
   end
 
   describe "change_user_role/1" do
-    test "given missing identifiers" do
+    test "given no identifiers" do
       assert {:error, %{errors: errors}} = Identity.change_user_role(%Request{})
       assert length(errors) > 1
     end
@@ -139,6 +139,47 @@ defmodule Freshcom.IdentityTest do
 
       assert {:ok, %{data: data}} = Identity.change_user_role(req)
       assert data.role == "manager"
+    end
+  end
+
+  describe "change_password/1" do
+    test "given no identifiers" do
+      assert {:error, %{errors: errors}} = Identity.change_password(%Request{})
+      assert length(errors) > 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{
+        requester_id: uuid4(),
+        identifiers: %{"id" => uuid4()},
+        fields: %{"new_password" => "test1234"}
+      }
+      assert {:error, :not_found} = Identity.change_password(req)
+    end
+
+    test "given unauthorize requester" do
+      user = standard_user()
+
+      req = %Request{
+        requester_id: uuid4(),
+        identifiers: %{"id" => user.id},
+        fields: %{"new_password" => "test1234"}
+      }
+      assert {:error, :access_denied} = Identity.change_password(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      user = managed_user(requester.default_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => user.id},
+        fields: %{"new_password" => "test1234"}
+      }
+
+      assert {:ok, %{data: data}} = Identity.change_password(req)
     end
   end
 

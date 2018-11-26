@@ -10,13 +10,15 @@ defmodule Freshcom.Identity do
     RegisterUser,
     AddUser,
     UpdateUserInfo,
-    ChangeUserRole
+    ChangeUserRole,
+    ChangePassword
   }
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
     UserInfoUpdated,
-    UserRoleChanged
+    UserRoleChanged,
+    PasswordChanged
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
@@ -55,6 +57,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec change_user_role(Request.t()) :: Context.resp()
   def change_user_role(%Request{} = req) do
     cmd = %ChangeUserRole{
       user_id: req.identifiers["id"],
@@ -64,6 +67,20 @@ defmodule Freshcom.Identity do
     req
     |> to_command(cmd)
     |> dispatch_and_wait(UserRoleChanged)
+    ~> Map.get(:user)
+    ~> preload(req)
+    |> to_response()
+  end
+
+  @spec change_password(Request.t()) :: Context.resp()
+  def change_password(%Request{} = req) do
+    identifiers = atomize_keys(req.identifiers, ["id", "reset_token"])
+
+    req
+    |> to_command(%ChangePassword{})
+    |> Map.put(:user_id, identifiers[:id])
+    |> Map.put(:reset_token, identifiers[:reset_token])
+    |> dispatch_and_wait(PasswordChanged)
     ~> Map.get(:user)
     ~> preload(req)
     |> to_response()
@@ -208,7 +225,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordChanged] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])
