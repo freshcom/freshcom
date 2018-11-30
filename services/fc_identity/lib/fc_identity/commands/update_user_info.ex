@@ -27,6 +27,6 @@ defmodule FCIdentity.UpdateUserInfo do
 
   validates :user_id, presence: true, uuid: true
 
-  validates :username, by: &CommandValidator.username/2
+  validates :username, presence: true, by: &CommandValidator.username/2
   validates :email, by: &CommandValidator.email/2
 end

@@ -11,6 +11,5 @@ defmodule FCIdentity.DeleteUser do
     field :user_id, String.t()
   end
 
-  validates :account_id, presence: true, uuid: true
   validates :user_id, presence: true, uuid: true
 end
