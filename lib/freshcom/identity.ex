@@ -11,14 +11,16 @@ defmodule Freshcom.Identity do
     AddUser,
     UpdateUserInfo,
     ChangeUserRole,
-    ChangePassword
+    ChangePassword,
+    DeleteUser
   }
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
     UserInfoUpdated,
     UserRoleChanged,
-    PasswordChanged
+    PasswordChanged,
+    UserDeleted
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
@@ -83,6 +85,18 @@ defmodule Freshcom.Identity do
     |> dispatch_and_wait(PasswordChanged)
     ~> Map.get(:user)
     ~> preload(req)
+    |> to_response()
+  end
+
+  @spec delete_user(Request.t()) :: Context.resp()
+  def delete_user(%Request{} = req) do
+    identifiers = atomize_keys(req.identifiers, ["id"])
+
+    req
+    |> to_command(%DeleteUser{})
+    |> Map.put(:user_id, identifiers[:id])
+    |> dispatch_and_wait(UserDeleted)
+    ~> Map.get(:user)
     |> to_response()
   end
 
@@ -225,7 +239,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordChanged] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordChanged, UserDeleted] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])

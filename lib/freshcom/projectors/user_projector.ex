@@ -13,7 +13,8 @@ defmodule Freshcom.UserProjector do
     UserAdded,
     UserInfoUpdated,
     UserRoleChanged,
-    PasswordChanged
+    PasswordChanged,
+    UserDeleted
   }
 
   project(%UserRegistered{} = event, _) do
@@ -56,6 +57,11 @@ defmodule Freshcom.UserProjector do
       )
 
     Multi.update(multi, :user, changeset)
+  end
+
+  project(%UserDeleted{} = event, _) do
+    user = Repo.get(User, event.user_id)
+    Multi.delete(multi, :user, user)
   end
 
   def after_update(_, _, changes) do

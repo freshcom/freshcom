@@ -183,6 +183,39 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "delete_user/1" do
+    test "given invalid request" do
+      assert {:error, %{errors: errors}} = Identity.delete_user(%Request{})
+      assert length(errors) > 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{identifiers: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Identity.delete_user(req)
+    end
+
+    test "given unauthorize requester" do
+      user = standard_user()
+
+      req = %Request{identifiers: %{"id" => user.id}}
+      assert {:error, :access_denied} = Identity.delete_user(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      user = managed_user(requester.default_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => user.id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.delete_user(req)
+      assert data.id == user.id
+    end
+  end
+
   describe "list_user/1" do
     test "given unauthorized requester" do
       req = %Request{}
