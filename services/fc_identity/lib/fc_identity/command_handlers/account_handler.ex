@@ -20,7 +20,7 @@ defmodule FCIdentity.AccountHandler do
     ~> keep_owner_role()
     ~> keep_test_account_id()
     ~> keep_account_alias()
-    ~> merge_to(%AccountCreated{})
+    ~> merge_to(%AccountCreated{alias: cmd.account_id})
     |> unwrap_ok()
   end
 

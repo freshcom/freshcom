@@ -42,7 +42,7 @@ defmodule FCIdentity.Account do
   end
 
   def apply(%{} = state, %AccountCreated{} = event) do
-    %{state | id: event.account_id, alias: event.account_id}
+    %{state | id: event.account_id}
     |> merge(event)
   end
 
