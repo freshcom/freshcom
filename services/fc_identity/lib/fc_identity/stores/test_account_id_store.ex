@@ -3,7 +3,7 @@ defmodule FCIdentity.TestAccountIdStore do
   Keep the test account id for future use.
   """
   @spec put(String.t(), String.t()) :: :ok
-  def put(account_id, test_account_id) do
+  def put(test_account_id, account_id) do
     key = generate_key(account_id)
     {:ok, _} = FCStateStorage.put(key, %{test_account_id: test_account_id})
 

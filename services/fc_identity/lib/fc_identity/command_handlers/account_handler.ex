@@ -49,7 +49,7 @@ defmodule FCIdentity.AccountHandler do
   end
 
   defp keep_test_account_id(%CreateAccount{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
-    TestAccountIdStore.put(aid, taid)
+    TestAccountIdStore.put(taid, aid)
     cmd
   end
 
