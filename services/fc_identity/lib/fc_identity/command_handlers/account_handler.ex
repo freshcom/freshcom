@@ -8,7 +8,7 @@ defmodule FCIdentity.AccountHandler do
   import FCIdentity.AccountPolicy
 
   alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserRoleStore}
-  alias FCIdentity.TestAccountIdStore
+  alias FCIdentity.{TestAccountIdStore, AccountAliasStore}
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
   alias FCIdentity.{AccountCreated, AccountInfoUpdated}
   alias FCIdentity.Account
@@ -19,6 +19,7 @@ defmodule FCIdentity.AccountHandler do
     ~> keep_default_locale()
     ~> keep_owner_role()
     ~> keep_test_account_id()
+    ~> keep_account_alias()
     ~> merge_to(%AccountCreated{})
     |> unwrap_ok()
   end
@@ -34,6 +35,7 @@ defmodule FCIdentity.AccountHandler do
   def handle(%Account{id: _} = state, %UpdateAccountInfo{} = cmd) do
     cmd
     |> authorize(state)
+    ~> keep_account_alias(state)
     ~> merge_to(%AccountInfoUpdated{})
     |> unwrap_ok()
   end
@@ -54,4 +56,18 @@ defmodule FCIdentity.AccountHandler do
   end
 
   defp keep_test_account_id(cmd), do: cmd
+
+  defp keep_account_alias(%CreateAccount{account_id: aid} = cmd) do
+    AccountAliasStore.put(aid, aid)
+    cmd
+  end
+
+  defp keep_account_alias(%UpdateAccountInfo{account_id: aid} = cmd, state) do
+    if Enum.member?(cmd.effective_keys, "alias") && cmd.alias != state.alias do
+      AccountAliasStore.delete(state.alias)
+      AccountAliasStore.put(cmd.alias, cmd.account_id)
+    end
+
+    cmd
+  end
 end

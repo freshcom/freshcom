@@ -15,6 +15,7 @@ defmodule FCIdentity.Account do
     field :test_account_id, String.t()
     field :default_locale, String.t()
 
+    field :alias, String.t()
     field :name, String.t()
     field :legal_name, String.t()
     field :website_url, String.t()
@@ -41,7 +42,7 @@ defmodule FCIdentity.Account do
   end
 
   def apply(%{} = state, %AccountCreated{} = event) do
-    %{state | id: event.account_id}
+    %{state | id: event.account_id, alias: event.account_id}
     |> merge(event)
   end
 
