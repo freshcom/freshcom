@@ -454,11 +454,10 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.update_account_info(req)
     end
 
-    @tag :focus
     test "given valid request" do
       requester = standard_user()
 
-      new_name = Faker.Name.name()
+      new_name = Faker.Company.name()
       req = %Request{
         requester_id: requester.id,
         account_id: requester.default_account_id,
