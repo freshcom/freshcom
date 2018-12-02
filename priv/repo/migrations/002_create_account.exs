@@ -13,7 +13,7 @@ defmodule Freshcom.Repo.Migrations.CreateAccount do
       add :test_account_id, :binary_id
       add :default_locale, :string
 
-      add :alias, :citext
+      add :handle, :citext
       add :name, :string
       add :legal_name, :string
       add :website_url, :string
