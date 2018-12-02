@@ -416,6 +416,60 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "get_account/1" do
+    test "given unauthorized requester" do
+      req = %Request{}
+
+      assert {:error, :access_denied} = Identity.get_account(req)
+    end
+
+    test "given valid request" do
+      user = standard_user()
+
+      req = %Request{
+        requester_id: user.id,
+        account_id: user.default_account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_account(req)
+      assert data.id == user.default_account_id
+    end
+  end
+
+  describe "update_account_info/1" do
+    test "given no identifiers" do
+      assert {:error, %{errors: errors}} = Identity.update_account_info(%Request{})
+      assert length(errors) > 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{account_id: uuid4()}
+      assert {:error, :not_found} = Identity.update_account_info(req)
+    end
+
+    test "given unauthorize requester" do
+      %{default_account_id: account_id} = standard_user()
+
+      req = %Request{account_id: account_id}
+      assert {:error, :access_denied} = Identity.update_account_info(req)
+    end
+
+    @tag :focus
+    test "given valid request" do
+      requester = standard_user()
+
+      new_name = Faker.Name.name()
+      req = %Request{
+        requester_id: requester.id,
+        account_id: requester.default_account_id,
+        fields: %{"name" => new_name}
+      }
+
+      assert {:ok, %{data: data}} = Identity.update_account_info(req)
+      assert data.name == new_name
+    end
+  end
+
   describe "get_refresh_token/1" do
     test "given unauthorized requester" do
       req = %Request{}
@@ -491,26 +545,6 @@ defmodule Freshcom.IdentityTest do
       assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
       assert data.prefixed_id
       assert data.id == urt.id
-    end
-  end
-
-  describe "get_account/1" do
-    test "given unauthorized requester" do
-      req = %Request{}
-
-      assert {:error, :access_denied} = Identity.get_account(req)
-    end
-
-    test "given valid request" do
-      user = standard_user()
-
-      req = %Request{
-        requester_id: user.id,
-        account_id: user.default_account_id
-      }
-
-      assert {:ok, %{data: data}} = Identity.get_account(req)
-      assert data.id == user.default_account_id
     end
   end
 end

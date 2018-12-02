@@ -12,7 +12,8 @@ defmodule Freshcom.Identity do
     UpdateUserInfo,
     ChangeUserRole,
     ChangePassword,
-    DeleteUser
+    DeleteUser,
+    UpdateAccountInfo
   }
   alias FCIdentity.{
     UserRegistered,
@@ -20,7 +21,8 @@ defmodule Freshcom.Identity do
     UserInfoUpdated,
     UserRoleChanged,
     PasswordChanged,
-    UserDeleted
+    UserDeleted,
+    AccountInfoUpdated
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
@@ -158,6 +160,25 @@ defmodule Freshcom.Identity do
   defp check_account_id(%{account_id: aid} = user, %{account_id: t_aid}) when aid == t_aid, do: user
   defp check_account_id(_, _), do: nil
 
+  @spec get_account(Request.t()) :: Context.resp()
+  def get_account(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_account)
+    ~> Map.get(:_account_)
+    |> to_response()
+  end
+
+  @spec update_account_info(Request.t()) :: Context.resp()
+  def update_account_info(%Request{} = req) do
+    req
+    |> to_command(%UpdateAccountInfo{})
+    |> dispatch_and_wait(AccountInfoUpdated)
+    ~> Map.get(:account)
+    ~> preload(req)
+    |> to_response()
+  end
+
   @spec get_refresh_token(Request.t()) :: Context.resp()
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
@@ -218,15 +239,6 @@ defmodule Freshcom.Identity do
     end
   end
 
-  @spec get_account(Request.t()) :: Context.resp()
-  def get_account(%Request{} = req) do
-    req
-    |> expand()
-    |> authorize(:get_account)
-    ~> Map.get(:_account_)
-    |> to_response()
-  end
-
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
@@ -242,6 +254,12 @@ defmodule Freshcom.Identity do
   defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordChanged, UserDeleted] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
+    ])
+  end
+
+  defp wait(%et{account_id: account_id}) when et in [AccountInfoUpdated] do
+    Projector.wait([
+      {:account, AccountProjector, &(&1.id == account_id)}
     ])
   end
 end

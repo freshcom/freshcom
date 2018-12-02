@@ -5,8 +5,7 @@ defmodule Freshcom.UserProjector do
   use Commanded.Projections.Ecto, name: "projector:9708460c-a25a-4a14-b049-ea78af279746"
 
   alias Ecto.Changeset
-  alias Phoenix.PubSub
-  alias Freshcom.{Repo, PubSubServer}
+  alias Freshcom.Repo
   alias Freshcom.User
   alias FCIdentity.{
     UserRegistered,
