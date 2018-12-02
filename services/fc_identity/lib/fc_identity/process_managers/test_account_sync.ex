@@ -39,6 +39,6 @@ defmodule FCIdentity.TestAccountSync do
   end
 
   def handle(_, %AccountInfoUpdated{} = event) do
-    Struct.merge(%UpdateAccountInfo{}, event, except: [:alias])
+    Struct.merge(%UpdateAccountInfo{}, event, except: [:handle])
   end
 end

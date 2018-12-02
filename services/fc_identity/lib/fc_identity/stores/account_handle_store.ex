@@ -1,10 +1,10 @@
-defmodule FCIdentity.AccountAliasStore do
+defmodule FCIdentity.AccountHandleStore do
   @doc """
   Keep the the alias from the given event for future use.
   """
   @spec put(String.t(), String.t()) :: :ok | {:error, :key_already_exist}
-  def put(alius, account_id) when is_binary(alius) do
-    key = generate_key(String.downcase(alius))
+  def put(handle, account_id) when is_binary(handle) do
+    key = generate_key(String.downcase(handle))
 
     case FCStateStorage.put(key, %{account_id: account_id}, allow_overwrite: false) do
       {:ok, _} -> :ok
@@ -13,8 +13,8 @@ defmodule FCIdentity.AccountAliasStore do
   end
 
   @spec get(String.t()) :: String.t()
-  def get(alius) do
-    key = generate_key(String.downcase(alius))
+  def get(handle) do
+    key = generate_key(String.downcase(handle))
 
     case FCStateStorage.get(key) do
       %{account_id: account_id} -> account_id
@@ -22,13 +22,13 @@ defmodule FCIdentity.AccountAliasStore do
     end
   end
 
-  def delete(alius) do
-    key = generate_key(String.downcase(alius))
+  def delete(handle) do
+    key = generate_key(String.downcase(handle))
 
     FCStateStorage.delete(key)
   end
 
-  defp generate_key(alius) do
-    "fc_identity/account_alias/#{alius}"
+  defp generate_key(handle) do
+    "fc_identity/account_handle/#{handle}"
   end
 end
