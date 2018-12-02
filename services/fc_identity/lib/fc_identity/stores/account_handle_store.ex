@@ -8,7 +8,7 @@ defmodule FCIdentity.AccountHandleStore do
 
     case FCStateStorage.put(key, %{account_id: account_id}, allow_overwrite: false) do
       {:ok, _} -> :ok
-      {:error, :key_already_exist} -> {:error, :alias_already_exist}
+      {:error, :key_already_exist} -> {:error, :handle_already_exist}
     end
   end
 

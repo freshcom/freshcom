@@ -8,7 +8,7 @@ defmodule Freshcom.Account do
     field :default_locale, :string
     field :is_ready_for_live_transaction, :boolean, default: false
 
-    field :alias, :string
+    field :handle, :string
     field :name, :string
     field :legal_name, :string
     field :website_url, :string
