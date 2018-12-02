@@ -13,7 +13,7 @@ defmodule FCIdentity.AccountPolicy do
     {:ok, cmd}
   end
 
-  def authorize(%UpdateAccountInfo{requester_role: "administrator"} = cmd, %{mode: "live"}) do
+  def authorize(%UpdateAccountInfo{requester_role: role} = cmd, %{mode: "live"}) when role in ["owner", "administrator"] do
     {:ok, cmd}
   end
 
