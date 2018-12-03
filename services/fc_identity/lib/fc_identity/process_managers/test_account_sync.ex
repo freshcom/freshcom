@@ -18,7 +18,7 @@ defmodule FCIdentity.TestAccountSync do
     test_account_id = TestAccountIdStore.get(account_id)
 
     if test_account_id do
-      {:ok, test_account_id}
+      {:start, test_account_id}
     else
       {:stop, account_id}
     end
@@ -38,7 +38,13 @@ defmodule FCIdentity.TestAccountSync do
     }
   end
 
-  def handle(_, %AccountInfoUpdated{} = event) do
-    Struct.merge(%UpdateAccountInfo{requester_role: "system"}, event, except: [:handle])
+  def handle(_, %AccountInfoUpdated{account_id: account_id} = event) do
+    test_account_id = TestAccountIdStore.get(account_id)
+
+    %UpdateAccountInfo{}
+    |> Struct.merge(event)
+    |> Map.put(:account_id, test_account_id)
+    |> Map.put(:requester_role, "system")
+    |> Map.put(:handle, "#{event.handle}-test")
   end
 end

@@ -14,6 +14,7 @@ defmodule FCIdentity.AccountInfoUpdated do
     field :effective_keys, [String.t()]
     field :locale, String.t()
 
+    field :handle, String.t()
     field :name, String.t()
     field :legal_name, String.t()
     field :website_url, String.t()

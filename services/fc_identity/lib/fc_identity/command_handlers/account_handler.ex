@@ -62,7 +62,7 @@ defmodule FCIdentity.AccountHandler do
     cmd
   end
 
-  defp keep_account_handle(%UpdateAccountInfo{account_id: aid} = cmd, state) do
+  defp keep_account_handle(%UpdateAccountInfo{} = cmd, state) do
     if Enum.member?(cmd.effective_keys, "handle") && cmd.handle != state.handle do
       AccountHandleStore.delete(state.handle)
       AccountHandleStore.put(cmd.handle, cmd.account_id)
