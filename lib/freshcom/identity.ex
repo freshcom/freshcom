@@ -26,7 +26,7 @@ defmodule Freshcom.Identity do
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector}
-  alias Freshcom.{User, RefreshToken}
+  alias Freshcom.{User, Account, RefreshToken}
 
   @spec register_user(Request.t()) :: Context.resp()
   def register_user(%Request{} = req) do
@@ -161,6 +161,15 @@ defmodule Freshcom.Identity do
   defp check_account_id(_, _), do: nil
 
   @spec get_account(Request.t()) :: Context.resp()
+  def get_account(%Request{identifiers: %{"handle" => _}} = req) do
+    req
+    |> expand()
+    |> authorize(:get_account)
+    ~> to_query(Account)
+    ~> Repo.one()
+    |> to_response()
+  end
+
   def get_account(%Request{} = req) do
     req
     |> expand()

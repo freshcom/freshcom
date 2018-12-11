@@ -434,6 +434,18 @@ defmodule Freshcom.IdentityTest do
       assert {:ok, %{data: data}} = Identity.get_account(req)
       assert data.id == user.default_account_id
     end
+
+    test "given valid request with handle" do
+      user = standard_user(include: "default_account")
+
+      req = %Request{
+        _role_: "system",
+        identifiers: %{"handle" => user.default_account.handle}
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_account(req)
+      assert data.id == user.default_account_id
+    end
   end
 
   describe "update_account_info/1" do
