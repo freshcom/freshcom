@@ -13,7 +13,8 @@ defmodule Freshcom.Identity do
     ChangeUserRole,
     ChangePassword,
     DeleteUser,
-    UpdateAccountInfo
+    UpdateAccountInfo,
+    AddApp
   }
   alias FCIdentity.{
     UserRegistered,
@@ -22,7 +23,8 @@ defmodule Freshcom.Identity do
     UserRoleChanged,
     PasswordChanged,
     UserDeleted,
-    AccountInfoUpdated
+    AccountInfoUpdated,
+    AppAdded
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
@@ -248,6 +250,16 @@ defmodule Freshcom.Identity do
     end
   end
 
+  @spec add_app(Request.t()) :: Context.resp()
+  def add_app(%Request{} = req) do
+    req
+    |> to_command(%AddApp{})
+    |> dispatch_and_wait(AppAdded)
+    ~> Map.get(:app)
+    ~> preload(req)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
@@ -271,6 +283,12 @@ defmodule Freshcom.Identity do
   defp wait(%et{account_id: account_id}) when et in [AccountInfoUpdated] do
     Projector.wait([
       {:account, AccountProjector, &(&1.id == account_id)}
+    ])
+  end
+
+  defp wait(%et{app_id: app_id}) when et in [AppAdded] do
+    Projector.wait([
+      {:app, AppProjector, &(&1.id == app_id)}
     ])
   end
 end

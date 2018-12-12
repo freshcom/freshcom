@@ -558,4 +558,34 @@ defmodule Freshcom.IdentityTest do
       assert data.id == urt.id
     end
   end
+
+  describe "add_app/1" do
+    test "given invalid request" do
+      assert {:error, %{errors: errors}} = Identity.add_app(%Request{})
+      assert length(errors) > 0
+    end
+
+    test "given unauthorized requester" do
+      req = %Request{
+        account_id: uuid4(),
+        fields: %{
+          "name" => "Test"
+        }
+      }
+
+      assert {:error, :access_denied} = Identity.add_app(req)
+    end
+
+    test "given valid request" do
+      req = %Request{
+        _role_: "system",
+        fields: %{
+          "type" => "system",
+          "name" => "Test"
+        }
+      }
+
+      assert {:ok, _} = Identity.add_app(req)
+    end
+  end
 end
