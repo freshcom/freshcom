@@ -3,7 +3,7 @@ defmodule FCStateStorage.GlobalStore.AppStore do
   Keep the app type for future use.
   """
   @spec put(String.t(), String.t(), String.t() | nil) :: :ok
-  def put(app_id, type, account_id) do
+  def put(app_id, type, account_id \\ nil) do
     key = generate_key(app_id)
     {:ok, _} = FCStateStorage.put(key, %{type: type, account_id: account_id})
 
