@@ -9,7 +9,7 @@ defmodule FCBase.ClientIdentification do
   end
 
   def identify(%{client_id: nil} = cmd) do
-    %{cmd | client_type: nil}
+    %{cmd | client_type: "unkown"}
   end
 
   def identify(%{client_id: client_id, account_id: account_id} = cmd) do
@@ -17,7 +17,7 @@ defmodule FCBase.ClientIdentification do
 
     cond do
       is_nil(client) ->
-        %{cmd | client_type: nil}
+        %{cmd | client_type: "unkown"}
 
       client.type == "system" ->
         %{cmd | client_type: client.type}
@@ -26,7 +26,7 @@ defmodule FCBase.ClientIdentification do
         %{cmd | client_type: client.type}
 
       true ->
-        %{cmd | client_type: nil}
+        %{cmd | client_type: "unkown"}
     end
   end
 
