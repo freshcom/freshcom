@@ -13,8 +13,8 @@ defmodule FCStateStorage.GlobalStore.AppStore do
   @doc """
   Get the type for a specific app.
   """
-  @spec get(String.t(), String.t() | nil) :: String.t()
-  def get(app_id, account_id) do
+  @spec get(String.t()) :: String.t()
+  def get(app_id) do
     key = generate_key(app_id)
 
     case FCStateStorage.get(key) do
