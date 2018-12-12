@@ -22,6 +22,7 @@ defmodule FCIdentity.Router do
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
+  middleware(FCBase.ClientIdentification)
   middleware(FCBase.IdentifierGeneration)
 
   identify(User, by: :user_id, prefix: "user-")

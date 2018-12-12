@@ -3,7 +3,7 @@ defmodule FCIdentity.RouterTest do
 
   import Comeonin.Argon2
 
-  alias FCStateStorage.GlobalStore.UserRoleStore
+  alias FCStateStorage.GlobalStore.{UserRoleStore, AppStore}
   alias FCIdentity.Router
   alias FCIdentity.{
     RegisterUser,
@@ -465,11 +465,14 @@ defmodule FCIdentity.RouterTest do
     test "given valid command with requester" do
       requester_id = uuid4()
       account_id = uuid4()
+      client_id = uuid4()
 
       UserRoleStore.put(requester_id, account_id, "administrator")
+      AppStore.put(client_id, "system", nil)
 
       cmd = %AddApp{
         requester_id: requester_id,
+        client_id: client_id,
         account_id: account_id,
         name: Faker.String.base64(12)
       }
