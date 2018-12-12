@@ -79,7 +79,9 @@ defmodule FCIdentity.UserHandlerTest do
       }
       cmd = %ChangePassword{
         requester_id: state.id,
+        requester_type: "managed",
         user_id: state.id,
+        client_type: "standard",
         current_password: "invalid",
         new_password: "test1234"
       }
@@ -95,7 +97,9 @@ defmodule FCIdentity.UserHandlerTest do
       }
       cmd = %ChangePassword{
         requester_id: state.id,
+        requester_type: "managed",
         user_id: state.id,
+        client_type: "standard",
         current_password: "test1234",
         new_password: "test1234"
       }
@@ -114,6 +118,7 @@ defmodule FCIdentity.UserHandlerTest do
       }
       cmd = %ChangePassword{
         user_id: state.id,
+        client_type: "system",
         reset_token: "invalid",
         new_password: "test1234"
       }
@@ -130,6 +135,7 @@ defmodule FCIdentity.UserHandlerTest do
       }
       cmd = %ChangePassword{
         user_id: state.id,
+        client_type: "standard",
         reset_token: state.password_reset_token,
         new_password: "test1234"
       }
@@ -146,6 +152,7 @@ defmodule FCIdentity.UserHandlerTest do
       }
       cmd = %ChangePassword{
         user_id: state.id,
+        client_type: "system",
         reset_token: state.password_reset_token,
         new_password: "test1234"
       }
@@ -217,6 +224,7 @@ defmodule FCIdentity.UserHandlerTest do
       cmd = %ChangePassword{
         requester_id: uuid4(),
         requester_role: "administrator",
+        client_type: "standard",
         account_id: state.account_id,
         user_id: state.id,
         new_password: "test1234"

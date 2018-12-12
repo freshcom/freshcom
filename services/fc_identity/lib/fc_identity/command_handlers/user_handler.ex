@@ -35,7 +35,7 @@ defmodule FCIdentity.UserHandler do
     EmailVerified
   }
 
-  def handle(%{id: nil}, %RegisterUser{} = cmd) do
+  def handle(%{id: nil} = state, %RegisterUser{} = cmd) do
     user_registered = %UserRegistered{
       default_account_id: uuid4(),
       status: "active",
@@ -48,13 +48,14 @@ defmodule FCIdentity.UserHandler do
     }
 
     cmd
-    |> trim_strings()
-    |> keep_type()
-    |> keep_username()
-    |> merge_to(user_registered)
-    |> put_password_hash(cmd)
-    |> List.wrap()
-    |> Kernel.++([evt_generated])
+    |> authorize(state)
+    ~> trim_strings()
+    ~> keep_type()
+    ~> keep_username()
+    ~> merge_to(user_registered)
+    ~> put_password_hash(cmd)
+    ~> List.wrap()
+    ~> Kernel.++([evt_generated])
     |> unwrap_ok()
   end
 
@@ -85,12 +86,17 @@ defmodule FCIdentity.UserHandler do
     |> unwrap_ok()
   end
 
-  def handle(_, %GeneratePasswordResetToken{} = cmd) do
-    %PasswordResetTokenGenerated{
-      user_id: cmd.user_id,
-      token: uuid4(),
-      expires_at: to_utc_iso8601(cmd.expires_at)
-    }
+  def handle(state, %GeneratePasswordResetToken{} = cmd) do
+    case authorize(cmd, state) do
+      {:ok, cmd} ->
+        %PasswordResetTokenGenerated{
+          user_id: cmd.user_id,
+          token: uuid4(),
+          expires_at: to_utc_iso8601(cmd.expires_at)
+        }
+
+      other -> other
+    end
   end
 
   def handle(state, %GenerateEmailVerificationToken{} = cmd) do

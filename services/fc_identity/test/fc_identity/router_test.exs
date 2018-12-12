@@ -3,7 +3,7 @@ defmodule FCIdentity.RouterTest do
 
   import Comeonin.Argon2
 
-  alias FCStateStorage.GlobalStore.{UserRoleStore, AppStore}
+  alias FCStateStorage.GlobalStore.{UserRoleStore, UserTypeStore, AppStore}
   alias FCIdentity.Router
   alias FCIdentity.{
     RegisterUser,
@@ -41,6 +41,13 @@ defmodule FCIdentity.RouterTest do
     requester_id
   end
 
+  def client_id(type, account_id \\ nil) do
+    client_id = uuid4()
+    AppStore.put(client_id, type, account_id)
+
+    client_id
+  end
+
   def user_stream(events) do
     groups = Enum.group_by(events, &(&1.user_id))
 
@@ -49,9 +56,20 @@ defmodule FCIdentity.RouterTest do
     end)
   end
 
+  def app_stream(events) do
+    groups = Enum.group_by(events, &(&1.app_id))
+
+    Enum.each(groups, fn({app_id, events}) ->
+      append_to_stream("app-" <> app_id, events)
+    end)
+  end
+
   describe "dispatch RegisterUser" do
     test "with valid command" do
+      client_id = client_id("system")
+
       cmd = %RegisterUser{
+        client_id: client_id,
         username: Faker.String.base64(8),
         password: Faker.String.base64(12),
         email: Faker.Internet.email(),
@@ -104,6 +122,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       requester_id = requester_id(account_id, "administrator")
+      client_id = client_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -116,6 +135,7 @@ defmodule FCIdentity.RouterTest do
       cmd = %DeleteUser{
         requester_id: requester_id,
         account_id: account_id,
+        client_id: client_id,
         user_id: user_id
       }
       :ok = Router.dispatch(cmd)
@@ -145,6 +165,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       user_id = uuid4()
+      client_id = client_id("standard", account_id)
       user_stream([%UserAdded{
         account_id: account_id,
         user_id: user_id,
@@ -153,6 +174,8 @@ defmodule FCIdentity.RouterTest do
       }])
 
       cmd = %GeneratePasswordResetToken{
+        client_id: client_id,
+        account_id: account_id,
         user_id: user_id,
         expires_at: Timex.shift(Timex.now(), hours: 24)
       }
@@ -184,6 +207,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       account_id = uuid4()
+      client_id = client_id("standard", account_id)
+
       user_id = uuid4()
       user_stream([%UserAdded{
         account_id: account_id,
@@ -194,6 +219,8 @@ defmodule FCIdentity.RouterTest do
 
       cmd = %GenerateEmailVerificationToken{
         requester_id: user_id,
+        account_id: account_id,
+        client_id: client_id,
         user_id: user_id,
         expires_at: Timex.shift(Timex.now(), hours: 24)
       }
@@ -227,6 +254,9 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       user_id = uuid4()
+      client_id = client_id("standard", account_id)
+      UserTypeStore.put(user_id, "managed")
+
       original_password_hash = hashpwsalt("test1234")
       user_stream([%UserAdded{
         account_id: account_id,
@@ -238,6 +268,8 @@ defmodule FCIdentity.RouterTest do
 
       cmd = %ChangePassword{
         requester_id: user_id,
+        account_id: account_id,
+        client_id: client_id,
         user_id: user_id,
         current_password: "test1234",
         new_password: "test1234"
@@ -271,6 +303,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       requester_id = requester_id(account_id, "administrator")
+      client_id = client_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -281,8 +314,9 @@ defmodule FCIdentity.RouterTest do
       }])
       cmd = %ChangeUserRole{
         requester_id: requester_id,
-        user_id: user_id,
         account_id: account_id,
+        client_id: client_id,
+        user_id: user_id,
         role: "developer"
       }
 
@@ -315,6 +349,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       requester_id = requester_id(account_id, "administrator")
+      client_id = client_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -325,8 +360,9 @@ defmodule FCIdentity.RouterTest do
       }])
       cmd = %UpdateUserInfo{
         requester_id: requester_id,
-        user_id: user_id,
+        client_id: client_id,
         account_id: account_id,
+        user_id: user_id,
         effective_keys: [:name],
         name: Faker.Name.name()
       }
@@ -358,6 +394,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       user_id = uuid4()
+      client_id = client_id("system")
+
       token = uuid4()
       user_stream([
         %UserAdded{
@@ -374,6 +412,7 @@ defmodule FCIdentity.RouterTest do
       ])
       cmd = %VerifyEmail{
         user_id: user_id,
+        client_id: client_id,
         verification_token: token
       }
 
@@ -408,6 +447,7 @@ defmodule FCIdentity.RouterTest do
       live_account_id = uuid4()
       test_account_id = uuid4()
       user_id = uuid4()
+      client_id = client_id("standard", live_account_id)
 
       event1 = %AccountCreated{
         account_id: live_account_id,
@@ -435,6 +475,7 @@ defmodule FCIdentity.RouterTest do
       cmd = %UpdateAccountInfo{
         requester_id: user_id,
         account_id: live_account_id,
+        client_id: client_id,
         effective_keys: [:name],
         name: Faker.Company.name()
       }
@@ -463,12 +504,9 @@ defmodule FCIdentity.RouterTest do
     end
 
     test "given valid command with requester" do
-      requester_id = uuid4()
       account_id = uuid4()
-      client_id = uuid4()
-
-      UserRoleStore.put(requester_id, account_id, "administrator")
-      AppStore.put(client_id, "system", nil)
+      requester_id = requester_id(account_id, "administrator")
+      client_id = client_id("system")
 
       cmd = %AddApp{
         requester_id: requester_id,

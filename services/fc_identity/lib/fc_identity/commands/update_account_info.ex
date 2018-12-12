@@ -10,6 +10,8 @@ defmodule FCIdentity.UpdateAccountInfo do
     field :requester_id, String.t()
     field :requester_type, String.t()
     field :requester_role, String.t()
+    field :client_id, String.t()
+    field :client_type, String.t()
     field :account_id, String.t()
 
     field :effective_keys, [String.t()], default: []

@@ -3,6 +3,10 @@ defmodule FCIdentity.GeneratePasswordResetToken do
   use Vex.Struct
 
   typedstruct do
+    field :client_id, String.t()
+    field :client_type, String.t()
+    field :account_id, String.t()
+
     field :user_id, String.t()
     field :expires_at, DateTime.t()
   end

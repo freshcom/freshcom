@@ -7,6 +7,7 @@ defmodule FCIdentity.UserPolicy do
     RegisterUser,
     AddUser,
     DeleteUser,
+    GeneratePasswordResetToken,
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
@@ -17,6 +18,7 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
+  def authorize(%{client_type: "unkown"}, _), do: {:error, :access_denied}
 
   def authorize(%AddUser{requester_role: role} = cmd, _) when role in ["owner", "administrator"],
     do: {:ok, cmd}
@@ -24,8 +26,13 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%RegisterUser{} = cmd, _),
     do: {:ok, cmd}
 
+  def authorize(%GeneratePasswordResetToken{} = cmd, _), do: {:ok, cmd}
+
   # Changing user's own password
-  def authorize(%ChangePassword{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
+  def authorize(%ChangePassword{requester_id: rid, requester_type: "standard", user_id: uid, client_type: "system"} = cmd, _) when rid == uid,
+    do: {:ok, cmd}
+
+  def authorize(%ChangePassword{requester_id: rid, requester_type: "managed", user_id: uid} = cmd, _) when rid == uid,
     do: {:ok, cmd}
 
   # Reseting password
