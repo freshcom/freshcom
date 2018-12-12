@@ -14,11 +14,11 @@ defmodule FCIdentity.Router do
     GenerateEmailVerificationToken,
     VerifyEmail
   }
-
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
+  alias FCIdentity.{AddApp}
 
-  alias FCIdentity.{User, Account}
-  alias FCIdentity.{UserHandler, AccountHandler}
+  alias FCIdentity.{User, Account, App}
+  alias FCIdentity.{UserHandler, AccountHandler, AppHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -26,6 +26,7 @@ defmodule FCIdentity.Router do
 
   identify(User, by: :user_id, prefix: "user-")
   identify(Account, by: :account_id, prefix: "account-")
+  identify(App, by: :app_id, prefix: "app-")
 
   dispatch(
     [
@@ -44,4 +45,6 @@ defmodule FCIdentity.Router do
   )
 
   dispatch([CreateAccount, UpdateAccountInfo], to: AccountHandler, aggregate: Account)
+
+  dispatch([AddApp], to: AppHandler, aggregate: App)
 end

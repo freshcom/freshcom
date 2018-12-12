@@ -13,7 +13,8 @@ defmodule FCIdentity.RouterTest do
     UpdateAccountInfo,
     UpdateUserInfo,
     GenerateEmailVerificationToken,
-    VerifyEmail
+    VerifyEmail,
+    AddApp
   }
   alias FCIdentity.{
     AccountCreated,
@@ -31,6 +32,7 @@ defmodule FCIdentity.RouterTest do
     EmailVerificationTokenGenerated,
     EmailVerified
   }
+  alias FCIdentity.{AppAdded}
 
   def requester_id(account_id, role) do
     requester_id = uuid4()
@@ -441,6 +443,42 @@ defmodule FCIdentity.RouterTest do
 
       assert_receive_event(AccountInfoUpdated, fn(event) ->
         assert event.name == cmd.name
+      end)
+    end
+  end
+
+  describe "dispatch AddApp" do
+    test "given valid command with system role" do
+      cmd = %AddApp{
+        requester_role: "system",
+        type: "system",
+        name: Faker.String.base64(12)
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(AppAdded, fn(event) ->
+        assert event.name == cmd.name
+        assert event.type == cmd.type
+      end)
+    end
+
+    test "given valid command with requester" do
+      requester_id = uuid4()
+      account_id = uuid4()
+
+      UserRoleStore.put(requester_id, account_id, "administrator")
+
+      cmd = %AddApp{
+        requester_id: requester_id,
+        account_id: account_id,
+        name: Faker.String.base64(12)
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(AppAdded, fn(event) ->
+        assert event.name == cmd.name
+        assert event.account_id == cmd.account_id
+        assert event.type == cmd.type
       end)
     end
   end
