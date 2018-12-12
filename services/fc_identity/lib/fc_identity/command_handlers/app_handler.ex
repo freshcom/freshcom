@@ -7,7 +7,7 @@ defmodule FCIdentity.AppHandler do
 
   import FCIdentity.AppPolicy
 
-  alias FCStateStorage.GlobalStore.AppTypeStore
+  alias FCStateStorage.GlobalStore.AppStore
   alias FCIdentity.{AddApp}
   alias FCIdentity.{AppAdded}
   alias FCIdentity.App
@@ -25,7 +25,7 @@ defmodule FCIdentity.AppHandler do
   end
 
   defp keep_type(%AddApp{} = cmd) do
-    AppTypeStore.put(cmd.app_id, cmd.type, cmd.account_id)
+    AppStore.put(cmd.app_id, cmd.type, cmd.account_id)
     cmd
   end
 end
