@@ -5,6 +5,9 @@ defmodule FCIdentity.RegisterUser do
   alias FCIdentity.CommandValidator
 
   typedstruct do
+    field :requester_id, String.t()
+    field :requester_type, String.t()
+    field :requester_role, String.t()
     field :client_id, String.t()
     field :client_type, String.t()
 

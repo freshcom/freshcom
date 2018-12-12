@@ -3,6 +3,7 @@ defmodule Freshcom.Request do
 
   typedstruct do
     field :requester_id, String.t()
+    field :client_id, String.t()
     field :account_id, String.t()
     field :fields, map(), default: %{}
     field :identifiers, map(), default: %{}
@@ -14,6 +15,7 @@ defmodule Freshcom.Request do
     field :locale, String.t()
 
     field :_requester_, map()
+    field :_client_, map()
     field :_role_, String.t()
     field :_account_, map()
     field :_default_locale_, String.t()

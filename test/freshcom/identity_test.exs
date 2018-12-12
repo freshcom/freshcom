@@ -11,7 +11,10 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "given valid request" do
+      client = system_app()
+
       req = %Request{
+        client_id: client.id,
         fields: %{
           "name" => Faker.Name.name(),
           "username" => Faker.Internet.user_name(),
@@ -47,9 +50,11 @@ defmodule Freshcom.IdentityTest do
     test "given valid request" do
       requester = standard_user()
       account_id = requester.default_account_id
+      client = standard_app(account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: account_id,
         fields: %{
           "username" => Faker.Internet.user_name(),
@@ -86,10 +91,12 @@ defmodule Freshcom.IdentityTest do
 
     test "given valid request" do
       requester = standard_user()
+      client = standard_app(requester.default_account_id)
 
       new_name = Faker.Name.name()
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => requester.id},
         fields: %{"name" => new_name}
@@ -129,9 +136,11 @@ defmodule Freshcom.IdentityTest do
     test "given valid request" do
       requester = standard_user()
       user = managed_user(requester.default_account_id)
+      client = standard_app(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id},
         fields: %{"value" => "manager"}
@@ -171,9 +180,11 @@ defmodule Freshcom.IdentityTest do
     test "given valid request" do
       requester = standard_user()
       user = managed_user(requester.default_account_id)
+      client = standard_app(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id},
         fields: %{"new_password" => "test1234"}
@@ -204,9 +215,11 @@ defmodule Freshcom.IdentityTest do
     test "given valid request" do
       requester = standard_user()
       user = managed_user(requester.default_account_id)
+      client = standard_app(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id}
       }
@@ -225,11 +238,13 @@ defmodule Freshcom.IdentityTest do
 
     test "given valid request target live account" do
       requester = standard_user()
+      client = standard_app(requester.default_account_id)
       managed_user(requester.default_account_id)
       managed_user(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id
       }
 
@@ -243,11 +258,15 @@ defmodule Freshcom.IdentityTest do
       test_account_id = user.default_account.test_account_id
 
       requester = managed_user(live_account_id, role: "administrator")
+      client = standard_app(test_account_id)
+
       managed_user(test_account_id)
       managed_user(test_account_id)
 
+
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: test_account_id
       }
 
@@ -265,11 +284,13 @@ defmodule Freshcom.IdentityTest do
 
     test "given valid request target live account" do
       requester = standard_user()
+      client = standard_app(requester.default_account_id)
       managed_user(requester.default_account_id)
       managed_user(requester.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id
       }
 
@@ -282,11 +303,13 @@ defmodule Freshcom.IdentityTest do
       test_account_id = user.default_account.test_account_id
 
       requester = managed_user(live_account_id, role: "administrator")
+      client = standard_app(test_account_id)
       managed_user(test_account_id)
       managed_user(test_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: test_account_id
       }
 
@@ -376,9 +399,11 @@ defmodule Freshcom.IdentityTest do
 
     test "target standard user as requester itself" do
       requester = standard_user()
+      client = system_app()
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => requester.id}
       }
@@ -390,9 +415,11 @@ defmodule Freshcom.IdentityTest do
     test "target managed user as requester itself" do
       %{default_account_id: account_id} = standard_user()
       requester = managed_user(account_id, role: "customer")
+      client = standard_app(account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: account_id,
         identifiers: %{"id" => requester.id}
       }
@@ -403,11 +430,14 @@ defmodule Freshcom.IdentityTest do
 
     test "target valid user" do
       requester = standard_user()
-      user = managed_user(requester.default_account_id)
+      account_id = requester.default_account_id
+      user = managed_user(account_id)
+      client = standard_app(account_id)
 
       req = %Request{
         requester_id: requester.id,
-        account_id: requester.default_account_id,
+        client_id: client.id,
+        account_id: account_id,
         identifiers: %{"id" => user.id}
       }
 
@@ -424,15 +454,17 @@ defmodule Freshcom.IdentityTest do
     end
 
     test "given valid request" do
-      user = standard_user()
+      requester = standard_user()
+      client = standard_app(requester.default_account_id)
 
       req = %Request{
-        requester_id: user.id,
-        account_id: user.default_account_id
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: requester.default_account_id
       }
 
       assert {:ok, %{data: data}} = Identity.get_account(req)
-      assert data.id == user.default_account_id
+      assert data.id == requester.default_account_id
     end
 
     test "given valid request with handle" do
@@ -468,10 +500,12 @@ defmodule Freshcom.IdentityTest do
 
     test "given valid request" do
       requester = standard_user()
+      client = standard_app(requester.default_account_id)
 
       new_name = Faker.Company.name()
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         fields: %{"name" => new_name}
       }
@@ -529,11 +563,13 @@ defmodule Freshcom.IdentityTest do
 
     test "target corresponding test account" do
       requester = standard_user(include: "default_account")
+      client = system_app()
       urt = get_urt(requester.default_account_id, requester.id)
       test_account_id = requester.default_account.test_account_id
 
       req = %Request{
         account_id: test_account_id,
+        client_id: client.id,
         identifiers: %{"id" => urt.prefixed_id}
       }
 
@@ -546,10 +582,12 @@ defmodule Freshcom.IdentityTest do
     test "target the same account" do
       requester = standard_user(include: "default_account")
       account_id = requester.default_account_id
+      client = system_app()
       urt = get_urt(account_id, requester.id)
 
       req = %Request{
         account_id: account_id,
+        client_id: client.id,
         identifiers: %{"id" => urt.prefixed_id}
       }
 

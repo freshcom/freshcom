@@ -8,7 +8,7 @@ defmodule Freshcom.Context do
   alias FCSupport.Struct
   alias Freshcom.{Request, Response}
   alias Freshcom.{Repo, Filter, Include, Projector, Router}
-  alias Freshcom.{Account, User}
+  alias Freshcom.{Account, User, App}
 
   @type resp :: {:ok, Response.t()} | {:error, Response.t()} | {:error, :not_found} | {:error, :access_denied}
 
@@ -77,6 +77,7 @@ defmodule Freshcom.Context do
     |> Struct.merge(fields)
     |> Struct.put(:requester_id, req.requester_id)
     |> Struct.put(:requester_role, req._role_)
+    |> Struct.put(:client_id, req.client_id)
     |> Struct.put(:account_id, req.account_id)
     |> Struct.put(:effective_keys, effective_keys)
     |> Struct.put(:locale, req.locale)
@@ -88,6 +89,7 @@ defmodule Freshcom.Context do
     |> put_default_locale()
     |> put_requester()
     |> put_role()
+    |> put_client()
   end
 
   defp put_account(%{account_id: nil} = req), do: %{req | _account_: nil}
@@ -116,6 +118,25 @@ defmodule Freshcom.Context do
   defp put_role(%{_requester_: nil, _role_: nil} = req), do: %{req | _role_: "guest"}
   defp put_role(%{_requester_: %{role: role}, _role_: nil} = req), do: %{req | _role_: role}
   defp put_role(req), do: req
+
+  defp put_client(%{client_id: nil} = req), do: %{req | _client_: nil}
+  defp put_client(%{client_id: client_id, account_id: account_id} = req) do
+    client = Repo.get_by(App, id: client_id)
+
+    cond do
+      is_nil(client) ->
+        %{req | _client_: nil}
+
+      client.type == "system" ->
+        %{req | _client_: client}
+
+      client.type == "standard" && client.account_id == account_id ->
+        %{req | _client_: client}
+
+      true ->
+        %{req | _client_: nil}
+    end
+  end
 
   @spec preload(nil | list | struct, Request.t()) :: struct | [struct] | nil
   def preload(nil, _), do: nil

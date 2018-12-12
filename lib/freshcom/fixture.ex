@@ -11,7 +11,8 @@ defmodule Freshcom.Fixture do
         password: "test1234",
         is_term_accepted: true
       },
-      include: opts[:include]
+      include: opts[:include],
+      _role_: "system"
     }
 
     {:ok, %{data: user}} = Identity.register_user(req)
@@ -33,5 +34,34 @@ defmodule Freshcom.Fixture do
     {:ok, %{data: user}} = Identity.add_user(req)
 
     user
+  end
+
+  def standard_app(account_id) do
+    req = %Request{
+      account_id: account_id,
+      fields: %{
+        "type" => "standard",
+        "name" => "Standard App",
+      },
+      _role_: "system"
+    }
+
+    {:ok, %{data: app}} = Identity.add_app(req)
+
+    app
+  end
+
+  def system_app() do
+    req = %Request{
+      fields: %{
+        "type" => "system",
+        "name" => "System App"
+      },
+      _role_: "system"
+    }
+
+    {:ok, %{data: app}} = Identity.add_app(req)
+
+    app
   end
 end
