@@ -25,7 +25,7 @@ defmodule Freshcom.Identity do
     AccountInfoUpdated
   }
   alias Freshcom.{Repo, Projector}
-  alias Freshcom.{UserProjector, AccountProjector}
+  alias Freshcom.{UserProjector, AccountProjector, AppProjector}
   alias Freshcom.{User, Account, RefreshToken}
 
   @spec register_user(Request.t()) :: Context.resp()
@@ -252,11 +252,13 @@ defmodule Freshcom.Identity do
     dispatch_and_wait(cmd, event, &wait/1)
   end
 
-  defp wait(%UserRegistered{user_id: user_id}) do
+  defp wait(%UserRegistered{user_id: user_id, }) do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)},
       {:live_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "live")},
-      {:test_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "test")}
+      {:test_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "test")},
+      {:live_app, AppProjector, &(!!&1)},
+      {:test_app, AppProjector, &(!!&1)}
     ])
   end
 

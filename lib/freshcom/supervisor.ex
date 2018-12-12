@@ -19,7 +19,8 @@ defmodule Freshcom.Supervisor do
       # Projectors
       Freshcom.AccountProjector,
       Freshcom.UserProjector,
-      Freshcom.RefreshTokenProjector
+      Freshcom.RefreshTokenProjector,
+      Freshcom.AppProjector
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
