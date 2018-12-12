@@ -11,7 +11,8 @@ defmodule FCIdentity.Supervisor do
     children = [
       # Process Manager
       {FCIdentity.DefaultAccountSetup, [start_from: :current]},
-      {FCIdentity.TestAccountSync, [start_from: :current]}
+      {FCIdentity.TestAccountSync, [start_from: :current]},
+      {FCIdentity.DefaultAppSetup, [start_from: :current]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
