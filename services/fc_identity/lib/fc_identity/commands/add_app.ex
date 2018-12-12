@@ -10,14 +10,14 @@ defmodule FCIdentity.AddApp do
 
     field :app_id, String.t()
     field :status, String.t(), default: "active"
-    field :type, String.t(), default: "account"
+    field :type, String.t(), default: "standard"
     field :name, String.t()
   end
 
-  @valid_types ["system", "account"]
+  @valid_types ["system", "standard"]
   @valid_statuses ["active", "disabled"]
 
-  validates :account_id, presence: [if: [type: "account"]], uuid: [allow_blank: true, format: :default]
+  validates :account_id, presence: [if: [type: "standard"]], uuid: [allow_blank: true, format: :default]
   validates :type, presence: true, inclusion: @valid_types
   validates :status, presence: true, inclusion: @valid_statuses
   validates :name, presence: true

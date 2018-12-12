@@ -5,9 +5,9 @@ defmodule FCIdentity.AddAppTest do
   alias FCIdentity.AddApp
 
   describe "validations" do
-    test "given type is account" do
+    test "given type is standard" do
       cmd = %AddApp{
-        type: "account"
+        type: "standard"
       }
 
       {:error, {:validation_failed, errors}} = validate(cmd)

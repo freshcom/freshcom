@@ -17,7 +17,7 @@ defmodule FCIdentity.DefaultAppSetup do
     %AddApp{
       requester_role: "system",
       account_id: account_id,
-      type: "account",
+      type: "standard",
       name: "Default"
     }
   end

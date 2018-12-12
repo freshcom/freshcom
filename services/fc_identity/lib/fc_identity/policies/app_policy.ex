@@ -7,7 +7,7 @@ defmodule FCIdentity.AppPolicy do
   def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
 
-  def authorize(%AddApp{requester_role: role, type: "account"} = cmd, _) when role in ["owner", "administrator", "developer"] do
+  def authorize(%AddApp{requester_role: role, type: "standard"} = cmd, _) when role in ["owner", "administrator", "developer"] do
     {:ok, cmd}
   end
 
