@@ -24,6 +24,6 @@ defmodule FCStateStorage.GlobalStore.UserRoleStore do
   end
 
   defp generate_key(account_id, user_id) do
-    "global_store/role/#{account_id}/#{user_id}"
+    "global_store/user_role/#{account_id}/#{user_id}"
   end
 end

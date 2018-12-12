@@ -24,6 +24,6 @@ defmodule FCStateStorage.GlobalStore.UserTypeStore do
   end
 
   defp generate_key(user_id) do
-    "global_store/type/#{user_id}"
+    "global_store/user_type/#{user_id}"
   end
 end
