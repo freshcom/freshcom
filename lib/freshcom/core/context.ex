@@ -77,7 +77,7 @@ defmodule Freshcom.Context do
     |> Struct.merge(fields)
     |> Struct.put(:requester_id, req.requester_id)
     |> Struct.put(:requester_role, req._role_)
-    |> Struct.put(:client_id, req.client_id)
+    |> Struct.put(:client_id, App.bare_id(req.client_id))
     |> Struct.put(:account_id, req.account_id)
     |> Struct.put(:effective_keys, effective_keys)
     |> Struct.put(:locale, req.locale)
@@ -85,6 +85,7 @@ defmodule Freshcom.Context do
 
   def expand(req) do
     req
+    |> Map.put(:client_id, App.bare_id(req.client_id))
     |> put_account()
     |> put_default_locale()
     |> put_requester()
@@ -121,7 +122,7 @@ defmodule Freshcom.Context do
 
   defp put_client(%{client_id: nil} = req), do: %{req | _client_: nil}
   defp put_client(%{client_id: client_id, account_id: account_id} = req) do
-    client = Repo.get_by(App, id: client_id)
+    client = Repo.get_by(App, id: App.bare_id(client_id))
 
     cond do
       is_nil(client) ->

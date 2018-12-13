@@ -265,10 +265,17 @@ defmodule Freshcom.Identity do
     req
     |> expand()
     |> authorize(:get_app)
+    ~> get_app_normalize()
     ~> to_query(App)
     ~> Repo.one()
     |> to_response()
   end
+
+  defp get_app_normalize(%{identifiers: %{"id" => id}} = req) do
+    Request.put(req, :identifiers, "id", App.bare_id(id))
+  end
+
+  defp get_app_normalize(req), do: req
 
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
