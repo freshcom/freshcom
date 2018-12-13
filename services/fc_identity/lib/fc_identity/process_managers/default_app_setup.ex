@@ -13,7 +13,7 @@ defmodule FCIdentity.DefaultAppSetup do
   def interested?(%AppAdded{account_id: account_id}), do: {:stop, account_id}
   def interested?(_), do: false
 
-  def handle(_, %AccountCreated{account_id: account_id} = event) do
+  def handle(_, %AccountCreated{account_id: account_id}) do
     %AddApp{
       requester_role: "system",
       account_id: account_id,
