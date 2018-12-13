@@ -19,6 +19,7 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: "sysdev"} = req, _), do: {:ok, req}
   def authorize(%{_role_: "system"} = req, _), do: {:ok, req}
   def authorize(%{_role_: "appdev"} = req, _), do: {:ok, req}
+  def authorize(%{_client_: nil}, _), do: {:error, :access_denied}
 
   def authorize(%{_role_: role} = req, :list_user) when role in @admins do
     req = %{req | _searchable_fields_: ["name", "username", "email"]}
@@ -34,7 +35,7 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: role} = req, :get_account) when role in @guests,
     do: {:ok, req}
 
-  def authorize(req, :exchange_refresh_token),
+  def authorize(%{_client_: %{type: "system"}} = req, :exchange_refresh_token),
     do: {:ok, req}
 
   def authorize(_, _), do: {:error, :access_denied}

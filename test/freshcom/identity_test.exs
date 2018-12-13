@@ -326,11 +326,14 @@ defmodule Freshcom.IdentityTest do
 
     test "target non existing user" do
       requester = standard_user()
-      managed_user(requester.default_account_id)
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+      managed_user(account_id)
 
       req = %Request{
         requester_id: requester.id,
-        account_id: requester.default_account_id,
+        client_id: client.id,
+        account_id: account_id,
         identifiers: %{"id" => uuid4()}
       }
 
@@ -339,11 +342,13 @@ defmodule Freshcom.IdentityTest do
 
     test "target user of another account" do
       requester = standard_user()
+      client = standard_app(requester.default_account_id)
       other_user = standard_user()
       target_user = managed_user(other_user.default_account_id)
 
       req = %Request{
         requester_id: requester.id,
+        client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => target_user.id}
       }
@@ -543,17 +548,20 @@ defmodule Freshcom.IdentityTest do
 
   describe "exchange_refresh_token/1" do
     test "given no refresh token given" do
-      req = %Request{}
+      client = system_app()
+      req = %Request{client_id: client.id}
 
       assert {:error, :not_found} = Identity.exchange_refresh_token(req)
     end
 
     test "target account with no user refresh token" do
       requester = standard_user()
+      client = system_app()
       %{default_account_id: target_account_id} = standard_user()
       urt = get_urt(requester.default_account_id, requester.id)
 
       req = %Request{
+        client_id: client.id,
         account_id: target_account_id,
         identifiers: %{"id" => urt.prefixed_id}
       }
