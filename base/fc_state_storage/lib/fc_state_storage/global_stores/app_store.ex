@@ -5,7 +5,13 @@ defmodule FCStateStorage.GlobalStore.AppStore do
   @spec put(String.t(), String.t(), String.t() | nil) :: :ok
   def put(app_id, type, account_id \\ nil) do
     key = generate_key(app_id)
-    {:ok, _} = FCStateStorage.put(key, %{type: type, account_id: account_id})
+    data = if account_id do
+      %{type: type, account_id: account_id}
+    else
+      %{type: type}
+    end
+
+    {:ok, _} = FCStateStorage.put(key, data)
 
     :ok
   end
@@ -18,7 +24,7 @@ defmodule FCStateStorage.GlobalStore.AppStore do
     key = generate_key(app_id)
 
     case FCStateStorage.get(key) do
-      %{type: _, account_id: _} = app -> app
+      %{type: _} = app -> app
       _ -> nil
     end
   end
