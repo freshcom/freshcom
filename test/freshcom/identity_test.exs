@@ -634,4 +634,21 @@ defmodule Freshcom.IdentityTest do
       assert {:ok, _} = Identity.add_app(req)
     end
   end
+
+  describe "get_app/1" do
+    @tag :focus
+    test "given valid request" do
+      app = system_app()
+
+      req = %Request{
+        identifiers: %{
+          "id" => app.id,
+        },
+        _role_: "system"
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_app(req)
+      assert data.id == app.id
+    end
+  end
 end

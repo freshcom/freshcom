@@ -28,7 +28,7 @@ defmodule Freshcom.Identity do
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
-  alias Freshcom.{User, Account, RefreshToken}
+  alias Freshcom.{User, Account, RefreshToken, App}
 
   @spec register_user(Request.t()) :: Context.resp()
   def register_user(%Request{} = req) do
@@ -257,6 +257,16 @@ defmodule Freshcom.Identity do
     |> dispatch_and_wait(AppAdded)
     ~> Map.get(:app)
     ~> preload(req)
+    |> to_response()
+  end
+
+  @spec get_app(Request.t()) :: Context.resp()
+  def get_app(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_app)
+    ~> to_query(App)
+    ~> Repo.one()
     |> to_response()
   end
 
