@@ -17,7 +17,7 @@ defmodule Freshcom.App do
   def prefixed_id(nil, _), do: nil
   def prefixed_id(app, nil), do: prefixed_id(app, Repo.get!(Account, app.account_id))
   def prefixed_id(%{id: id, type: "standard"}, %{mode: mode}), do: "app-#{mode}-#{id}"
-  def prefixed_id(%{id: id, type: "system"}, _), do: "app-#{id}"
+  def prefixed_id(%{id: id, type: "system"}), do: "app-#{id}"
 
   def put_prefixed_id(nil, _), do: nil
   def put_prefixed_id(app, acct), do: %{app | prefixed_id: prefixed_id(app, acct)}
