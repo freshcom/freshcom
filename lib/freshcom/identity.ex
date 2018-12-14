@@ -14,7 +14,8 @@ defmodule Freshcom.Identity do
     ChangePassword,
     DeleteUser,
     UpdateAccountInfo,
-    AddApp
+    AddApp,
+    DeleteApp
   }
   alias FCIdentity.{
     UserRegistered,
@@ -24,7 +25,8 @@ defmodule Freshcom.Identity do
     PasswordChanged,
     UserDeleted,
     AccountInfoUpdated,
-    AppAdded
+    AppAdded,
+    AppDeleted
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
@@ -313,6 +315,18 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec delete_app(Request.t()) :: Context.resp()
+  def delete_app(%Request{} = req) do
+    identifiers = atomize_keys(req.identifiers, ["id"])
+
+    req
+    |> to_command(%DeleteApp{})
+    |> Map.put(:app_id, identifiers[:id])
+    |> dispatch_and_wait(AppDeleted)
+    ~> Map.get(:app)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
@@ -339,7 +353,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{app_id: app_id}) when et in [AppAdded] do
+  defp wait(%et{app_id: app_id}) when et in [AppAdded, AppDeleted] do
     Projector.wait([
       {:app, AppProjector, &(&1.id == app_id)}
     ])
