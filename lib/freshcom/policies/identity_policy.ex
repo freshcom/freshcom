@@ -1,10 +1,7 @@
 defmodule Freshcom.IdentityPolicy do
 
-  @admins [
-    "owner",
-    "administrator"
-  ]
-
+  @admins ["owner", "administrator"]
+  @developers @admins ++ ["developer"]
   @operators @admins ++ [
     "developer",
     "manager",
@@ -13,7 +10,6 @@ defmodule Freshcom.IdentityPolicy do
     "support_specialist",
     "read_only"
   ]
-
   @guests @operators ++ @admins ++ ["guest"]
 
   def authorize(%{_role_: "sysdev"} = req, _), do: {:ok, req}
@@ -37,6 +33,11 @@ defmodule Freshcom.IdentityPolicy do
 
   def authorize(%{_client_: %{type: "system"}} = req, :exchange_refresh_token),
     do: {:ok, req}
+
+  def authorize(%{_role_: role, _client_: %{type: "system"}} = req, :get_refresh_token) when role in @developers do
+    req = Map.put(req, :identifiers, %{"account_id" => req.account_id, "user_id" => nil})
+    {:ok, req}
+  end
 
   def authorize(_, _), do: {:error, :access_denied}
 end

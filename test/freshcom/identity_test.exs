@@ -527,7 +527,24 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.get_refresh_token(req)
     end
 
-    test "given valid request" do
+    test "given valid request by admin" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = system_app()
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.get_refresh_token(req)
+      assert data.account_id == account_id
+      assert data.user_id == nil
+      assert data.prefixed_id
+    end
+
+    test "given valid request by system" do
       user = standard_user()
       account_id = user.default_account_id
 
@@ -636,7 +653,6 @@ defmodule Freshcom.IdentityTest do
   end
 
   describe "get_app/1" do
-    @tag :focus
     test "given valid request" do
       app = system_app()
 
