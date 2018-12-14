@@ -267,6 +267,7 @@ defmodule Freshcom.Identity do
     |> dispatch_and_wait(AppAdded)
     ~> Map.get(:app)
     ~> preload(req)
+    ~> App.put_prefixed_id()
     |> to_response()
   end
 
@@ -278,6 +279,7 @@ defmodule Freshcom.Identity do
     ~> get_app_normalize()
     ~> to_query(App)
     ~> Repo.one()
+    ~> App.put_prefixed_id()
     |> to_response()
   end
 
@@ -289,12 +291,15 @@ defmodule Freshcom.Identity do
 
   @spec list_app(Request.t()) :: Context.resp()
   def list_app(%Request{} = req) do
+    req = expand(req)
+
     req
-    |> expand()
     |> authorize(:list_app)
     ~> to_query(App)
     ~> Repo.all()
     ~> preload(req)
+    ~> App.put_account(req._account_)
+    ~> App.put_prefixed_id()
     |> to_response()
   end
 
