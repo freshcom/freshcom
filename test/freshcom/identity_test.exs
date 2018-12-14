@@ -639,11 +639,27 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.add_app(req)
     end
 
-    test "given valid request" do
+    test "given valid request by system" do
       req = %Request{
         _role_: "system",
         fields: %{
           "type" => "system",
+          "name" => "Test"
+        }
+      }
+
+      assert {:ok, _} = Identity.add_app(req)
+    end
+
+    test "given valid request by user" do
+      requester = standard_user()
+      client = system_app()
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: requester.default_account_id,
+        fields: %{
           "name" => "Test"
         }
       }
