@@ -39,5 +39,8 @@ defmodule Freshcom.IdentityPolicy do
     {:ok, req}
   end
 
+  def authorize(%{_role_: role, _client_: %{type: "system"}} = req, :list_app) when role in @developers,
+    do: {:ok, req}
+
   def authorize(_, _), do: {:error, :access_denied}
 end

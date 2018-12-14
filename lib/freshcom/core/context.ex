@@ -78,7 +78,7 @@ defmodule Freshcom.Context do
     |> Struct.put(:requester_id, req.requester_id)
     |> Struct.put(:requester_role, req._role_)
     |> Struct.put(:client_id, App.bare_id(req.client_id))
-    |> Struct.put(:account_id, req.account_id)
+    |> Struct.put(:account_id, Account.bare_id(req.account_id))
     |> Struct.put(:effective_keys, effective_keys)
     |> Struct.put(:locale, req.locale)
   end
@@ -86,6 +86,7 @@ defmodule Freshcom.Context do
   def expand(req) do
     req
     |> Map.put(:client_id, App.bare_id(req.client_id))
+    |> Map.put(:account_id, Account.bare_id(req.account_id))
     |> put_account()
     |> put_default_locale()
     |> put_requester()

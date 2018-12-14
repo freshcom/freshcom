@@ -159,7 +159,15 @@ defmodule Freshcom.Identity do
 
   defp check_account_id(nil, _), do: nil
   defp check_account_id(%{account_id: nil} = user, _), do: user
-  defp check_account_id(%{account_id: aid} = user, %{account_id: t_aid}) when aid == t_aid, do: user
+
+  defp check_account_id(%{account_id: aid} = user, %{account_id: t_aid}) do
+    if aid == Account.bare_id(t_aid) do
+      user
+    else
+      nil
+    end
+  end
+
   defp check_account_id(_, _), do: nil
 
   @spec get_account(Request.t()) :: Context.resp()
@@ -169,6 +177,7 @@ defmodule Freshcom.Identity do
     |> authorize(:get_account)
     ~> to_query(Account)
     ~> Repo.one()
+    ~> Account.put_prefixed_id()
     |> to_response()
   end
 
@@ -177,6 +186,7 @@ defmodule Freshcom.Identity do
     |> expand()
     |> authorize(:get_account)
     ~> Map.get(:_account_)
+    ~> Account.put_prefixed_id()
     |> to_response()
   end
 
@@ -276,6 +286,27 @@ defmodule Freshcom.Identity do
   end
 
   defp get_app_normalize(req), do: req
+
+  @spec list_app(Request.t()) :: Context.resp()
+  def list_app(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:list_app)
+    ~> to_query(App)
+    ~> Repo.all()
+    ~> preload(req)
+    |> to_response()
+  end
+
+  def count_app(%Request{} = req) do
+    req
+    |> expand()
+    |> Map.put(:pagination, nil)
+    |> authorize(:list_app)
+    ~> to_query(App)
+    ~> Repo.aggregate(:count, :id)
+    |> to_response()
+  end
 
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
