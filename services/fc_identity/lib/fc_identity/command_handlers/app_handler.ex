@@ -8,8 +8,8 @@ defmodule FCIdentity.AppHandler do
   import FCIdentity.AppPolicy
 
   alias FCStateStorage.GlobalStore.AppStore
-  alias FCIdentity.{AddApp}
-  alias FCIdentity.{AppAdded}
+  alias FCIdentity.{AddApp, DeleteApp}
+  alias FCIdentity.{AppAdded, AppDeleted}
   alias FCIdentity.App
 
   def handle(%App{id: nil} = state, %AddApp{} = cmd) do
@@ -22,6 +22,16 @@ defmodule FCIdentity.AppHandler do
 
   def handle(%App{id: _}, %AddApp{}) do
     {:error, {:already_exist, :app}}
+  end
+
+  def handle(%{id: nil}, _), do: {:error, {:not_found, :app}}
+  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :app}}
+
+  def handle(state, %DeleteApp{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%AppDeleted{})
+    |> unwrap_ok()
   end
 
   defp keep_type(%AddApp{} = cmd) do

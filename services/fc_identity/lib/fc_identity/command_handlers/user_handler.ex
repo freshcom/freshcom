@@ -76,7 +76,6 @@ defmodule FCIdentity.UserHandler do
   def handle(_, %AddUser{}), do: {:error, {:already_exist, :user}}
 
   def handle(%{id: nil}, _), do: {:error, {:not_found, :user}}
-
   def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :user}}
 
   def handle(state, %DeleteUser{} = cmd) do

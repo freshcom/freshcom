@@ -14,7 +14,8 @@ defmodule FCIdentity.RouterTest do
     UpdateUserInfo,
     GenerateEmailVerificationToken,
     VerifyEmail,
-    AddApp
+    AddApp,
+    DeleteApp
   }
   alias FCIdentity.{
     AccountCreated,
@@ -32,20 +33,20 @@ defmodule FCIdentity.RouterTest do
     EmailVerificationTokenGenerated,
     EmailVerified
   }
-  alias FCIdentity.{AppAdded}
+  alias FCIdentity.{AppAdded, AppDeleted}
 
-  def requester_id(account_id, role) do
+  def user_id(account_id, role) do
     requester_id = uuid4()
     UserRoleStore.put(requester_id, account_id, role)
 
     requester_id
   end
 
-  def client_id(type, account_id \\ nil) do
-    client_id = uuid4()
-    AppStore.put(client_id, type, account_id)
+  def app_id(type, account_id \\ nil) do
+    app_id = uuid4()
+    AppStore.put(app_id, type, account_id)
 
-    client_id
+    app_id
   end
 
   def user_stream(events) do
@@ -66,7 +67,7 @@ defmodule FCIdentity.RouterTest do
 
   describe "dispatch RegisterUser" do
     test "with valid command" do
-      client_id = client_id("system")
+      client_id = app_id("system")
 
       cmd = %RegisterUser{
         client_id: client_id,
@@ -121,8 +122,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       account_id = uuid4()
-      requester_id = requester_id(account_id, "administrator")
-      client_id = client_id("standard", account_id)
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -165,7 +166,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       user_id = uuid4()
-      client_id = client_id("standard", account_id)
+      client_id = app_id("standard", account_id)
       user_stream([%UserAdded{
         account_id: account_id,
         user_id: user_id,
@@ -207,7 +208,7 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       account_id = uuid4()
-      client_id = client_id("standard", account_id)
+      client_id = app_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -254,7 +255,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       account_id = uuid4()
       user_id = uuid4()
-      client_id = client_id("standard", account_id)
+      client_id = app_id("standard", account_id)
       UserTypeStore.put(user_id, "managed")
 
       original_password_hash = hashpwsalt("test1234")
@@ -302,8 +303,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       account_id = uuid4()
-      requester_id = requester_id(account_id, "administrator")
-      client_id = client_id("standard", account_id)
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -348,8 +349,8 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       account_id = uuid4()
-      requester_id = requester_id(account_id, "administrator")
-      client_id = client_id("standard", account_id)
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("standard", account_id)
 
       user_id = uuid4()
       user_stream([%UserAdded{
@@ -394,7 +395,7 @@ defmodule FCIdentity.RouterTest do
 
     test "with valid command" do
       user_id = uuid4()
-      client_id = client_id("system")
+      client_id = app_id("system")
 
       token = uuid4()
       user_stream([
@@ -447,7 +448,7 @@ defmodule FCIdentity.RouterTest do
       live_account_id = uuid4()
       test_account_id = uuid4()
       user_id = uuid4()
-      client_id = client_id("standard", live_account_id)
+      client_id = app_id("standard", live_account_id)
 
       event1 = %AccountCreated{
         account_id: live_account_id,
@@ -505,8 +506,8 @@ defmodule FCIdentity.RouterTest do
 
     test "given valid command with requester" do
       account_id = uuid4()
-      requester_id = requester_id(account_id, "administrator")
-      client_id = client_id("system")
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("system")
 
       cmd = %AddApp{
         requester_id: requester_id,
@@ -520,6 +521,39 @@ defmodule FCIdentity.RouterTest do
         assert event.name == cmd.name
         assert event.account_id == cmd.account_id
         assert event.type == cmd.type
+      end)
+    end
+  end
+
+  describe "dispatch DeleteApp" do
+    test "given invalid command" do
+      cmd = %DeleteApp{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "given valid command" do
+      account_id = uuid4()
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("system")
+      app_id = app_id("standard", account_id)
+
+      app_stream([%AppAdded{
+        account_id: account_id,
+        app_id: app_id,
+        type: "standard"
+      }])
+
+      cmd = %DeleteApp{
+        requester_id: requester_id,
+        client_id: client_id,
+        account_id: account_id,
+        app_id: app_id
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(AppDeleted, fn(event) ->
+        assert event.app_id == cmd.app_id
       end)
     end
   end

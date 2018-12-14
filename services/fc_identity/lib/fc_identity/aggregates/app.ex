@@ -4,10 +4,11 @@ defmodule FCIdentity.App do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCIdentity.{AppAdded}
+  alias FCIdentity.{AppAdded, AppDeleted}
 
   typedstruct do
     field :id, String.t()
+    field :account_id, String.t()
 
     field :status, String.t()
     field :type, String.t()
@@ -17,5 +18,9 @@ defmodule FCIdentity.App do
   def apply(%{} = state, %AppAdded{} = event) do
     %{state | id: event.app_id}
     |> merge(event)
+  end
+
+  def apply(state, %AppDeleted{}) do
+    %{state | status: "deleted"}
   end
 end

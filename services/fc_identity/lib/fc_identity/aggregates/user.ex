@@ -60,7 +60,7 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %UserDeleted{}) do
-    %{state | status: "removed"}
+    %{state | status: "deleted"}
   end
 
   def apply(state, %PasswordResetTokenGenerated{} = event) do
