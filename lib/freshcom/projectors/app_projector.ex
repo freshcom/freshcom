@@ -8,12 +8,22 @@ defmodule Freshcom.AppProjector do
   alias Freshcom.App
   alias FCIdentity.{
     AppAdded,
+    AppUpdated,
     AppDeleted
   }
 
   project(%AppAdded{} = event, _metadata) do
     app = Struct.merge(%App{id: event.app_id}, event)
     Multi.insert(multi, :app, app)
+  end
+
+  project(%AppUpdated{} = event, _) do
+    changeset =
+      App
+      |> Repo.get(event.app_id)
+      |> Projection.changeset(event)
+
+    Multi.update(multi, :app, changeset)
   end
 
   project(%AppDeleted{} = event, _) do

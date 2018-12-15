@@ -733,6 +733,44 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "update_app/1" do
+    test "given no identifiers" do
+      assert {:error, %{errors: errors}} = Identity.update_app(%Request{})
+      assert length(errors) >= 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{identifiers: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Identity.update_app(req)
+    end
+
+    test "given unauthorize requester" do
+      %{default_account_id: account_id} = standard_user()
+      app = standard_app(account_id)
+
+      req = %Request{identifiers: %{"id" => app.id}}
+      assert {:error, :access_denied} = Identity.update_app(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      client = system_app()
+      app = standard_app(requester.default_account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => app.id},
+        fields: %{"name" => Faker.Company.name()}
+      }
+
+      assert {:ok, %{data: data}} = Identity.update_app(req)
+      assert data.id == app.id
+      assert data.name == req.fields["name"]
+    end
+  end
+
   describe "delete_app/1" do
     test "given invalid request" do
       assert {:error, %{errors: errors}} = Identity.delete_app(%Request{})

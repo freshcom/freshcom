@@ -576,7 +576,6 @@ defmodule FCIdentity.RouterTest do
       {:error, {:not_found, :app}} = Router.dispatch(cmd)
     end
 
-    @tag :focus
     test "given valid command" do
       account_id = uuid4()
       requester_id = user_id(account_id, "administrator")
