@@ -15,7 +15,7 @@ defmodule FCIdentity.Router do
     VerifyEmail
   }
   alias FCIdentity.{CreateAccount, UpdateAccountInfo}
-  alias FCIdentity.{AddApp, DeleteApp}
+  alias FCIdentity.{AddApp, UpdateApp, DeleteApp}
 
   alias FCIdentity.{User, Account, App}
   alias FCIdentity.{UserHandler, AccountHandler, AppHandler}
@@ -47,5 +47,5 @@ defmodule FCIdentity.Router do
 
   dispatch([CreateAccount, UpdateAccountInfo], to: AccountHandler, aggregate: Account)
 
-  dispatch([AddApp, DeleteApp], to: AppHandler, aggregate: App)
+  dispatch([AddApp, UpdateApp, DeleteApp], to: AppHandler, aggregate: App)
 end

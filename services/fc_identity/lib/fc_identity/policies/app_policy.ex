@@ -3,7 +3,7 @@ defmodule FCIdentity.AppPolicy do
 
   use OK.Pipe
 
-  alias FCIdentity.{AddApp, DeleteApp}
+  alias FCIdentity.{AddApp, UpdateApp, DeleteApp}
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
@@ -12,6 +12,9 @@ defmodule FCIdentity.AppPolicy do
   def authorize(%AddApp{requester_role: role, type: "standard", client_type: "system"} = cmd, _) when role in ["owner", "administrator", "developer"] do
     {:ok, cmd}
   end
+
+  def authorize(%UpdateApp{} = cmd, state),
+    do: default_authorize(cmd, state, ["owner", "administrator", "developer"])
 
   def authorize(%DeleteApp{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator", "developer"])

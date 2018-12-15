@@ -8,8 +8,8 @@ defmodule FCIdentity.AppHandler do
   import FCIdentity.AppPolicy
 
   alias FCStateStorage.GlobalStore.AppStore
-  alias FCIdentity.{AddApp, DeleteApp}
-  alias FCIdentity.{AppAdded, AppDeleted}
+  alias FCIdentity.{AddApp, UpdateApp, DeleteApp}
+  alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
   alias FCIdentity.App
 
   def handle(%App{id: nil} = state, %AddApp{} = cmd) do
@@ -27,6 +27,14 @@ defmodule FCIdentity.AppHandler do
   def handle(%{id: nil}, _), do: {:error, {:not_found, :app}}
   def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :app}}
 
+  def handle(state, %UpdateApp{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%AppUpdated{})
+    ~> put_original_fields(state)
+    |> unwrap_ok()
+  end
+
   def handle(state, %DeleteApp{} = cmd) do
     cmd
     |> authorize(state)
@@ -37,5 +45,21 @@ defmodule FCIdentity.AppHandler do
   defp keep_type(%AddApp{} = cmd) do
     AppStore.put(cmd.app_id, cmd.type, cmd.account_id)
     cmd
+  end
+
+  defp put_original_fields(%{effective_keys: effective_keys} = event, state) do
+    fields = Map.from_struct(state)
+
+    original_fields =
+      Enum.reduce(fields, %{}, fn({k, v}, acc) ->
+        str_key = Atom.to_string(k)
+        if Enum.member?(effective_keys, str_key) do
+          Map.put(acc, str_key, v)
+        else
+          acc
+        end
+      end)
+
+    Map.put(event, :original_fields, original_fields)
   end
 end

@@ -15,6 +15,7 @@ defmodule FCIdentity.RouterTest do
     GenerateEmailVerificationToken,
     VerifyEmail,
     AddApp,
+    UpdateApp,
     DeleteApp
   }
   alias FCIdentity.{
@@ -33,7 +34,7 @@ defmodule FCIdentity.RouterTest do
     EmailVerificationTokenGenerated,
     EmailVerified
   }
-  alias FCIdentity.{AppAdded, AppDeleted}
+  alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
 
   def user_id(account_id, role) do
     requester_id = uuid4()
@@ -340,7 +341,7 @@ defmodule FCIdentity.RouterTest do
     test "with non existing user id" do
       cmd = %UpdateUserInfo{
         user_id: uuid4(),
-        effective_keys: [:name],
+        effective_keys: ["name"],
         name: Faker.Name.name()
       }
 
@@ -364,7 +365,7 @@ defmodule FCIdentity.RouterTest do
         client_id: client_id,
         account_id: account_id,
         user_id: user_id,
-        effective_keys: [:name],
+        effective_keys: ["name"],
         name: Faker.Name.name()
       }
 
@@ -428,7 +429,7 @@ defmodule FCIdentity.RouterTest do
   describe "dispatch UpdateAccountInfo" do
     test "with invalid command" do
       cmd = %UpdateAccountInfo{
-        effective_keys: [:name]
+        effective_keys: ["name"]
       }
 
       {:error, {:validation_failed, _}} = Router.dispatch(cmd)
@@ -437,7 +438,7 @@ defmodule FCIdentity.RouterTest do
     test "with non existing account id" do
       cmd = %UpdateAccountInfo{
         account_id: uuid4(),
-        effective_keys: [:name],
+        effective_keys: ["name"],
         name: Faker.Company.name()
       }
 
@@ -477,7 +478,7 @@ defmodule FCIdentity.RouterTest do
         requester_id: user_id,
         account_id: live_account_id,
         client_id: client_id,
-        effective_keys: [:name],
+        effective_keys: ["name"],
         name: Faker.Company.name()
       }
 
@@ -554,6 +555,54 @@ defmodule FCIdentity.RouterTest do
 
       assert_receive_event(AppDeleted, fn(event) ->
         assert event.app_id == cmd.app_id
+      end)
+    end
+  end
+
+  describe "dispatch UpdateApp" do
+    test "given invalid command" do
+      cmd = %UpdateApp{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "given non existing app id" do
+      cmd = %UpdateApp{
+        app_id: uuid4(),
+        effective_keys: ["name"],
+        name: Faker.Company.name()
+      }
+
+      {:error, {:not_found, :app}} = Router.dispatch(cmd)
+    end
+
+    @tag :focus
+    test "given valid command" do
+      account_id = uuid4()
+      requester_id = user_id(account_id, "administrator")
+      client_id = app_id("system")
+      app_id = app_id("standard", account_id)
+
+      app_stream([%AppAdded{
+        account_id: account_id,
+        app_id: app_id,
+        type: "standard"
+      }])
+
+      cmd = %UpdateApp{
+        requester_id: requester_id,
+        client_id: client_id,
+        account_id: account_id,
+        app_id: app_id,
+        effective_keys: ["name"],
+        name: Faker.Name.name()
+      }
+
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(AppUpdated, fn(event) ->
+        assert event.app_id == cmd.app_id
+        assert event.name == cmd.name
       end)
     end
   end
