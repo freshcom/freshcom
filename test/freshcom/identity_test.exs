@@ -158,7 +158,7 @@ defmodule Freshcom.IdentityTest do
 
     test "given invalid identifiers" do
       req = %Request{
-        identifiers: %{"user_id" => uuid4()}
+        identifiers: %{"id" => uuid4()}
       }
       assert {:error, :not_found} = Identity.generate_password_reset_token(req)
     end
@@ -186,7 +186,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: requester.id,
         client_id: client.id,
         account_id: account_id,
-        identifiers: %{"user_id" => user.id}
+        identifiers: %{"id" => user.id}
       }
 
       assert {:ok, %{data: data}} = Identity.generate_password_reset_token(req)

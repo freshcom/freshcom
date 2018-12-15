@@ -103,10 +103,10 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  def generate_password_reset_token(%Request{identifiers: %{"user_id" => user_id}} = req) do
+  def generate_password_reset_token(%Request{identifiers: %{"id" => id}} = req) do
     req
     |> to_command(%GeneratePasswordResetToken{
-        user_id: user_id,
+        user_id: id,
         expires_at: Timex.shift(Timex.now(), hours: 24)
       })
     |> dispatch_and_wait(PasswordResetTokenGenerated)
