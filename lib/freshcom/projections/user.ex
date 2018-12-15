@@ -42,4 +42,10 @@ defmodule Freshcom.User do
       _ -> false
     end
   end
+
+  def password_reset_token_expired?(%{password_reset_token: nil}), do: true
+
+  def password_reset_token_expired?(%{password_reset_token_expires_at: expires_at}) do
+    NaiveDateTime.compare(expires_at, NaiveDateTime.utc_now()) == :lt
+  end
 end
