@@ -2,6 +2,7 @@ defmodule Freshcom.Identity do
   import FCSupport.Normalization, only: [atomize_keys: 2]
   import Freshcom.Context
   import Freshcom.IdentityPolicy
+  import UUID
 
   use OK.Pipe
 
@@ -14,6 +15,7 @@ defmodule Freshcom.Identity do
     ChangePassword,
     DeleteUser,
     UpdateAccountInfo,
+    GeneratePasswordResetToken,
     AddApp,
     UpdateApp,
     DeleteApp
@@ -26,6 +28,7 @@ defmodule Freshcom.Identity do
     PasswordChanged,
     UserDeleted,
     AccountInfoUpdated,
+    PasswordResetTokenGenerated,
     AppAdded,
     AppUpdated,
     AppDeleted
@@ -79,6 +82,24 @@ defmodule Freshcom.Identity do
     |> dispatch_and_wait(UserRoleChanged)
     ~> Map.get(:user)
     ~> preload(req)
+    |> to_response()
+  end
+
+  @spec generate_password_reset_token(Request.t()) :: Context.resp()
+  def generate_password_reset_token(%Request{} = req) do
+    user =
+      req
+      |> Map.put(:identifiers, %{"username" => req.identifiers["username"]})
+      |> to_query(User)
+      |> Repo.one()
+
+    req
+    |> to_command(%GeneratePasswordResetToken{
+        user_id: (user || %{id: uuid4()}).id,
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      })
+    |> dispatch_and_wait(PasswordResetTokenGenerated)
+    ~> Map.get(:user)
     |> to_response()
   end
 
@@ -356,7 +377,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordChanged, UserDeleted] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordResetTokenGenerated, PasswordChanged, UserDeleted] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])

@@ -151,6 +151,36 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "generate_password_reset_token/1" do
+    test "given no identifiers" do
+      assert {:error, :not_found} = Identity.generate_password_reset_token(%Request{})
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{
+        identifiers: %{"user_id" => uuid4()}
+      }
+      assert {:error, :not_found} = Identity.generate_password_reset_token(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      user = managed_user(account_id)
+      client = standard_app(account_id)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: account_id,
+        identifiers: %{"username" => user.username}
+      }
+
+      assert {:ok, %{data: data}} = Identity.generate_password_reset_token(req)
+      assert data.password_reset_token_expires_at
+    end
+  end
+
   describe "change_password/1" do
     test "given no identifiers" do
       assert {:error, %{errors: errors}} = Identity.change_password(%Request{})

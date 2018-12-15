@@ -12,6 +12,7 @@ defmodule Freshcom.UserProjector do
     UserAdded,
     UserInfoUpdated,
     UserRoleChanged,
+    PasswordResetTokenGenerated,
     PasswordChanged,
     UserDeleted
   }
@@ -40,6 +41,18 @@ defmodule Freshcom.UserProjector do
       User
       |> Repo.get(event.user_id)
       |> Changeset.change(role: event.role)
+
+    Multi.update(multi, :user, changeset)
+  end
+
+  project(%PasswordResetTokenGenerated{} = event, _) do
+    changeset =
+      User
+      |> Repo.get(event.user_id)
+      |> Changeset.change(
+        password_reset_token: event.token,
+        password_reset_token_expires_at: NaiveDateTime.from_iso8601!(event.expires_at)
+      )
 
     Multi.update(multi, :user, changeset)
   end

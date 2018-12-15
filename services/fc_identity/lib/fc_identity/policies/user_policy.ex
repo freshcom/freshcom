@@ -26,7 +26,8 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%RegisterUser{} = cmd, _),
     do: {:ok, cmd}
 
-  def authorize(%GeneratePasswordResetToken{} = cmd, _), do: {:ok, cmd}
+  def authorize(%GeneratePasswordResetToken{client_type: "system"} = cmd, %{type: "standard"}), do: {:ok, cmd}
+  def authorize(%GeneratePasswordResetToken{} = cmd, %{type: "managed"}), do: {:ok, cmd}
 
   # Changing user's own password
   def authorize(%ChangePassword{requester_id: rid, requester_type: "standard", user_id: uid, client_type: "system"} = cmd, _) when rid == uid,
