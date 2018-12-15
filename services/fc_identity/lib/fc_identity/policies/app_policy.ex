@@ -13,10 +13,10 @@ defmodule FCIdentity.AppPolicy do
     {:ok, cmd}
   end
 
-  def authorize(%UpdateApp{} = cmd, state),
+  def authorize(%UpdateApp{client_type: "system"} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator", "developer"])
 
-  def authorize(%DeleteApp{} = cmd, state),
+  def authorize(%DeleteApp{client_type: "system"} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator", "developer"])
 
   def authorize(_, _), do: {:error, :access_denied}
