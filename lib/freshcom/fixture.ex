@@ -64,4 +64,16 @@ defmodule Freshcom.Fixture do
 
     app
   end
+
+  def password_reset_token(user_id, account_id \\ nil) do
+    req = %Request{
+      account_id: account_id,
+      identifiers: %{"id" => user_id},
+      _role_: "system"
+    }
+
+    {:ok, %{data: user}} = Identity.generate_password_reset_token(req)
+
+    user
+  end
 end

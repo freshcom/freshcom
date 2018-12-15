@@ -117,18 +117,35 @@ defmodule Freshcom.Identity do
   def generate_password_reset_token(_), do: {:error, :not_found}
 
   @spec change_password(Request.t()) :: Context.resp()
-  def change_password(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id", "reset_token"])
-
+  def change_password(%Request{identifiers: %{"id" => id}} = req) do
     req
     |> to_command(%ChangePassword{})
-    |> Map.put(:user_id, identifiers[:id])
-    |> Map.put(:reset_token, identifiers[:reset_token])
+    |> Map.put(:user_id, id)
     |> dispatch_and_wait(PasswordChanged)
     ~> Map.get(:user)
     ~> preload(req)
     |> to_response()
   end
+
+  def change_password(%Request{identifiers: %{"reset_token" => reset_token}} = req) do
+    user =
+      req
+      |> Map.put(:identifiers, %{"password_reset_token" => reset_token})
+      |> to_query(User)
+      |> Repo.one()
+
+    req
+    |> to_command(%ChangePassword{
+        user_id: (user || %{id: uuid4()}).id,
+        reset_token: reset_token
+      })
+    |> dispatch_and_wait(PasswordChanged)
+    ~> Map.get(:user)
+    ~> preload(req)
+    |> to_response()
+  end
+
+  def change_password(_), do: {:error, :not_found}
 
   @spec delete_user(Request.t()) :: Context.resp()
   def delete_user(%Request{} = req) do

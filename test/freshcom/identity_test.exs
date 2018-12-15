@@ -196,8 +196,7 @@ defmodule Freshcom.IdentityTest do
 
   describe "change_password/1" do
     test "given no identifiers" do
-      assert {:error, %{errors: errors}} = Identity.change_password(%Request{})
-      assert length(errors) > 1
+      assert {:error, :not_found} = Identity.change_password(%Request{})
     end
 
     test "given invalid identifiers" do
@@ -220,7 +219,7 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :access_denied} = Identity.change_password(req)
     end
 
-    test "given valid request" do
+    test "given valid id as identifiers" do
       requester = standard_user()
       user = managed_user(requester.default_account_id)
       client = standard_app(requester.default_account_id)
@@ -230,6 +229,19 @@ defmodule Freshcom.IdentityTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id},
+        fields: %{"new_password" => "test1234"}
+      }
+
+      assert {:ok, %{data: data}} = Identity.change_password(req)
+    end
+
+    test "given valid reset token as identifiers" do
+      requester = password_reset_token(standard_user().id)
+      client = system_app()
+
+      req = %Request{
+        client_id: client.id,
+        identifiers: %{"reset_token" => requester.password_reset_token},
         fields: %{"new_password" => "test1234"}
       }
 
