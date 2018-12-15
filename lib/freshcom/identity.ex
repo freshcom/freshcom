@@ -86,10 +86,10 @@ defmodule Freshcom.Identity do
   end
 
   @spec generate_password_reset_token(Request.t()) :: Context.resp()
-  def generate_password_reset_token(%Request{} = req) do
+  def generate_password_reset_token(%Request{identifiers: %{"username" => username}} = req) do
     user =
       req
-      |> Map.put(:identifiers, %{"username" => req.identifiers["username"]})
+      |> Map.put(:identifiers, %{"username" => username})
       |> to_query(User)
       |> Repo.one()
 
@@ -102,6 +102,19 @@ defmodule Freshcom.Identity do
     ~> Map.get(:user)
     |> to_response()
   end
+
+  def generate_password_reset_token(%Request{identifiers: %{"user_id" => user_id}} = req) do
+    req
+    |> to_command(%GeneratePasswordResetToken{
+        user_id: user_id,
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      })
+    |> dispatch_and_wait(PasswordResetTokenGenerated)
+    ~> Map.get(:user)
+    |> to_response()
+  end
+
+  def generate_password_reset_token(_), do: {:error, :not_found}
 
   @spec change_password(Request.t()) :: Context.resp()
   def change_password(%Request{} = req) do

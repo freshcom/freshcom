@@ -163,7 +163,20 @@ defmodule Freshcom.IdentityTest do
       assert {:error, :not_found} = Identity.generate_password_reset_token(req)
     end
 
-    test "given valid request" do
+    test "given valid username as identifiers" do
+      requester = standard_user()
+      client = system_app()
+
+      req = %Request{
+        client_id: client.id,
+        identifiers: %{"username" => requester.username}
+      }
+
+      assert {:ok, %{data: data}} = Identity.generate_password_reset_token(req)
+      assert data.password_reset_token_expires_at
+    end
+
+    test "given valid id as identifiers" do
       requester = standard_user()
       account_id = requester.default_account_id
       user = managed_user(account_id)
@@ -173,7 +186,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: requester.id,
         client_id: client.id,
         account_id: account_id,
-        identifiers: %{"username" => user.username}
+        identifiers: %{"user_id" => user.id}
       }
 
       assert {:ok, %{data: data}} = Identity.generate_password_reset_token(req)
