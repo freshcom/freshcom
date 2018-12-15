@@ -16,5 +16,6 @@ defmodule FCIdentity.UpdateApp do
     field :name, String.t()
 
     validates :app_id, presence: true, uuid: true
+    validates :name, presence: true
   end
 end
