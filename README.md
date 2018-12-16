@@ -44,7 +44,7 @@ alias Freshcom.Request
 alias Freshcom.{Identity, Goods, Catalogue, Storefront}
 
 # Register a user
-{:ok, response} = Identity.regsiter_user(%Request{
+{:ok, response} = Identity.register_user(%Request{
   fields: %{
     username: "rbao",
     email: "test@example.com"
