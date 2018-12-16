@@ -5,6 +5,14 @@ defmodule Mix.Tasks.Freshcom.StateStorage.Reset do
 
   def run(_) do
     Application.ensure_all_started(:hackney)
-    FCStateStorage.reset!()
+
+    case Application.get_env(:fc_state_storage, :adapter) do
+      FCStateStorage.MemoryAdapter ->
+        Mix.shell().info("MemoryAdapter does not require reset, skipped.")
+
+      _ ->
+        FCStateStorage.reset!()
+        Mix.shell().info("The state storage has been reset.")
+    end
   end
 end
