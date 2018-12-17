@@ -17,12 +17,12 @@ defmodule FCIdentity.AccountHandler do
   def handle(%Account{id: nil} = state, %CreateAccount{} = cmd) do
     cmd
     |> authorize(state)
+    ~> generate_test_account_id()
     ~> keep_default_locale()
     ~> keep_owner_role()
     ~> keep_test_account_id()
     ~> keep_account_handle()
     ~> merge_to(%AccountCreated{handle: cmd.account_id})
-    ~> generate_test_account_id()
     |> unwrap_ok()
   end
 
@@ -73,7 +73,7 @@ defmodule FCIdentity.AccountHandler do
     cmd
   end
 
-  defp generate_test_account_id(%AccountCreated{mode: "live"} = event) do
+  defp generate_test_account_id(%CreateAccount{mode: "live"} = event) do
     %{event | test_account_id: uuid4()}
   end
 
