@@ -14,6 +14,7 @@ defmodule Freshcom.Identity do
     ChangeUserRole,
     ChangePassword,
     DeleteUser,
+    CreateAccount,
     UpdateAccountInfo,
     GeneratePasswordResetToken,
     AddApp,
@@ -27,6 +28,7 @@ defmodule Freshcom.Identity do
     UserRoleChanged,
     PasswordChanged,
     UserDeleted,
+    AccountCreated,
     AccountInfoUpdated,
     PasswordResetTokenGenerated,
     AppAdded,
@@ -225,6 +227,19 @@ defmodule Freshcom.Identity do
 
   defp check_account_id(_, _), do: nil
 
+  @spec create_account(Request.t()) :: Context.resp()
+  def create_account(%Request{} = req) do
+    req
+    |> to_command(%CreateAccount{})
+    |> Map.put(:account_id, nil)
+    |> Map.put(:owner_id, req.requester_id)
+    |> Map.put(:mode, "live")
+    |> dispatch_and_wait(AccountCreated)
+    ~> Map.get(:account)
+    ~> preload(req)
+    |> to_response()
+  end
+
   @spec get_account(Request.t()) :: Context.resp()
   def get_account(%Request{identifiers: %{"handle" => _}} = req) do
     req
@@ -413,7 +428,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{account_id: account_id}) when et in [AccountInfoUpdated] do
+  defp wait(%et{account_id: account_id}) when et in [AccountCreated, AccountInfoUpdated] do
     Projector.wait([
       {:account, AccountProjector, &(&1.id == account_id)}
     ])

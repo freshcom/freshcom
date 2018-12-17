@@ -506,6 +506,43 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "create_account/1" do
+    test "given invalid request" do
+      assert {:error, %{errors: errors}} = Identity.create_account(%Request{})
+      assert length(errors) > 0
+    end
+
+    test "given unauthorized requester" do
+      req = %Request{
+        requester_id: uuid4(),
+        fields: %{
+          "name" => Faker.Company.name(),
+          "default_locale" => "en"
+        }
+      }
+      assert {:error, :access_denied} = Identity.create_account(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      client = system_app()
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        fields: %{
+          "name" => Faker.Company.name(),
+          "default_locale" => "en"
+        }
+      }
+
+      assert {:ok, %{data: data}} = Identity.create_account(req)
+      assert data.id
+      assert data.name == req.fields["name"]
+      assert data.default_locale == req.fields["default_locale"]
+    end
+  end
+
   describe "get_account/1" do
     test "given unauthorized requester" do
       req = %Request{}

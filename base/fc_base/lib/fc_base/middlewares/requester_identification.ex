@@ -8,7 +8,7 @@ defmodule FCBase.RequesterIdentification do
     %{pipeline | command: identify(pipeline.command)}
   end
 
-  def identify(%{requester_role: nil, account_id: nil} = cmd) do
+  def identify(%{requester_id: nil, requester_role: nil, account_id: nil} = cmd) do
     %{cmd | requester_role: "anonymous"}
   end
 
