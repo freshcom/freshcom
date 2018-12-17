@@ -9,6 +9,9 @@ defmodule FCIdentity.Supervisor do
 
   def init(_) do
     children = [
+      # Event Handler
+      {FCIdentity.Keeper, [start_from: :current]},
+
       # Process Manager
       {FCIdentity.DefaultAccountSetup, [start_from: :current]},
       {FCIdentity.TestAccountSync, [start_from: :current]},

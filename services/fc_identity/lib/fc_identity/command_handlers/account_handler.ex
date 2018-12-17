@@ -8,8 +8,7 @@ defmodule FCIdentity.AccountHandler do
   import UUID
   import FCIdentity.AccountPolicy
 
-  alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserRoleStore}
-  alias FCIdentity.{TestAccountIdStore, AccountHandleStore}
+  alias FCIdentity.AccountHandleStore
   alias FCIdentity.{CreateAccount, UpdateAccountInfo, AccountDeleted}
   alias FCIdentity.{AccountCreated, AccountInfoUpdated, DeleteAccount}
   alias FCIdentity.Account
@@ -18,9 +17,6 @@ defmodule FCIdentity.AccountHandler do
     cmd
     |> authorize(state)
     ~> generate_test_account_id()
-    ~> keep_default_locale()
-    ~> keep_owner_role()
-    ~> keep_test_account_id()
     ~> keep_account_handle()
     ~> merge_to(%AccountCreated{handle: cmd.account_id})
     |> unwrap_ok()
@@ -45,23 +41,6 @@ defmodule FCIdentity.AccountHandler do
   def handle(%Account{system_label: "default"}, %DeleteAccount{}) do
     {:error, {:undeletable, :account}}
   end
-
-  defp keep_default_locale(%CreateAccount{} = cmd) do
-    DefaultLocaleStore.put(cmd.account_id, cmd.default_locale)
-    cmd
-  end
-
-  defp keep_owner_role(%CreateAccount{account_id: account_id, owner_id: owner_id} = cmd) do
-    UserRoleStore.put(owner_id, account_id, "owner")
-    cmd
-  end
-
-  defp keep_test_account_id(%CreateAccount{account_id: aid, mode: "live", test_account_id: taid} = cmd) do
-    TestAccountIdStore.put(taid, aid)
-    cmd
-  end
-
-  defp keep_test_account_id(cmd), do: cmd
 
   defp keep_account_handle(%CreateAccount{account_id: aid} = cmd) do
     AccountHandleStore.put(aid, aid)
