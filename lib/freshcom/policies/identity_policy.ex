@@ -28,6 +28,9 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_role_: role} = req, :get_user) when role in @admins,
     do: {:ok, req}
 
+  def authorize(%{_requester_: %{type: "standard"}, _client_: %{type: "system"}} = req, :list_account),
+    do: {:ok, req}
+
   def authorize(%{_role_: role} = req, :get_account) when role in @guests,
     do: {:ok, req}
 

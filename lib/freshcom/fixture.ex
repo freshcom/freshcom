@@ -76,4 +76,15 @@ defmodule Freshcom.Fixture do
 
     user
   end
+
+  def account(user_id) do
+    req = %Request{
+      requester_id: user_id,
+      _role_: "system"
+    }
+
+    {:ok, %{data: account}} = Identity.create_account(req)
+
+    account
+  end
 end

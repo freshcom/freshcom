@@ -227,6 +227,31 @@ defmodule Freshcom.Identity do
 
   defp check_account_id(_, _), do: nil
 
+  @spec list_account(Request.t()) :: Context.resp()
+  def list_account(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:list_account)
+    ~> Map.put(:account_id, nil)
+    ~> Map.put(:filter, [%{"mode" => "live"}])
+    ~> to_query(Account)
+    ~> Repo.all()
+    ~> preload(req)
+    |> to_response()
+  end
+
+  def count_account(%Request{} = req) do
+    req
+    |> expand()
+    |> Map.put(:pagination, nil)
+    |> authorize(:list_account)
+    ~> Map.put(:account_id, nil)
+    ~> Map.put(:filter, [%{"mode" => "live"}])
+    ~> to_query(Account)
+    ~> Repo.aggregate(:count, :id)
+    |> to_response()
+  end
+
   @spec create_account(Request.t()) :: Context.resp()
   def create_account(%Request{} = req) do
     req

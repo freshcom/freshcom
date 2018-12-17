@@ -543,6 +543,29 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "list_account/1" do
+    test "given unauthorized requester" do
+      req = %Request{}
+
+      assert {:error, :access_denied} = Identity.list_account(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      client = system_app()
+      account(requester.id)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: requester.default_account_id
+      }
+
+      assert {:ok, %{data: data}} = Identity.list_account(req)
+      assert length(data) == 2
+    end
+  end
+
   describe "get_account/1" do
     test "given unauthorized requester" do
       req = %Request{}
