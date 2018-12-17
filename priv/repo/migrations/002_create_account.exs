@@ -6,6 +6,7 @@ defmodule Freshcom.Repo.Migrations.CreateAccount do
       add :id, :binary_id, primary_key: true
       add :sid, :bigserial
 
+      add :system_label, :string
       add :owner_id, :binary_id
       add :mode, :string
       add :is_ready_for_live_transaction, :boolean

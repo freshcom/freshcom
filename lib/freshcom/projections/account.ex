@@ -3,6 +3,7 @@ defmodule Freshcom.Account do
 
   schema "accounts" do
     field :prefixed_id, :string, virtual: true
+    field :system_label, :string
     field :mode, :string
     field :live_account_id, UUID
     field :test_account_id, UUID

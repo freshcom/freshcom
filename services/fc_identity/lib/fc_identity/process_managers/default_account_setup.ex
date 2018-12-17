@@ -17,6 +17,7 @@ defmodule FCIdentity.DefaultAccountSetup do
     %CreateAccount{
       requester_role: "system",
       account_id: event.default_account_id,
+      system_label: "default",
       owner_id: event.user_id,
       mode: "live",
       name: event.account_name,

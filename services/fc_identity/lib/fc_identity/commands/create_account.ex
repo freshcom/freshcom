@@ -10,6 +10,7 @@ defmodule FCIdentity.CreateAccount do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :system_label, String.t()
     field :owner_id, String.t()
     field :mode, String.t(), default: "live"
     field :live_account_id, String.t()

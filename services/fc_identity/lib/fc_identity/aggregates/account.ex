@@ -9,6 +9,8 @@ defmodule FCIdentity.Account do
   typedstruct do
     field :id, String.t()
 
+    field :status, String.t(), default: "active"
+    field :system_label, String.t()
     field :owner_id, String.t()
     field :mode, String.t(), default: "live"
     field :live_account_id, String.t()
