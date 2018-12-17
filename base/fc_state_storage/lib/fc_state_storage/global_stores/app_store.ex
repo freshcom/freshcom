@@ -30,6 +30,6 @@ defmodule FCStateStorage.GlobalStore.AppStore do
   end
 
   defp generate_key(app_id) do
-    "global_store/app/#{app_id}"
+    "global_store/app/#{String.downcase(app_id)}"
   end
 end
