@@ -735,6 +735,25 @@ defmodule Freshcom.IdentityTest do
       assert data.prefixed_id
       assert data.id == urt.id
     end
+
+    test "target other live account owned by the same user" do
+      requester = standard_user(include: "default_account")
+      account_id = requester.default_account_id
+      client = system_app()
+      urt = get_urt(account_id, requester.id)
+
+      another_account = account(requester.id)
+
+      req = %Request{
+        account_id: another_account.id,
+        client_id: client.id,
+        identifiers: %{"id" => urt.prefixed_id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert data.id != urt.id
+      assert data.prefixed_id
+    end
   end
 
   describe "add_app/1" do

@@ -322,7 +322,8 @@ defmodule Freshcom.Identity do
   returned.
 
   This function is intended for exchanging a live refresh token for a corresponding
-  test refresh token.
+  test refresh token or for another live refresh token owned by the same user but
+  for a different account.
   """
   @spec exchange_refresh_token(Request.t()) :: Context.resp()
   def exchange_refresh_token(%Request{} = req) do
@@ -344,10 +345,16 @@ defmodule Freshcom.Identity do
       is_nil(refresh_token) ->
         nil
 
+      # Exchanging for the same account
       refresh_token.account_id == account.id ->
         refresh_token
 
+      # Exchanging for the test account
       refresh_token.account_id == account.live_account_id ->
+        Repo.get_by(RefreshToken, account_id: account.id, user_id: refresh_token.user_id)
+
+      # Exchanging for other live account owned by the same user
+      refresh_token.user_id == account.owner_id ->
         Repo.get_by(RefreshToken, account_id: account.id, user_id: refresh_token.user_id)
 
       true ->
