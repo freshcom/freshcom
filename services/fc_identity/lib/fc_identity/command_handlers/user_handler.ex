@@ -10,8 +10,7 @@ defmodule FCIdentity.UserHandler do
   import FCSupport.Normalization
   import FCIdentity.UserPolicy
 
-  alias FCStateStorage.GlobalStore.{UserTypeStore, UserRoleStore}
-  alias FCIdentity.{UsernameStore, TestAccountIdStore}
+  alias FCIdentity.UsernameStore
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -50,7 +49,6 @@ defmodule FCIdentity.UserHandler do
     cmd
     |> authorize(state)
     ~> trim_strings()
-    ~> keep_type()
     ~> keep_username()
     ~> merge_to(user_registered)
     ~> put_password_hash(cmd)
@@ -65,8 +63,6 @@ defmodule FCIdentity.UserHandler do
     cmd
     |> authorize(state)
     ~> trim_strings()
-    ~> keep_type()
-    ~> keep_role()
     ~> keep_username()
     ~> merge_to(%UserAdded{type: "managed"})
     ~> put_password_hash(cmd)
@@ -127,7 +123,6 @@ defmodule FCIdentity.UserHandler do
   def handle(state, %ChangeUserRole{} = cmd) do
     cmd
     |> authorize(state)
-    ~> keep_role()
     ~> merge_to(%UserRoleChanged{})
     |> unwrap_ok()
   end
@@ -138,27 +133,6 @@ defmodule FCIdentity.UserHandler do
     ~> keep_username(state)
     ~> merge_to(%UserInfoUpdated{})
     |> unwrap_ok()
-  end
-
-  defp keep_type(%RegisterUser{} = cmd) do
-    UserTypeStore.put(cmd.user_id, "standard")
-    cmd
-  end
-
-  defp keep_type(%AddUser{} = cmd) do
-    UserTypeStore.put(cmd.user_id, "managed")
-    cmd
-  end
-
-  defp keep_role(%ct{} = cmd) when ct in [AddUser, ChangeUserRole] do
-    UserRoleStore.put(cmd.user_id, cmd.account_id, cmd.role)
-    test_account_id = TestAccountIdStore.get(cmd.account_id)
-
-    if test_account_id do
-      UserRoleStore.put(cmd.user_id, test_account_id, cmd.role)
-    end
-
-    cmd
   end
 
   defp keep_username(%{username: nil} = cmd), do: cmd

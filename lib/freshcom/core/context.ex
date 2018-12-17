@@ -47,7 +47,7 @@ defmodule Freshcom.Context do
 
     result =
       cmd
-      |> Router.dispatch(include_execution_result: true)
+      |> Router.dispatch(include_execution_result: true, consistency: :strong)
       ~> Map.get(:events)
       ~> find_event(event_module)
       ~>> wait_func.()

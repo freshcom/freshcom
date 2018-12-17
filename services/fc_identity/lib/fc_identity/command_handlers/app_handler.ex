@@ -7,7 +7,6 @@ defmodule FCIdentity.AppHandler do
 
   import FCIdentity.AppPolicy
 
-  alias FCStateStorage.GlobalStore.AppStore
   alias FCIdentity.{AddApp, UpdateApp, DeleteApp}
   alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
   alias FCIdentity.App
@@ -15,7 +14,6 @@ defmodule FCIdentity.AppHandler do
   def handle(%App{id: nil} = state, %AddApp{} = cmd) do
     cmd
     |> authorize(state)
-    ~> keep_type()
     ~> merge_to(%AppAdded{})
     |> unwrap_ok()
   end
@@ -40,11 +38,6 @@ defmodule FCIdentity.AppHandler do
     |> authorize(state)
     ~> merge_to(%AppDeleted{})
     |> unwrap_ok()
-  end
-
-  defp keep_type(%AddApp{} = cmd) do
-    AppStore.put(cmd.app_id, cmd.type, cmd.account_id)
-    cmd
   end
 
   defp put_original_fields(%{effective_keys: effective_keys} = event, state) do
