@@ -5,6 +5,7 @@ defmodule FCIdentity.AccountHandler do
 
   use FCBase, :command_handler
 
+  import UUID
   import FCIdentity.AccountPolicy
 
   alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserRoleStore}
@@ -21,6 +22,7 @@ defmodule FCIdentity.AccountHandler do
     ~> keep_test_account_id()
     ~> keep_account_handle()
     ~> merge_to(%AccountCreated{handle: cmd.account_id})
+    ~> generate_test_account_id()
     |> unwrap_ok()
   end
 
@@ -70,4 +72,10 @@ defmodule FCIdentity.AccountHandler do
 
     cmd
   end
+
+  defp generate_test_account_id(%AccountCreated{mode: "live"} = event) do
+    %{event | test_account_id: uuid4()}
+  end
+
+  defp generate_test_account_id(event), do: event
 end

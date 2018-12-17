@@ -4,8 +4,6 @@ defmodule FCIdentity.DefaultAccountSetup do
     name: "process-manager:b4e57a07-3136-4a9f-8f8b-cbae5f86ed4d",
     router: FCIdentity.Router
 
-  import UUID
-
   alias FCIdentity.{UserRegistered, AccountCreated}
   alias FCIdentity.CreateAccount
 
@@ -21,7 +19,6 @@ defmodule FCIdentity.DefaultAccountSetup do
       account_id: event.default_account_id,
       owner_id: event.user_id,
       mode: "live",
-      test_account_id: uuid4(),
       name: event.account_name,
       default_locale: event.default_locale
     }
