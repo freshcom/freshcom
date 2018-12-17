@@ -10,8 +10,8 @@ defmodule FCIdentity.AccountHandler do
 
   alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserRoleStore}
   alias FCIdentity.{TestAccountIdStore, AccountHandleStore}
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo}
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, AccountDeleted}
+  alias FCIdentity.{AccountCreated, AccountInfoUpdated, DeleteAccount}
   alias FCIdentity.Account
 
   def handle(%Account{id: nil} = state, %CreateAccount{} = cmd) do
@@ -30,7 +30,7 @@ defmodule FCIdentity.AccountHandler do
     {:error, {:already_exist, :account}}
   end
 
-  def handle(%Account{id: nil}, %UpdateAccountInfo{}) do
+  def handle(%Account{id: nil}, _) do
     {:error, {:not_found, :account}}
   end
 
@@ -40,6 +40,10 @@ defmodule FCIdentity.AccountHandler do
     ~> keep_account_handle(state)
     ~> merge_to(%AccountInfoUpdated{})
     |> unwrap_ok()
+  end
+
+  def handle(%Account{system_label: "default"}, %DeleteAccount{}) do
+    {:error, {:undeletable, :account}}
   end
 
   defp keep_default_locale(%CreateAccount{} = cmd) do
