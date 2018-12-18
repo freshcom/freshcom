@@ -35,6 +35,7 @@ defmodule Freshcom.Repo.Migrations.CreateAccount do
     create index(:accounts, :test_account_id)
     create index(:accounts, :owner_id)
     create index(:accounts, :handle)
+    create index(:accounts, :status)
 
     execute "ALTER SEQUENCE accounts_sid_seq START with 72018102 RESTART"
   end
