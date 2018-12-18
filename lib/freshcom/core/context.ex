@@ -95,7 +95,7 @@ defmodule Freshcom.Context do
   end
 
   defp put_account(%{account_id: nil} = req), do: %{req | _account_: nil}
-  defp put_account(%{account_id: id} = req), do: %{req | _account_: Repo.get_by(Account, id: id)}
+  defp put_account(%{account_id: id} = req), do: %{req | _account_: Repo.get_by(Account, id: id, status: "active")}
 
   defp put_default_locale(%{_account_: nil} = req), do: %{req | _default_locale_: nil}
   defp put_default_locale(%{_account_: account} = req), do: %{req | _default_locale_: account.default_locale}

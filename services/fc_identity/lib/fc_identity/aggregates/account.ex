@@ -9,10 +9,10 @@ defmodule FCIdentity.Account do
   typedstruct do
     field :id, String.t()
 
-    field :status, String.t(), default: "active"
+    field :status, String.t()
     field :system_label, String.t()
     field :owner_id, String.t()
-    field :mode, String.t(), default: "live"
+    field :mode, String.t()
     field :live_account_id, String.t()
     field :test_account_id, String.t()
     field :default_locale, String.t()

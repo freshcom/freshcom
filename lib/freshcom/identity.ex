@@ -16,6 +16,7 @@ defmodule Freshcom.Identity do
     DeleteUser,
     CreateAccount,
     UpdateAccountInfo,
+    CloseAccount,
     GeneratePasswordResetToken,
     AddApp,
     UpdateApp,
@@ -30,6 +31,7 @@ defmodule Freshcom.Identity do
     UserDeleted,
     AccountCreated,
     AccountInfoUpdated,
+    AccountClosed,
     PasswordResetTokenGenerated,
     AppAdded,
     AppUpdated,
@@ -295,6 +297,18 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @spec close_account(Request.t()) :: Context.resp()
+  def close_account(%Request{} = req) do
+    identifiers = atomize_keys(req.identifiers, ["id"])
+
+    req
+    |> to_command(%CloseAccount{})
+    |> Map.put(:account_id, identifiers[:id])
+    |> dispatch_and_wait(AccountClosed)
+    ~> Map.get(:account)
+    |> to_response()
+  end
+
   @spec get_refresh_token(Request.t()) :: Context.resp()
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
@@ -460,7 +474,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{account_id: account_id}) when et in [AccountCreated, AccountInfoUpdated] do
+  defp wait(%et{account_id: account_id}) when et in [AccountCreated, AccountInfoUpdated, AccountClosed] do
     Projector.wait([
       {:account, AccountProjector, &(&1.id == account_id)}
     ])

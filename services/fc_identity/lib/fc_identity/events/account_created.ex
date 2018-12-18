@@ -13,6 +13,7 @@ defmodule FCIdentity.AccountCreated do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :status, String.t(), default: "active"
     field :system_label, String.t()
     field :owner_id, String.t()
     field :mode, String.t()

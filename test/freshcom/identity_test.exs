@@ -635,6 +635,34 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "close_account/1" do
+    test "given invalid request" do
+      assert {:error, %{errors: errors}} = Identity.close_account(%Request{})
+      assert length(errors) > 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{identifiers: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Identity.close_account(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      client = system_app()
+      account = account(requester.id)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: requester.default_account_id,
+        identifiers: %{"id" => account.id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.close_account(req)
+      assert data.id == account.id
+    end
+  end
+
   describe "get_refresh_token/1" do
     test "given unauthorized requester" do
       req = %Request{}
