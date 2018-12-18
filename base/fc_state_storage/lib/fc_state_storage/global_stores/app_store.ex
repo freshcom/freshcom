@@ -29,6 +29,12 @@ defmodule FCStateStorage.GlobalStore.AppStore do
     end
   end
 
+  def delete(app_id) do
+    key = generate_key(app_id)
+
+    FCStateStorage.delete(key)
+  end
+
   defp generate_key(app_id) do
     "global_store/app/#{String.downcase(app_id)}"
   end

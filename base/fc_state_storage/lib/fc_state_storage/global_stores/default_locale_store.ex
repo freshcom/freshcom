@@ -23,6 +23,12 @@ defmodule FCStateStorage.GlobalStore.DefaultLocaleStore do
     end
   end
 
+  def delete(account_id) do
+    key = generate_key(account_id)
+
+    FCStateStorage.delete(key)
+  end
+
   defp generate_key(account_id) do
     "global_store/default_locale/#{account_id}"
   end

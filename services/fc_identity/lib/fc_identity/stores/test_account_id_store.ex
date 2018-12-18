@@ -23,6 +23,12 @@ defmodule FCIdentity.TestAccountIdStore do
     end
   end
 
+  def delete(account_id) do
+    key = generate_key(account_id)
+
+    FCStateStorage.delete(key)
+  end
+
   defp generate_key(account_id) do
     "fc_identity/test_account_id/#{account_id}"
   end

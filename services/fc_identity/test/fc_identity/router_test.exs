@@ -14,13 +14,15 @@ defmodule FCIdentity.RouterTest do
     UpdateUserInfo,
     GenerateEmailVerificationToken,
     VerifyEmail,
+    DeleteAccount,
     AddApp,
     UpdateApp,
     DeleteApp
   }
   alias FCIdentity.{
     AccountCreated,
-    AccountInfoUpdated
+    AccountInfoUpdated,
+    AccountDeleted
   }
   alias FCIdentity.{
     UserRegistered,
@@ -40,6 +42,12 @@ defmodule FCIdentity.RouterTest do
     requester_id = uuid4()
     UserRoleStore.put(requester_id, account_id, role)
 
+    if role == "owner" do
+      UserTypeStore.put(requester_id, "standard")
+    else
+      UserTypeStore.put(requester_id, "managed")
+    end
+
     requester_id
   end
 
@@ -48,6 +56,14 @@ defmodule FCIdentity.RouterTest do
     AppStore.put(app_id, type, account_id)
 
     app_id
+  end
+
+  def account_stream(events) do
+    groups = Enum.group_by(events, &(&1.account_id))
+
+    Enum.each(groups, fn({account_id, events}) ->
+      append_to_stream("account-" <> account_id, events)
+    end)
   end
 
   def user_stream(events) do
@@ -92,7 +108,6 @@ defmodule FCIdentity.RouterTest do
         assert event.token
         assert event.expires_at
       end)
-
       assert_receive_event(AccountCreated,
         fn(event) -> event.mode == "live" end,
         fn(event) ->
@@ -487,6 +502,53 @@ defmodule FCIdentity.RouterTest do
       assert_receive_event(AccountInfoUpdated, fn(event) ->
         assert event.name == cmd.name
       end)
+    end
+  end
+
+  describe "dispatch DeleteAccount" do
+    test "given invalid command" do
+      cmd = %DeleteAccount{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "given valid command" do
+      account_id = uuid4()
+      test_account_id = uuid4()
+      requester_id = user_id(account_id, "owner")
+      client_id = app_id("system")
+
+      account_stream([
+        %AccountCreated{
+          account_id: account_id,
+          mode: "live",
+          test_account_id: test_account_id,
+          default_locale: "en",
+          name: Faker.Company.name(),
+          owner_id: requester_id
+        }
+      ])
+
+      cmd = %DeleteAccount{
+        requester_id: requester_id,
+        client_id: client_id,
+        account_id: account_id
+      }
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(AccountDeleted,
+        fn(event) -> event.mode == "live" end,
+        fn(event) ->
+          assert event.account_id == account_id
+        end
+      )
+
+      assert_receive_event(AccountDeleted,
+        fn(event) -> event.mode == "test" end,
+        fn(event) ->
+          assert event.account_id == test_account_id
+        end
+      )
     end
   end
 

@@ -13,5 +13,9 @@ defmodule FCIdentity.AccountDeleted do
     field :client_type, String.t()
 
     field :account_id, String.t()
+    field :test_account_id, String.t()
+    field :owner_id, String.t()
+    field :mode, String.t()
+    field :handle, String.t()
   end
 end

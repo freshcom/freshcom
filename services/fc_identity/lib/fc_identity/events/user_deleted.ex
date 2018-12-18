@@ -14,5 +14,6 @@ defmodule FCIdentity.UserDeleted do
     field :account_id, String.t()
 
     field :user_id, String.t()
+    field :username, String.t()
   end
 end

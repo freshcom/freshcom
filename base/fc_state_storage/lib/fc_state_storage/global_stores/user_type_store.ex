@@ -23,6 +23,12 @@ defmodule FCStateStorage.GlobalStore.UserTypeStore do
     end
   end
 
+  def delete(user_id) do
+    key = generate_key(user_id)
+
+    FCStateStorage.delete(key)
+  end
+
   defp generate_key(user_id) do
     "global_store/user_type/#{user_id}"
   end

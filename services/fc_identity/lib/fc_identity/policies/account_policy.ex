@@ -1,7 +1,7 @@
 defmodule FCIdentity.AccountPolicy do
   @moduledoc false
 
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, DeleteAccount}
 
   def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
   def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
@@ -11,6 +11,10 @@ defmodule FCIdentity.AccountPolicy do
   def authorize(%CreateAccount{mode: "live", requester_id: nil}, _), do: {:error, :access_denied}
 
   def authorize(%CreateAccount{mode: "live", requester_type: "standard", client_type: "system"} = cmd, _) do
+    {:ok, cmd}
+  end
+
+  def authorize(%DeleteAccount{requester_type: "standard", client_type: "system"} = cmd, _) do
     {:ok, cmd}
   end
 

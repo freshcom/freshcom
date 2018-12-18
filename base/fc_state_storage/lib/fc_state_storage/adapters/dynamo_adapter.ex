@@ -63,6 +63,8 @@ defmodule FCStateStorage.DynamoAdapter do
     @dynamo_table
     |> Dynamo.delete_item(%{@primary_key_name => key})
     |> ExAws.request!()
+
+    :ok
   end
 
   def reset!() do

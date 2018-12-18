@@ -22,13 +22,9 @@ defmodule FCIdentity.AccountHandler do
     |> unwrap_ok()
   end
 
-  def handle(%Account{id: _}, %CreateAccount{}) do
-    {:error, {:already_exist, :account}}
-  end
-
-  def handle(%Account{id: nil}, _) do
-    {:error, {:not_found, :account}}
-  end
+  def handle(%Account{id: _}, %CreateAccount{}), do: {:error, {:already_exist, :account}}
+  def handle(%Account{status: "deleted"}, %CreateAccount{}), do: {:error, {:already_deleted, :account}}
+  def handle(%Account{id: nil}, _), do: {:error, {:not_found, :account}}
 
   def handle(%Account{id: _} = state, %UpdateAccountInfo{} = cmd) do
     cmd
@@ -40,6 +36,18 @@ defmodule FCIdentity.AccountHandler do
 
   def handle(%Account{system_label: "default"}, %DeleteAccount{}) do
     {:error, {:undeletable, :account}}
+  end
+
+  def handle(%Account{} = state, %DeleteAccount{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%AccountDeleted{
+        owner_id: state.owner_id,
+        mode: state.mode,
+        test_account_id: state.test_account_id,
+        handle: state.handle
+      })
+    |> unwrap_ok()
   end
 
   defp keep_account_handle(%CreateAccount{account_id: aid} = cmd) do

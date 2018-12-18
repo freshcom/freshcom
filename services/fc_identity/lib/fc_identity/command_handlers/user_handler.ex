@@ -77,7 +77,7 @@ defmodule FCIdentity.UserHandler do
   def handle(state, %DeleteUser{} = cmd) do
     cmd
     |> authorize(state)
-    ~> merge_to(%UserDeleted{})
+    ~> merge_to(%UserDeleted{username: state.username})
     |> unwrap_ok()
   end
 

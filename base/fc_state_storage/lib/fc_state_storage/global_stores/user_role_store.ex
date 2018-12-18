@@ -23,6 +23,12 @@ defmodule FCStateStorage.GlobalStore.UserRoleStore do
     end
   end
 
+  def delete(user_id, account_id) do
+    key = generate_key(account_id, user_id)
+
+    FCStateStorage.delete(key)
+  end
+
   defp generate_key(account_id, user_id) do
     "global_store/user_role/#{account_id}/#{user_id}"
   end

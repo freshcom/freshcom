@@ -4,11 +4,11 @@ defmodule FCIdentity.Keeper do
     consistency: :strong
 
   alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserTypeStore, UserRoleStore, AppStore}
-  alias FCIdentity.TestAccountIdStore
+  alias FCIdentity.{TestAccountIdStore, UsernameStore, AccountHandleStore}
 
-  alias FCIdentity.{UserRegistered, UserAdded, UserRoleChanged}
-  alias FCIdentity.{AccountCreated}
-  alias FCIdentity.AppAdded
+  alias FCIdentity.{UserRegistered, UserAdded, UserRoleChanged, UserDeleted}
+  alias FCIdentity.{AccountCreated, AccountDeleted}
+  alias FCIdentity.{AppAdded, AppDeleted}
 
   def handle(%AccountCreated{} = event, _) do
     DefaultLocaleStore.put(event.account_id, event.default_locale)
@@ -27,18 +27,42 @@ defmodule FCIdentity.Keeper do
 
   def handle(%UserAdded{} = event, _) do
     UserTypeStore.put(event.user_id, "managed")
-    keep_role(event)
+    put_role(event)
   end
 
   def handle(%UserRoleChanged{} = event, _) do
-    keep_role(event)
+    put_role(event)
   end
 
   def handle(%AppAdded{} = event, _) do
     AppStore.put(event.app_id, event.type, event.account_id)
   end
 
-  defp keep_role(%et{} = event) when et in [UserAdded, UserRoleChanged] do
+  def handle(%AccountDeleted{} = event, _) do
+    AccountHandleStore.delete(event.handle)
+
+    :ok
+  end
+
+  def handle(%UserDeleted{} = event, _) do
+    UserTypeStore.delete(event.user_id)
+    UserRoleStore.delete(event.user_id, event.account_id)
+    UsernameStore.delete(event.username, event.account_id)
+
+    test_account_id = TestAccountIdStore.get(event.account_id)
+
+    if test_account_id do
+      UserRoleStore.delete(event.user_id, test_account_id)
+    end
+
+    :ok
+  end
+
+  def handle(%AppDeleted{} = event, _) do
+    AppStore.delete(event.app_id)
+  end
+
+  defp put_role(%et{} = event) when et in [UserAdded, UserRoleChanged] do
     UserRoleStore.put(event.user_id, event.account_id, event.role)
     test_account_id = TestAccountIdStore.get(event.account_id)
 
