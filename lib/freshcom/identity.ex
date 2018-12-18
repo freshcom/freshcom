@@ -271,6 +271,7 @@ defmodule Freshcom.Identity do
   def get_account(%Request{identifiers: %{"handle" => _}} = req) do
     req
     |> expand()
+    |> Request.put(:identifiers, "status", "active")
     |> authorize(:get_account)
     ~> to_query(Account)
     ~> Repo.one()
