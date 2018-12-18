@@ -7,7 +7,7 @@ defmodule FCIdentity.Keeper do
   alias FCIdentity.{TestAccountIdStore, UsernameStore, AccountHandleStore}
 
   alias FCIdentity.{UserRegistered, UserAdded, UserRoleChanged, UserDeleted}
-  alias FCIdentity.{AccountCreated, AccountDeleted}
+  alias FCIdentity.{AccountCreated, AccountClosed}
   alias FCIdentity.{AppAdded, AppDeleted}
 
   def handle(%AccountCreated{} = event, _) do
@@ -38,7 +38,7 @@ defmodule FCIdentity.Keeper do
     AppStore.put(event.app_id, event.type, event.account_id)
   end
 
-  def handle(%AccountDeleted{} = event, _) do
+  def handle(%AccountClosed{} = event, _) do
     AccountHandleStore.delete(event.handle)
 
     :ok

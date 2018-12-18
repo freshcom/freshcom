@@ -9,8 +9,8 @@ defmodule FCIdentity.AccountHandler do
   import FCIdentity.AccountPolicy
 
   alias FCIdentity.AccountHandleStore
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo, AccountDeleted}
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated, DeleteAccount}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, AccountClosed}
+  alias FCIdentity.{AccountCreated, AccountInfoUpdated, CloseAccount}
   alias FCIdentity.Account
 
   def handle(%Account{id: nil} = state, %CreateAccount{} = cmd) do
@@ -23,7 +23,7 @@ defmodule FCIdentity.AccountHandler do
   end
 
   def handle(%Account{id: _}, %CreateAccount{}), do: {:error, {:already_exist, :account}}
-  def handle(%Account{status: "deleted"}, %CreateAccount{}), do: {:error, {:already_deleted, :account}}
+  def handle(%Account{status: "closed"}, %CreateAccount{}), do: {:error, {:already_closed, :account}}
   def handle(%Account{id: nil}, _), do: {:error, {:not_found, :account}}
 
   def handle(%Account{id: _} = state, %UpdateAccountInfo{} = cmd) do
@@ -34,14 +34,14 @@ defmodule FCIdentity.AccountHandler do
     |> unwrap_ok()
   end
 
-  def handle(%Account{system_label: "default"}, %DeleteAccount{}) do
-    {:error, {:undeletable, :account}}
+  def handle(%Account{system_label: "default"}, %CloseAccount{}) do
+    {:error, {:unclosable, :account}}
   end
 
-  def handle(%Account{} = state, %DeleteAccount{} = cmd) do
+  def handle(%Account{} = state, %CloseAccount{} = cmd) do
     cmd
     |> authorize(state)
-    ~> merge_to(%AccountDeleted{
+    ~> merge_to(%AccountClosed{
         owner_id: state.owner_id,
         mode: state.mode,
         test_account_id: state.test_account_id,

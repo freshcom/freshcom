@@ -1,11 +1,8 @@
-defmodule FCIdentity.AccountDeleted do
+defmodule FCIdentity.CloseAccount do
   use TypedStruct
-
-  @version 1
+  use Vex.Struct
 
   typedstruct do
-    field :__version__, integer(), default: @version
-
     field :requester_id, String.t()
     field :requester_type, String.t()
     field :requester_role, String.t()
@@ -13,9 +10,7 @@ defmodule FCIdentity.AccountDeleted do
     field :client_type, String.t()
 
     field :account_id, String.t()
-    field :test_account_id, String.t()
-    field :owner_id, String.t()
-    field :mode, String.t()
-    field :handle, String.t()
   end
+
+  validates :account_id, presence: true, uuid: true
 end

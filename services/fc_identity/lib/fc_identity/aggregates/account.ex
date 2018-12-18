@@ -4,7 +4,7 @@ defmodule FCIdentity.Account do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountDeleted}
+  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountClosed}
 
   typedstruct do
     field :id, String.t()
@@ -55,7 +55,7 @@ defmodule FCIdentity.Account do
     |> apply_changes()
   end
 
-  def apply(%{} = state, %AccountDeleted{}) do
+  def apply(%{} = state, %AccountClosed{}) do
     %{state | status: "deleted"}
   end
 end

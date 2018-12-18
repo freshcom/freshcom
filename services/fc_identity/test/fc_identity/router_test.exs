@@ -14,7 +14,7 @@ defmodule FCIdentity.RouterTest do
     UpdateUserInfo,
     GenerateEmailVerificationToken,
     VerifyEmail,
-    DeleteAccount,
+    CloseAccount,
     AddApp,
     UpdateApp,
     DeleteApp
@@ -22,7 +22,7 @@ defmodule FCIdentity.RouterTest do
   alias FCIdentity.{
     AccountCreated,
     AccountInfoUpdated,
-    AccountDeleted
+    AccountClosed
   }
   alias FCIdentity.{
     UserRegistered,
@@ -505,9 +505,9 @@ defmodule FCIdentity.RouterTest do
     end
   end
 
-  describe "dispatch DeleteAccount" do
+  describe "dispatch CloseAccount" do
     test "given invalid command" do
-      cmd = %DeleteAccount{}
+      cmd = %CloseAccount{}
 
       {:error, {:validation_failed, _}} = Router.dispatch(cmd)
     end
@@ -529,21 +529,21 @@ defmodule FCIdentity.RouterTest do
         }
       ])
 
-      cmd = %DeleteAccount{
+      cmd = %CloseAccount{
         requester_id: requester_id,
         client_id: client_id,
         account_id: account_id
       }
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AccountDeleted,
+      assert_receive_event(AccountClosed,
         fn(event) -> event.mode == "live" end,
         fn(event) ->
           assert event.account_id == account_id
         end
       )
 
-      assert_receive_event(AccountDeleted,
+      assert_receive_event(AccountClosed,
         fn(event) -> event.mode == "test" end,
         fn(event) ->
           assert event.account_id == test_account_id

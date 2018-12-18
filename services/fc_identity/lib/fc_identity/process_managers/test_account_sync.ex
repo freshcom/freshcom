@@ -6,8 +6,8 @@ defmodule FCIdentity.TestAccountSync do
 
   alias FCSupport.Struct
   alias FCIdentity.{TestAccountIdStore}
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountDeleted}
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo, DeleteAccount}
+  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountClosed}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
 
   defstruct []
 
@@ -24,8 +24,8 @@ defmodule FCIdentity.TestAccountSync do
     end
   end
 
-  def interested?(%AccountDeleted{test_account_id: account_id, mode: "live"}), do: {:start, account_id}
-  def interested?(%AccountDeleted{account_id: account_id, mode: "test"}), do: {:stop, account_id}
+  def interested?(%AccountClosed{test_account_id: account_id, mode: "live"}), do: {:start, account_id}
+  def interested?(%AccountClosed{account_id: account_id, mode: "test"}), do: {:stop, account_id}
 
   def interested?(_), do: false
 
@@ -51,7 +51,7 @@ defmodule FCIdentity.TestAccountSync do
     |> Map.put(:handle, "#{event.handle}-test")
   end
 
-  def handle(_, %AccountDeleted{test_account_id: account_id}) do
-    %DeleteAccount{requester_role: "system", account_id: account_id}
+  def handle(_, %AccountClosed{test_account_id: account_id}) do
+    %CloseAccount{requester_role: "system", account_id: account_id}
   end
 end
