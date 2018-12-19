@@ -12,6 +12,7 @@ defmodule FCIdentity.RouterTest do
     ChangePassword,
     UpdateAccountInfo,
     UpdateUserInfo,
+    ChangeDefaultAccount,
     GenerateEmailVerificationToken,
     VerifyEmail,
     CloseAccount,
@@ -22,6 +23,7 @@ defmodule FCIdentity.RouterTest do
   alias FCIdentity.{
     AccountCreated,
     AccountInfoUpdated,
+    AccountSystemLabelChanged,
     AccountClosed
   }
   alias FCIdentity.{
@@ -33,6 +35,7 @@ defmodule FCIdentity.RouterTest do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
+    DefaultAccountChanged,
     EmailVerificationTokenGenerated,
     EmailVerified
   }
@@ -390,6 +393,67 @@ defmodule FCIdentity.RouterTest do
         assert event.user_id == cmd.user_id
         assert event.name == cmd.name
       end)
+    end
+  end
+
+  describe "dispatch ChangeDefaultAccount" do
+    test "with invalid command" do
+      cmd = %ChangeDefaultAccount{}
+
+      {:error, {:validation_failed, _}} = Router.dispatch(cmd)
+    end
+
+    test "with non existing user id" do
+      cmd = %ChangeDefaultAccount{
+        user_id: uuid4(),
+        account_id: uuid4()
+      }
+
+      {:error, {:not_found, :user}} = Router.dispatch(cmd)
+    end
+
+    test "with valid command" do
+      account_id = uuid4()
+      requester_id = user_id(account_id, "owner")
+      client_id = app_id("system")
+
+      user_stream([%UserRegistered{
+        user_id: requester_id,
+        status: "active",
+        role: "owner",
+        default_locale: "en",
+        account_name: Faker.Company.name()
+      }])
+      account_stream([
+        %AccountCreated{
+          account_id: account_id,
+          mode: "live",
+          test_account_id: uuid4(),
+          default_locale: "en",
+          name: Faker.Company.name(),
+          owner_id: requester_id,
+          handle: "test"
+        }
+      ])
+      cmd = %ChangeDefaultAccount{
+        requester_id: requester_id,
+        client_id: client_id,
+        user_id: requester_id,
+        account_id: account_id
+      }
+
+      :ok = Router.dispatch(cmd)
+
+      assert_receive_event(DefaultAccountChanged, fn(event) ->
+        assert event.default_account_id == cmd.account_id
+      end)
+
+      assert_receive_event(AccountSystemLabelChanged,
+        fn(event) -> event.account_id == account_id end,
+        fn(event) ->
+          assert event.system_label == "default"
+        end
+      )
     end
   end
 

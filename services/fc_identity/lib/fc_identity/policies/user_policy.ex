@@ -11,6 +11,7 @@ defmodule FCIdentity.UserPolicy do
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
+    ChangeDefaultAccount,
     GenerateEmailVerificationToken,
     VerifyEmail
   }
@@ -54,6 +55,13 @@ defmodule FCIdentity.UserPolicy do
 
   def authorize(%UpdateUserInfo{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])
+
+  def authorize(%ChangeDefaultAccount{
+    requester_id: rid,
+    requester_type: "standard",
+    requester_role: "owner",
+    client_type: "system",
+    user_id: uid} = cmd, _) when rid == uid, do: {:ok, cmd}
 
   def authorize(%DeleteUser{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])

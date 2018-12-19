@@ -11,10 +11,11 @@ defmodule FCIdentity.Router do
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
+    ChangeDefaultAccount,
     GenerateEmailVerificationToken,
     VerifyEmail
   }
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, ChangeAccountSystemLabel, CloseAccount}
   alias FCIdentity.{AddApp, UpdateApp, DeleteApp}
 
   alias FCIdentity.{User, Account, App}
@@ -38,6 +39,7 @@ defmodule FCIdentity.Router do
       ChangePassword,
       ChangeUserRole,
       UpdateUserInfo,
+      ChangeDefaultAccount,
       GenerateEmailVerificationToken,
       VerifyEmail
     ],
@@ -45,7 +47,7 @@ defmodule FCIdentity.Router do
     aggregate: User
   )
 
-  dispatch([CreateAccount, UpdateAccountInfo, CloseAccount], to: AccountHandler, aggregate: Account)
+  dispatch([CreateAccount, UpdateAccountInfo, ChangeAccountSystemLabel, CloseAccount], to: AccountHandler, aggregate: Account)
 
   dispatch([AddApp, UpdateApp, DeleteApp], to: AppHandler, aggregate: App)
 end

@@ -4,7 +4,7 @@ defmodule FCIdentity.Account do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountClosed}
+  alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountSystemLabelChanged, AccountClosed}
 
   typedstruct do
     field :id, String.t()
@@ -53,6 +53,10 @@ defmodule FCIdentity.Account do
     |> cast(event)
     |> Translation.put_change(translatable_fields(), locale, state.default_locale)
     |> apply_changes()
+  end
+
+  def apply(%{} = state, %AccountSystemLabelChanged{} = event) do
+    %{state | system_label: event.system_label}
   end
 
   def apply(%{} = state, %AccountClosed{handle: handle}) do

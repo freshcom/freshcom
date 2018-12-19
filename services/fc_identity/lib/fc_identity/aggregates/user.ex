@@ -13,6 +13,7 @@ defmodule FCIdentity.User do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
+    DefaultAccountChanged,
     EmailVerificationTokenGenerated,
     EmailVerified
   }
@@ -98,6 +99,10 @@ defmodule FCIdentity.User do
     |> cast(event)
     |> Translation.put_change(translatable_fields(), locale, default_locale)
     |> apply_changes()
+  end
+
+  def apply(state, %DefaultAccountChanged{default_account_id: account_id}) do
+    %{state | default_account_id: account_id}
   end
 
   def apply(state, %EmailVerified{}) do

@@ -14,6 +14,7 @@ defmodule FCIdentity.Supervisor do
 
       # Process Manager
       {FCIdentity.DefaultAccountSetup, [start_from: :current]},
+      {FCIdentity.DefaultAccountSync, [start_from: :current]},
       {FCIdentity.TestAccountSync, [start_from: :current]},
       {FCIdentity.DefaultAppSetup, [start_from: :current]}
     ]

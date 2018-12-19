@@ -19,6 +19,7 @@ defmodule FCIdentity.UserHandler do
     ChangePassword,
     ChangeUserRole,
     UpdateUserInfo,
+    ChangeDefaultAccount,
     GenerateEmailVerificationToken,
     VerifyEmail
   }
@@ -30,6 +31,7 @@ defmodule FCIdentity.UserHandler do
     PasswordChanged,
     UserRoleChanged,
     UserInfoUpdated,
+    DefaultAccountChanged,
     EmailVerificationTokenGenerated,
     EmailVerified
   }
@@ -132,6 +134,16 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~> keep_username(state)
     ~> merge_to(%UserInfoUpdated{})
+    |> unwrap_ok()
+  end
+
+  def handle(state, %ChangeDefaultAccount{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%DefaultAccountChanged{
+        default_account_id: cmd.account_id,
+        original_default_account_id: state.default_account_id
+      })
     |> unwrap_ok()
   end
 

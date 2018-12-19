@@ -15,7 +15,7 @@ defmodule FCIdentity.UserRegistered do
     field :user_id, String.t()
     field :default_account_id, String.t()
 
-    field :status, String.t()
+    field :status, String.t(), default: "active"
     field :username, String.t()
     field :password_hash, String.t()
     field :email, String.t()
