@@ -31,7 +31,7 @@ defmodule Freshcom.AccountProjector do
     changeset =
       Account
       |> Repo.get(event.account_id)
-      |> Changeset.change(status: "closed")
+      |> Changeset.change(status: "closed", handle: event.handle)
 
     Multi.update(multi, :account, changeset)
   end

@@ -55,7 +55,7 @@ defmodule FCIdentity.Account do
     |> apply_changes()
   end
 
-  def apply(%{} = state, %AccountClosed{}) do
-    %{state | status: "deleted"}
+  def apply(%{} = state, %AccountClosed{handle: handle}) do
+    %{state | status: "deleted", handle: handle}
   end
 end
