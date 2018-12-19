@@ -10,6 +10,7 @@ defmodule Freshcom.AccountProjector do
   alias FCIdentity.{
     AccountCreated,
     AccountInfoUpdated,
+    AccountSystemLabelChanged,
     AccountClosed
   }
 
@@ -32,6 +33,15 @@ defmodule Freshcom.AccountProjector do
       Account
       |> Repo.get(event.account_id)
       |> Changeset.change(status: "closed", handle: event.handle)
+
+    Multi.update(multi, :account, changeset)
+  end
+
+  project(%AccountSystemLabelChanged{} = event, _) do
+    changeset =
+      Account
+      |> Repo.get(event.account_id)
+      |> Changeset.change(system_label: event.system_label)
 
     Multi.update(multi, :account, changeset)
   end

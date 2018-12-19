@@ -11,6 +11,7 @@ defmodule Freshcom.Identity do
     RegisterUser,
     AddUser,
     UpdateUserInfo,
+    ChangeDefaultAccount,
     ChangeUserRole,
     ChangePassword,
     DeleteUser,
@@ -26,6 +27,7 @@ defmodule Freshcom.Identity do
     UserRegistered,
     UserAdded,
     UserInfoUpdated,
+    DefaultAccountChanged,
     UserRoleChanged,
     PasswordChanged,
     UserDeleted,
@@ -69,6 +71,18 @@ defmodule Freshcom.Identity do
     |> to_command(%UpdateUserInfo{})
     |> Map.put(:user_id, identifiers[:id])
     |> dispatch_and_wait(UserInfoUpdated)
+    ~> Map.get(:user)
+    ~> preload(req)
+    |> to_response()
+  end
+
+  @spec change_default_account(Request.t()) :: Context.resp()
+  def change_default_account(%Request{} = req) do
+    req
+    |> to_command(%ChangeDefaultAccount{})
+    |> Map.put(:user_id, req.requester_id)
+    |> Map.put(:account_id, req.fields["value"])
+    |> dispatch_and_wait(DefaultAccountChanged)
     ~> Map.get(:user)
     ~> preload(req)
     |> to_response()
@@ -469,7 +483,7 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, UserRoleChanged, PasswordResetTokenGenerated, PasswordChanged, UserDeleted] do
+  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, DefaultAccountChanged, UserRoleChanged, PasswordResetTokenGenerated, PasswordChanged, UserDeleted] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])

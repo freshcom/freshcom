@@ -11,6 +11,7 @@ defmodule Freshcom.UserProjector do
     UserRegistered,
     UserAdded,
     UserInfoUpdated,
+    DefaultAccountChanged,
     UserRoleChanged,
     PasswordResetTokenGenerated,
     PasswordChanged,
@@ -32,6 +33,15 @@ defmodule Freshcom.UserProjector do
       User
       |> Repo.get(event.user_id)
       |> Projection.changeset(event)
+
+    Multi.update(multi, :user, changeset)
+  end
+
+  project(%DefaultAccountChanged{} = event, _) do
+    changeset =
+      User
+      |> Repo.get(event.user_id)
+      |> Changeset.change(default_account_id: event.default_account_id)
 
     Multi.update(multi, :user, changeset)
   end

@@ -107,6 +107,50 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
+  describe "change_default_account/1" do
+    test "given no identifiers" do
+      assert {:error, %{errors: errors}} = Identity.change_default_account(%Request{})
+      assert length(errors) > 1
+    end
+
+    test "given invalid identifiers" do
+      req = %Request{
+        requester_id: uuid4(),
+        fields: %{"value" => uuid4()}
+      }
+      assert {:error, :not_found} = Identity.change_default_account(req)
+    end
+
+    test "given unauthorize requester" do
+      %{default_account_id: account_id} = standard_user()
+      requester = managed_user(account_id)
+      client = system_app()
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        fields: %{"value" => account_id}
+      }
+
+      assert {:error, :access_denied} = Identity.change_default_account(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      client = system_app()
+      account = account(requester.id)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        fields: %{"value" => account.id}
+      }
+
+      assert {:ok, %{data: data}} = Identity.change_default_account(req)
+      assert data.default_account_id == account.id
+    end
+  end
+
   describe "change_user_role/1" do
     test "given no identifiers" do
       assert {:error, %{errors: errors}} = Identity.change_user_role(%Request{})
