@@ -116,7 +116,7 @@ defmodule Freshcom.IdentityTest do
     test "given invalid identifiers" do
       req = %Request{
         requester_id: uuid4(),
-        fields: %{"value" => uuid4()}
+        fields: %{"id" => uuid4()}
       }
       assert {:error, :not_found} = Identity.change_default_account(req)
     end
@@ -129,7 +129,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
-        fields: %{"value" => account_id}
+        fields: %{"id" => account_id}
       }
 
       assert {:error, :access_denied} = Identity.change_default_account(req)
@@ -143,7 +143,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
-        fields: %{"value" => account.id}
+        fields: %{"id" => account.id}
       }
 
       assert {:ok, %{data: data}} = Identity.change_default_account(req)

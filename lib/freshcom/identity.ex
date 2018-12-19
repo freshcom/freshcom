@@ -81,7 +81,7 @@ defmodule Freshcom.Identity do
     req
     |> to_command(%ChangeDefaultAccount{})
     |> Map.put(:user_id, req.requester_id)
-    |> Map.put(:account_id, req.fields["value"])
+    |> Map.put(:account_id, req.fields["id"])
     |> dispatch_and_wait(DefaultAccountChanged)
     ~> Map.get(:user)
     ~> preload(req)
