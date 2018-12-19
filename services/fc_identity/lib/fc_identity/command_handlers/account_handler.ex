@@ -41,11 +41,12 @@ defmodule FCIdentity.AccountHandler do
   def handle(%Account{} = state, %CloseAccount{} = cmd) do
     cmd
     |> authorize(state)
+    ~> keep_account_handle(state)
     ~> merge_to(%AccountClosed{
         owner_id: state.owner_id,
         mode: state.mode,
         test_account_id: state.test_account_id,
-        handle: state.handle
+        handle: state.id
       })
     |> unwrap_ok()
   end
@@ -60,6 +61,13 @@ defmodule FCIdentity.AccountHandler do
       AccountHandleStore.delete(state.handle)
       AccountHandleStore.put(cmd.handle, cmd.account_id)
     end
+
+    cmd
+  end
+
+  defp keep_account_handle(%CloseAccount{} = cmd, state) do
+    AccountHandleStore.delete(state.handle)
+    AccountHandleStore.put(state.id, cmd.account_id)
 
     cmd
   end

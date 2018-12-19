@@ -4,10 +4,10 @@ defmodule FCIdentity.Keeper do
     consistency: :strong
 
   alias FCStateStorage.GlobalStore.{DefaultLocaleStore, UserTypeStore, UserRoleStore, AppStore}
-  alias FCIdentity.{TestAccountIdStore, UsernameStore, AccountHandleStore}
+  alias FCIdentity.{TestAccountIdStore, UsernameStore}
 
   alias FCIdentity.{UserRegistered, UserAdded, UserRoleChanged, UserDeleted}
-  alias FCIdentity.{AccountCreated, AccountClosed}
+  alias FCIdentity.{AccountCreated}
   alias FCIdentity.{AppAdded, AppDeleted}
 
   def handle(%AccountCreated{} = event, _) do
@@ -36,12 +36,6 @@ defmodule FCIdentity.Keeper do
 
   def handle(%AppAdded{} = event, _) do
     AppStore.put(event.app_id, event.type, event.account_id)
-  end
-
-  def handle(%AccountClosed{} = event, _) do
-    AccountHandleStore.delete(event.handle)
-
-    :ok
   end
 
   def handle(%UserDeleted{} = event, _) do

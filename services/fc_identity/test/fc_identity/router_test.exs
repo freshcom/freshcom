@@ -525,7 +525,8 @@ defmodule FCIdentity.RouterTest do
           test_account_id: test_account_id,
           default_locale: "en",
           name: Faker.Company.name(),
-          owner_id: requester_id
+          owner_id: requester_id,
+          handle: "test"
         }
       ])
 
