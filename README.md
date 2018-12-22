@@ -2,9 +2,11 @@
 
 **Fast, scalable and extensible eCommerce backend in Elixir.**
 
-_Note: Freshcom does not include a web layer. Please see [Freshcom Web](https://github.com/freshcom/freshcom-api) if you need a web layer._
+This repo contains the core business logic of the [Freshcom Project](https://github.com/freshcom/freshcom). It provides a Elixir API through 10 [top level modules](https://github.com/freshcom/freshcom) for you to build on top of.
 
-## Status of development
+This repo does not include a web layer. Please see [freshcom_web](https://github.com/freshcom/freshcom_web) if you need a web layer that provides a JSON API or simply build your own if you need something other than JSON API.
+
+## Status of Development
 
 Currently a work in progress.
 
