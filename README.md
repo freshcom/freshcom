@@ -76,7 +76,7 @@ Setup the database with `mix freshcom.setup` which will do the following for you
 
 Once you have everything setup you can get into iex with `iex -S mix` and try calling functions on the top level modules to see if things works properly. For example to create a user:
 
-```
+```elixir
 req = %Request{
   fields: %{
     "name" => "Demo User",
@@ -88,5 +88,13 @@ req = %Request{
   _role_: "system"
 }
 
-{:ok, _} = Freshcom.Identity.register_user(req)
+{:ok, %{data: user}} = Freshcom.Identity.register_user(req)
 ```
+
+## Learn more
+
+  * Documentation: http://www.comingsoon.io/
+
+## Contact
+
+Any question or feedback feel free to find me in the Elixir Slack Channel @rbao, will usually respond within few hours in PST timezone day time.
