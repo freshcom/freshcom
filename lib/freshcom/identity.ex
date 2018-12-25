@@ -1,4 +1,17 @@
 defmodule Freshcom.Identity do
+  @moduledoc """
+  This API module provides functions that deal with identity and access management.
+  It follows a combination of Stripe and AWS style IAM.
+
+  Generally speaking, identity in Freshcom consist of three things:
+  - The user that is making the request (the requester)
+  - The app that is making the request on behalf of the user (the client)
+  - The account that the request is targeting
+
+  These three resources are used together to authenticate and authorize each request,
+  and this module provides functions to help you create and manage these three resources.
+  """
+
   import FCSupport.Normalization, only: [atomize_keys: 2]
   import Freshcom.Context
   import Freshcom.IdentityPolicy
@@ -130,13 +143,17 @@ defmodule Freshcom.Identity do
   - Length must be greater than 8 characters
 
   `role` _(required)_
-  - Must be one of `"developer"`, `"support_specialist"`
+  - Please see `Freshcom.User` for list of valid roles
 
   `email`
   - Must be in correct format
 
   `name`
   - Length must be between 2 to 255
+
+  ## Authorization
+
+  Only user with role `"owner"` and `"administrator"` can add a user.
   """
   @spec add_user(Request.t()) :: Context.resp()
   def add_user(%Request{} = req) do
@@ -148,6 +165,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Update a user's general information.
+  """
   @spec update_user_info(Request.t()) :: Context.resp()
   def update_user_info(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
@@ -161,6 +181,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Change the default account of a standard user.
+  """
   @spec change_default_account(Request.t()) :: Context.resp()
   def change_default_account(%Request{} = req) do
     req
@@ -173,6 +196,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Change the role of a managed user.
+  """
   @spec change_user_role(Request.t()) :: Context.resp()
   def change_user_role(%Request{} = req) do
     cmd = %ChangeUserRole{
@@ -188,6 +214,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Generate a password reset token for a user.
+  """
   @spec generate_password_reset_token(Request.t()) :: Context.resp()
   def generate_password_reset_token(%Request{identifiers: %{"username" => username}} = req) do
     user =
@@ -206,6 +235,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Generate a password reset token.
+  """
   def generate_password_reset_token(%Request{identifiers: %{"id" => id}} = req) do
     req
     |> to_command(%GeneratePasswordResetToken{
@@ -219,6 +251,9 @@ defmodule Freshcom.Identity do
 
   def generate_password_reset_token(_), do: {:error, :not_found}
 
+  @doc """
+  Change the password of a user.
+  """
   @spec change_password(Request.t()) :: Context.resp()
   def change_password(%Request{identifiers: %{"id" => id}} = req) do
     req
@@ -250,6 +285,9 @@ defmodule Freshcom.Identity do
 
   def change_password(_), do: {:error, :not_found}
 
+  @doc """
+  Delete a managed user.
+  """
   @spec delete_user(Request.t()) :: Context.resp()
   def delete_user(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
@@ -262,6 +300,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  List all managed user of an account.
+  """
   @spec list_user(Request.t()) :: Context.resp()
   def list_user(%Request{} = req) do
     req
@@ -273,6 +314,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Count the number of managed user of an account.
+  """
   def count_user(%Request{} = req) do
     req
     |> expand()
@@ -283,6 +327,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Get a specific user.
+  """
   @spec get_user(Request.t()) :: Context.resp()
   def get_user(%Request{} = req) do
     req
@@ -328,6 +375,9 @@ defmodule Freshcom.Identity do
 
   defp check_account_id(_, _), do: nil
 
+  @doc """
+  List all the accounts owned by a standard user.
+  """
   @spec list_account(Request.t()) :: Context.resp()
   def list_account(%Request{} = req) do
     req
@@ -341,6 +391,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Count the number of accounts owned by a standard user.
+  """
   def count_account(%Request{} = req) do
     req
     |> expand()
@@ -353,6 +406,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Create an account.
+  """
   @spec create_account(Request.t()) :: Context.resp()
   def create_account(%Request{} = req) do
     req
@@ -366,6 +422,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Get an account.
+  """
   @spec get_account(Request.t()) :: Context.resp()
   def get_account(%Request{identifiers: %{"handle" => _}} = req) do
     req
@@ -387,6 +446,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Update the general information of an account.
+  """
   @spec update_account_info(Request.t()) :: Context.resp()
   def update_account_info(%Request{} = req) do
     req
@@ -397,6 +459,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Close an account.
+  """
   @spec close_account(Request.t()) :: Context.resp()
   def close_account(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
@@ -409,6 +474,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Get a refresh token.
+  """
   @spec get_refresh_token(Request.t()) :: Context.resp()
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
@@ -477,7 +545,11 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Add an app to the account.
+  Add an app to an account.
+
+  ## Authorization
+
+  Only user with the following roles can add an app: `"owner"`, `"administrator"`, `"developer"`.
   """
   @spec add_app(Request.t()) :: Context.resp()
   def add_app(%Request{} = req) do
@@ -490,6 +562,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Get an app.
+  """
   @spec get_app(Request.t()) :: Context.resp()
   def get_app(%Request{} = req) do
     req
@@ -508,6 +583,9 @@ defmodule Freshcom.Identity do
 
   defp get_app_normalize(req), do: req
 
+  @doc """
+  List all app of an account.
+  """
   @spec list_app(Request.t()) :: Context.resp()
   def list_app(%Request{} = req) do
     req = expand(req)
@@ -522,6 +600,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Count the number of apps of an account.
+  """
   def count_app(%Request{} = req) do
     req
     |> expand()
@@ -532,6 +613,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Update an app.
+  """
   @spec update_app(Request.t()) :: Context.resp()
   def update_app(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
@@ -545,6 +629,9 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Delete an app from an account.
+  """
   @spec delete_app(Request.t()) :: Context.resp()
   def delete_app(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
