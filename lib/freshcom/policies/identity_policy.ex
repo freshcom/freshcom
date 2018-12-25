@@ -1,4 +1,5 @@
 defmodule Freshcom.IdentityPolicy do
+  @moduledoc false
 
   @admins ["owner", "administrator"]
   @developers @admins ++ ["developer"]

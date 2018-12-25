@@ -9,7 +9,8 @@ defmodule Freshcom.MixProject do
       elixirc_paths: elixirc_paths(Mix.env),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      docs: docs()
     ]
   end
 
@@ -50,6 +51,42 @@ defmodule Freshcom.MixProject do
       "event_store.reset": ["event_store.drop", "event_store.setup"],
       reset: ["ecto.reset", "event_store.reset"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"]
+    ]
+  end
+
+  defp docs do
+    [
+      groups_for_modules: groups_for_modules(),
+    ]
+  end
+
+  defp groups_for_modules do
+    [
+      "API Modules": [
+        Freshcom.Identity
+      ],
+
+      "Request & Response": [
+        Freshcom.Request,
+        Freshcom.Response
+      ],
+
+      "Projections": [
+        Freshcom.User,
+        Freshcom.App,
+        Freshcom.Account,
+        Freshcom.RefreshToken
+      ],
+
+      "Core": [
+        Freshcom.Context,
+        Freshcom.Filter,
+        Freshcom.Fixture,
+        Freshcom.Include,
+        Freshcom.Projection,
+        Freshcom.Projector,
+        Freshcom.Shortcut
+      ]
     ]
   end
 end

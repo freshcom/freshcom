@@ -65,7 +65,7 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.register_user(%Request{
-    client_id: app_id,
+    client_id: client_id,
     fields: %{
       "name" => "Demo User",
       "username" => "test@example.com",
@@ -99,6 +99,10 @@ defmodule Freshcom.Identity do
 
   `default_locale`
   - Default is `"en"`
+
+  ## Authorization
+
+  User can only register through an app with type `"system"`.
   """
   @spec register_user(Request.t()) :: Context.resp()
   def register_user(%Request{} = req) do
@@ -119,8 +123,8 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.add_user(%Request{
-    requester_id: user_id,
-    client_id: app_id,
+    requester_id: requester_id,
+    client_id: client_id,
     account_id: account_id,
     fields: %{
       "username" => "testuser",
@@ -167,6 +171,28 @@ defmodule Freshcom.Identity do
 
   @doc """
   Update a user's general information.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.update_user_info(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id},
+    fields: %{
+      "name" => "Demo User"
+    }
+  })
+  ```
+
+  ## Authorization
+
+  - All user can update their own information
+  - User with role `"owner"` and `"administrator"` can update other managed user of the same account
+  - User with role `"support_specialist"` can update other managed user with role `"customer"`
   """
   @spec update_user_info(Request.t()) :: Context.resp()
   def update_user_info(%Request{} = req) do
@@ -183,6 +209,24 @@ defmodule Freshcom.Identity do
 
   @doc """
   Change the default account of a standard user.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_default_account(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    fields: %{"id" => account_id}
+  })
+  ```
+
+  ## Authorization
+
+  - User can only change their default account through an app with type `"system"`
+  - Only standard user can change their default account
+  - The target account must be owned by the user
   """
   @spec change_default_account(Request.t()) :: Context.resp()
   def change_default_account(%Request{} = req) do
@@ -198,6 +242,26 @@ defmodule Freshcom.Identity do
 
   @doc """
   Change the role of a managed user.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_user_role(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id},
+    fields: %{"value" => "manager"}
+  })
+  ```
+
+  ## Authorization
+
+  - User cannot change the role of themself
+  - User can only change role through an app with type `"system"`
+  - User with role `"owner"` and `"administrator"` can change the role of other managed user of the same account
   """
   @spec change_user_role(Request.t()) :: Context.resp()
   def change_user_role(%Request{} = req) do
@@ -216,6 +280,42 @@ defmodule Freshcom.Identity do
 
   @doc """
   Generate a password reset token for a user.
+
+  There are two ways to generate a password reset token:
+
+  - By providing the username of the user. If an `account_id` is also provided in
+    the request then it will only look for managed user under that account, otherwise
+    it will only look for standard user. In this case `requester_id` can be omitted.
+  - By providing the ID of the user. In this case the `requester_id` must be provided as well.
+
+  ## Examples
+
+  ### Using user's username
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_user_role(%Request{
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"username" => username}
+  })
+  ```
+
+  ### Using user's ID
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_user_role(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id}
+  })
+  ```
+
+  ## Authorization
+
+  Standard user can only generate a password reset token through an app with type `"system"`
   """
   @spec generate_password_reset_token(Request.t()) :: Context.resp()
   def generate_password_reset_token(%Request{identifiers: %{"username" => username}} = req) do
@@ -235,9 +335,6 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  @doc """
-  Generate a password reset token.
-  """
   def generate_password_reset_token(%Request{identifiers: %{"id" => id}} = req) do
     req
     |> to_command(%GeneratePasswordResetToken{
