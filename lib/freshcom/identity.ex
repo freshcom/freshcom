@@ -43,6 +43,50 @@ defmodule Freshcom.Identity do
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
   alias Freshcom.{User, Account, RefreshToken, App}
 
+  @doc """
+  Register a standard user.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.register_user(%Request{
+    client_id: app_id,
+    fields: %{
+      "name" => "Demo User",
+      "username" => "test@example.com",
+      "email" => "test@example.com",
+      "password" => "test1234",
+      "account_name" => "Unamed Account",
+      "default_locale" => "en",
+      "is_term_accepted" => true
+    }
+  })
+  ```
+
+  ## Field Validations
+
+  `username` _(required)_
+  - Must be unique across all standard user
+  - Length between 3 and 120 characters
+  - Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`
+
+  `password` _(required)_
+  - Length must be greater than 8 characters
+
+  `is_term_accepted` _(required)_
+  - Must be true
+
+  `email`
+  - Must be in correct format
+
+  `account_name`
+  - Default is `"Unamed Account"`
+
+  `default_locale`
+  - Default is `"en"`
+  """
   @spec register_user(Request.t()) :: Context.resp()
   def register_user(%Request{} = req) do
     req
@@ -53,6 +97,47 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  @doc """
+  Add a managed user to an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.add_user(%Request{
+    requester_id: user_id,
+    client_id: app_id,
+    account_id: account_id,
+    fields: %{
+      "username" => "testuser",
+      "password" => "test1234",
+      "role" => "developer",
+      "email" => "test@example.com",
+      "name" => "Demo User"
+    }
+  })
+  ```
+
+  ## Field Validations
+
+  `username` _(required)_
+  - Must be unique across all managed user of the same account
+  - Length between 3 and 120 characters
+  - Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`
+
+  `password` _(required)_
+  - Length must be greater than 8 characters
+
+  `role` _(required)_
+  - Must be one of `"developer"`, `"support_specialist"`
+
+  `email`
+  - Must be in correct format
+
+  `name`
+  - Length must be between 2 to 255
+  """
   @spec add_user(Request.t()) :: Context.resp()
   def add_user(%Request{} = req) do
     req
@@ -391,6 +476,9 @@ defmodule Freshcom.Identity do
     end
   end
 
+  @doc """
+  Add an app to the account.
+  """
   @spec add_app(Request.t()) :: Context.resp()
   def add_app(%Request{} = req) do
     req

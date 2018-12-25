@@ -1,10 +1,20 @@
 defmodule Freshcom.Filter do
   @moduledoc """
-  [%{"$and" => [
-    %{"$or" => [%{"role" => "test1Test"}, %{"role" => "test2"}]},
-    %{"role" => "lol"},
-    %{"$or" => [%{"role" => "tt1"}, %{"role" => "tt2"}]}
-  ]}]
+  ```
+  [
+    %{"$and" => [
+      %{"$or" => [
+        %{"role" => "test1Test"},
+        %{"role" => "test2"}
+      ]},
+      %{"role" => "lol"},
+      %{"$or" => [
+        %{"role" => "tt1"},
+        %{"role" => "tt2"}
+      ]}
+    ]}
+  ]
+  ```
   """
 
   import Ecto.Query
