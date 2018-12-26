@@ -191,7 +191,7 @@ defmodule Freshcom.Identity do
   ## Authorization
 
   - All user can update their own information
-  - User with role `"owner"` and `"administrator"` can update other managed user of the same account
+  - User with role `"owner"` and `"administrator"` can update the information of other managed user of the same account
   - User with role `"support_specialist"` can update other managed user with role `"customer"`
   """
   @spec update_user_info(Request.t()) :: Context.resp()
@@ -350,18 +350,45 @@ defmodule Freshcom.Identity do
 
   @doc """
   Change the password of a user.
+
+  There are two ways to change a password:
+
+  - By providing a password reset token.
+  - By providing the ID of the user.
+
+  ## Examples
+
+  ### Using a password reset token
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_password(%Request{
+    client_id: client.id,
+    identifiers: %{"reset_token" => reset_token},
+    fields: %{"new_password" => "test1234"}
+  })
+  ```
+
+  ### Using the user's ID
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.change_password(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id},
+    fields: %{"new_password" => "test1234"}
+  })
+  ```
+
+  ## Authorization
+
+  - If reset token is given, no further authorization is required
+  - User can change their own password
+  - User with role `"administrator"` and `"owner"` can be change the password of other managed user of the same account
   """
   @spec change_password(Request.t()) :: Context.resp()
-  def change_password(%Request{identifiers: %{"id" => id}} = req) do
-    req
-    |> to_command(%ChangePassword{})
-    |> Map.put(:user_id, id)
-    |> dispatch_and_wait(PasswordChanged)
-    ~> Map.get(:user)
-    ~> preload(req)
-    |> to_response()
-  end
-
   def change_password(%Request{identifiers: %{"reset_token" => reset_token}} = req) do
     user =
       req
@@ -380,10 +407,38 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
+  def change_password(%Request{identifiers: %{"id" => id}} = req) do
+    req
+    |> to_command(%ChangePassword{})
+    |> Map.put(:user_id, id)
+    |> dispatch_and_wait(PasswordChanged)
+    ~> Map.get(:user)
+    ~> preload(req)
+    |> to_response()
+  end
+
   def change_password(_), do: {:error, :not_found}
 
   @doc """
   Delete a managed user.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.delete_user(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id}
+  })
+  ```
+
+  ## Authorization
+
+  - User cannot delete themself
+  - User with role `"administrator"` and `"owner"` can delete other managed user of the same account
   """
   @spec delete_user(Request.t()) :: Context.resp()
   def delete_user(%Request{} = req) do
