@@ -3,13 +3,66 @@ defmodule Freshcom.Identity do
   This API module provides functions that deal with identity and access management.
   It follows a combination of Stripe and AWS style IAM.
 
-  Generally speaking, identity in Freshcom consist of three things:
+  Generally speaking, identity in Freshcom consist of three resources:
   - The user that is making the request (the requester)
   - The app that is making the request on behalf of the user (the client)
   - The account that the request is targeting
 
-  These three resources are used together to authenticate and authorize each request,
-  and this module provides functions to help you create and manage these three resources.
+  These three resources are used together to authorize each request. The ID of
+  these 3 resources are required for all API module functions which means the
+  `:requester_id`, `:client_id`, and `:account_id` (collectively referred as "identity fields")
+  must be set on the `Freshom.Request` struct unless otherwise indicated in the documentation.
+
+  This module provides functions to help you create and manage these three resources
+  and their related resources.
+
+  Note that no module in freshcom actually provides any authentication related
+  functions. It is assumed all calls to these functions are already authenticated
+  and whatever provided in the identity fields of `Freshcom.Request` struct
+  is already validated. It is up to your delivery layer to implement your own authentication
+  and make sure the user is who they say they are. For example [freshcom_web](https://github.com/freshcom/freshcom_web)
+  uses OAuth with JWT to do authentication.
+
+  ## Resource Relationship
+
+  The relationships between the identity resources are as illustrated in the diagram below.
+
+  <img alt="Relationship Diagram" src="images/identity/relationship.png" width="271px">
+
+  Relationship can be described as follows:
+
+  - Standard user can have multiple account
+  - Account can have multiple managed user
+  - Account can have multiple app
+  - All resources except standard user must belongs to an account
+
+  You can create a standard user by using `Freshcom.Identity.register_user/1`.
+
+  ## Test Account
+
+  There are two types of account in freshcom: live account and test account. Each
+  live account will have one test account associated it. User that have access to
+  the live account will have the same access level to the corresponding test account
+  but not vice versa.
+
+  ## API Key
+
+  In most cases it is not secure to directly allow a user to directly pass in the
+  `:user_id` and `:account_id` because these IDs are not changeable and cannot be deleted
+  if compromised, so freshcom provides you with API keys that can help you implement
+  your authentication method. Using a API key you can retrieve the `:account_id`
+  and `:user_id` it belongs to, it can also be easily re-generated in case it is compromised.
+
+  Standard user have an API Key for each account they own including test accounts.
+  managed user for a live account have two API keys, one for the live account, one
+  for the corresponding test account. Managed user for test account only have one
+  API Key. Each account also have an API Key that is not associated with any user
+  you can use this API key if you only want to identify the account without any user.
+
+  How you use API keys are completely up to you, you can directly expose them to the user,
+  or in the case of [freshcom_web](https://github.com/freshcom/freshcom_web)
+  it is used as the refresh token for the actual access token which itself is a JWT
+  that contains the `:account_id` and `:user_id`.
   """
 
   import FCSupport.Normalization, only: [atomize_keys: 2]
@@ -454,6 +507,22 @@ defmodule Freshcom.Identity do
 
   @doc """
   List all managed user of an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.list_user(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id
+  })
+  ```
+
+  ## Authorization
+
+  Only user with role `"administrator"` and `"owner"` can list user
   """
   @spec list_user(Request.t()) :: Context.resp()
   def list_user(%Request{} = req) do
@@ -468,6 +537,22 @@ defmodule Freshcom.Identity do
 
   @doc """
   Count the number of managed user of an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.count_user(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id
+  })
+  ```
+
+  ## Authorization
+
+  Only user with role `"administrator"` and `"owner"` can count user
   """
   def count_user(%Request{} = req) do
     req
@@ -481,6 +566,43 @@ defmodule Freshcom.Identity do
 
   @doc """
   Get a specific user.
+
+  There are two ways to get a user:
+
+  - By providing the username and password of a user
+  - By providing a user ID
+
+  ## Examples
+
+  ### Using username and password
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_user(%Request{
+    identifiers: %{
+      "type" => "standard",
+      "username" => "demouser",
+      "password" => "test1234"
+    }
+  })
+  ```
+
+  ### Using a user ID
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_user(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    identifiers: %{"id" => user_id}
+  })
+  ```
+
+  ## Authorization
+
+  - User can get themself
+  - User with role `"administrator"` and `"owner"` can get other managed user of the same account
   """
   @spec get_user(Request.t()) :: Context.resp()
   def get_user(%Request{} = req) do
@@ -529,6 +651,23 @@ defmodule Freshcom.Identity do
 
   @doc """
   List all the accounts owned by a standard user.
+
+  Only live account with `"active"` status is listed.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.list_account(%Request{
+    requester_id: requester_id,
+    client_id: client_id
+  })
+  ```
+
+  ## Authorization
+
+  Only standard user can list account through an app with type `"system"`
   """
   @spec list_account(Request.t()) :: Context.resp()
   def list_account(%Request{} = req) do
@@ -545,6 +684,23 @@ defmodule Freshcom.Identity do
 
   @doc """
   Count the number of accounts owned by a standard user.
+
+  Only live account with `"active"` status is counted.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.count_account(%Request{
+    requester_id: requester_id,
+    client_id: client_id
+  })
+  ```
+
+  ## Authorization
+
+  Only standard user can count account through an app with type `"system"`
   """
   def count_account(%Request{} = req) do
     req
@@ -560,6 +716,25 @@ defmodule Freshcom.Identity do
 
   @doc """
   Create an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.create_account(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    fields: %{
+      "name" => "SpaceX",
+      "default_locale" => "en"
+    }
+  })
+  ```
+
+  ## Authorization
+
+  Only standard user can create an account through an app with type `"system"`
   """
   @spec create_account(Request.t()) :: Context.resp()
   def create_account(%Request{} = req) do
@@ -576,6 +751,11 @@ defmodule Freshcom.Identity do
 
   @doc """
   Get an account.
+
+  There are two ways to get an account:
+
+  - Using an account handle
+  - Using an account ID
   """
   @spec get_account(Request.t()) :: Context.resp()
   def get_account(%Request{identifiers: %{"handle" => _}} = req) do
