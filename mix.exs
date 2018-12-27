@@ -57,6 +57,9 @@ defmodule Freshcom.MixProject do
   defp docs do
     [
       groups_for_modules: groups_for_modules(),
+      extra_section: "GUIDES",
+      extras: extras(),
+      groups_for_extras: groups_for_extras()
     ]
   end
 
@@ -87,6 +90,18 @@ defmodule Freshcom.MixProject do
         Freshcom.Projector,
         Freshcom.Shortcut
       ]
+    ]
+  end
+
+  defp extras do
+    [
+      "guides/introduction/overview.md"
+    ]
+  end
+
+  defp groups_for_extras do
+    [
+      "Introduction": ~r/guides\/introduction\/.?/
     ]
   end
 end
