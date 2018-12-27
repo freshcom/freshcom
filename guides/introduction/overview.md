@@ -2,11 +2,17 @@
 
 Freshcom is an opinionated eCommerce backend written in Elixir which implements
 Command Query Responsibility Segregation and Event Sourcing (CQRS/ES) pattern.
+The goal of freshcom is to be fast, scalable and extensible.
 
 Freshcom provides a solid foundation for you to customize and/or extend to fit your
 unique business case. Freshcom is built using loosely coupled services where each
 service is an OTP application. It also provides some unique features like built-in
 internationalization (i18n), multi-tenant and test mode.
+
+It is important to note that freshcom itself does not include any web layer. It only
+provides a Elixir API through its API modules. if you need a off-the-shelf web layer
+that provides a JSON API please checkout [Freshcom JSONAPI](https://github.com/freshcom/freshcom_web)
+which builds on top of freshcom.
 
 The aim of this introductory guide is to present a brief, high-level overview of freshcom,
 the API module it provides, and the layers underneath that support it.
