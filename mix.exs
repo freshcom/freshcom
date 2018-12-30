@@ -82,7 +82,7 @@ defmodule Freshcom.MixProject do
       ],
 
       "Core": [
-        Freshcom.Context,
+        Freshcom.APIModule,
         Freshcom.Filter,
         Freshcom.Fixture,
         Freshcom.Include,

@@ -66,13 +66,13 @@ defmodule Freshcom.Identity do
   """
 
   import FCSupport.Normalization, only: [atomize_keys: 2]
-  import Freshcom.Context
+  import Freshcom.APIModule
   import Freshcom.IdentityPolicy
   import UUID
 
   use OK.Pipe
 
-  alias Freshcom.{Context, Request}
+  alias Freshcom.{APIModule, Request}
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -157,7 +157,7 @@ defmodule Freshcom.Identity do
 
   User can only register through an app with type `"system"`.
   """
-  @spec register_user(Request.t()) :: Context.resp()
+  @spec register_user(Request.t()) :: APIModule.resp()
   def register_user(%Request{} = req) do
     req
     |> to_command(%RegisterUser{})
@@ -212,7 +212,7 @@ defmodule Freshcom.Identity do
 
   Only user with role `"owner"` and `"administrator"` can add a user.
   """
-  @spec add_user(Request.t()) :: Context.resp()
+  @spec add_user(Request.t()) :: APIModule.resp()
   def add_user(%Request{} = req) do
     req
     |> to_command(%AddUser{})
@@ -247,7 +247,7 @@ defmodule Freshcom.Identity do
   - User with role `"owner"` and `"administrator"` can update the information of other managed user of the same account
   - User with role `"support_specialist"` can update other managed user with role `"customer"`
   """
-  @spec update_user_info(Request.t()) :: Context.resp()
+  @spec update_user_info(Request.t()) :: APIModule.resp()
   def update_user_info(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -281,7 +281,7 @@ defmodule Freshcom.Identity do
   - Only standard user can change their default account
   - The target account must be owned by the user
   """
-  @spec change_default_account(Request.t()) :: Context.resp()
+  @spec change_default_account(Request.t()) :: APIModule.resp()
   def change_default_account(%Request{} = req) do
     req
     |> to_command(%ChangeDefaultAccount{})
@@ -316,7 +316,7 @@ defmodule Freshcom.Identity do
   - User can only change role through an app with type `"system"`
   - User with role `"owner"` and `"administrator"` can change the role of other managed user of the same account
   """
-  @spec change_user_role(Request.t()) :: Context.resp()
+  @spec change_user_role(Request.t()) :: APIModule.resp()
   def change_user_role(%Request{} = req) do
     cmd = %ChangeUserRole{
       user_id: req.identifiers["id"],
@@ -370,7 +370,7 @@ defmodule Freshcom.Identity do
 
   Standard user can only generate a password reset token through an app with type `"system"`
   """
-  @spec generate_password_reset_token(Request.t()) :: Context.resp()
+  @spec generate_password_reset_token(Request.t()) :: APIModule.resp()
   def generate_password_reset_token(%Request{identifiers: %{"username" => username}} = req) do
     user =
       req
@@ -441,7 +441,7 @@ defmodule Freshcom.Identity do
   - User can change their own password
   - User with role `"administrator"` and `"owner"` can be change the password of other managed user of the same account
   """
-  @spec change_password(Request.t()) :: Context.resp()
+  @spec change_password(Request.t()) :: APIModule.resp()
   def change_password(%Request{identifiers: %{"reset_token" => reset_token}} = req) do
     user =
       req
@@ -493,7 +493,7 @@ defmodule Freshcom.Identity do
   - User cannot delete themself
   - User with role `"administrator"` and `"owner"` can delete other managed user of the same account
   """
-  @spec delete_user(Request.t()) :: Context.resp()
+  @spec delete_user(Request.t()) :: APIModule.resp()
   def delete_user(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -524,7 +524,7 @@ defmodule Freshcom.Identity do
 
   Only user with role `"administrator"` and `"owner"` can list user
   """
-  @spec list_user(Request.t()) :: Context.resp()
+  @spec list_user(Request.t()) :: APIModule.resp()
   def list_user(%Request{} = req) do
     req
     |> expand()
@@ -604,7 +604,7 @@ defmodule Freshcom.Identity do
   - User can get themself
   - User with role `"administrator"` and `"owner"` can get other managed user of the same account
   """
-  @spec get_user(Request.t()) :: Context.resp()
+  @spec get_user(Request.t()) :: APIModule.resp()
   def get_user(%Request{} = req) do
     req
     |> expand()
@@ -669,7 +669,7 @@ defmodule Freshcom.Identity do
 
   Only standard user can list account through an app with type `"system"`
   """
-  @spec list_account(Request.t()) :: Context.resp()
+  @spec list_account(Request.t()) :: APIModule.resp()
   def list_account(%Request{} = req) do
     req
     |> expand()
@@ -736,7 +736,7 @@ defmodule Freshcom.Identity do
 
   Only standard user can create an account through an app with type `"system"`
   """
-  @spec create_account(Request.t()) :: Context.resp()
+  @spec create_account(Request.t()) :: APIModule.resp()
   def create_account(%Request{} = req) do
     req
     |> to_command(%CreateAccount{})
@@ -757,7 +757,7 @@ defmodule Freshcom.Identity do
   - Using an account handle
   - Using an account ID
   """
-  @spec get_account(Request.t()) :: Context.resp()
+  @spec get_account(Request.t()) :: APIModule.resp()
   def get_account(%Request{identifiers: %{"handle" => _}} = req) do
     req
     |> expand()
@@ -781,7 +781,7 @@ defmodule Freshcom.Identity do
   @doc """
   Update the general information of an account.
   """
-  @spec update_account_info(Request.t()) :: Context.resp()
+  @spec update_account_info(Request.t()) :: APIModule.resp()
   def update_account_info(%Request{} = req) do
     req
     |> to_command(%UpdateAccountInfo{})
@@ -794,7 +794,7 @@ defmodule Freshcom.Identity do
   @doc """
   Close an account.
   """
-  @spec close_account(Request.t()) :: Context.resp()
+  @spec close_account(Request.t()) :: APIModule.resp()
   def close_account(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -809,7 +809,7 @@ defmodule Freshcom.Identity do
   @doc """
   Get a refresh token.
   """
-  @spec get_refresh_token(Request.t()) :: Context.resp()
+  @spec get_refresh_token(Request.t()) :: APIModule.resp()
   def get_refresh_token(%Request{} = req) do
     req = expand(req)
 
@@ -839,7 +839,7 @@ defmodule Freshcom.Identity do
   test refresh token or for another live refresh token owned by the same user but
   for a different account.
   """
-  @spec exchange_refresh_token(Request.t()) :: Context.resp()
+  @spec exchange_refresh_token(Request.t()) :: APIModule.resp()
   def exchange_refresh_token(%Request{} = req) do
     req = expand(req)
 
@@ -883,7 +883,7 @@ defmodule Freshcom.Identity do
 
   Only user with the following roles can add an app: `"owner"`, `"administrator"`, `"developer"`.
   """
-  @spec add_app(Request.t()) :: Context.resp()
+  @spec add_app(Request.t()) :: APIModule.resp()
   def add_app(%Request{} = req) do
     req
     |> to_command(%AddApp{})
@@ -897,7 +897,7 @@ defmodule Freshcom.Identity do
   @doc """
   Get an app.
   """
-  @spec get_app(Request.t()) :: Context.resp()
+  @spec get_app(Request.t()) :: APIModule.resp()
   def get_app(%Request{} = req) do
     req
     |> expand()
@@ -918,7 +918,7 @@ defmodule Freshcom.Identity do
   @doc """
   List all app of an account.
   """
-  @spec list_app(Request.t()) :: Context.resp()
+  @spec list_app(Request.t()) :: APIModule.resp()
   def list_app(%Request{} = req) do
     req = expand(req)
 
@@ -948,7 +948,7 @@ defmodule Freshcom.Identity do
   @doc """
   Update an app.
   """
-  @spec update_app(Request.t()) :: Context.resp()
+  @spec update_app(Request.t()) :: APIModule.resp()
   def update_app(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 
@@ -964,7 +964,7 @@ defmodule Freshcom.Identity do
   @doc """
   Delete an app from an account.
   """
-  @spec delete_app(Request.t()) :: Context.resp()
+  @spec delete_app(Request.t()) :: APIModule.resp()
   def delete_app(%Request{} = req) do
     identifiers = atomize_keys(req.identifiers, ["id"])
 

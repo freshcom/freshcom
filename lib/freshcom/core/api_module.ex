@@ -1,4 +1,4 @@
-defmodule Freshcom.Context do
+defmodule Freshcom.APIModule do
   use OK.Pipe
 
   import Ecto.Query
