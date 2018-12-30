@@ -10,7 +10,7 @@ service is an OTP application. It also provides some unique features like built-
 internationalization (i18n), multi-tenant and test mode.
 
 It is important to note that freshcom itself does not include any web layer. It only
-provides a Elixir API through its API modules. if you need a off-the-shelf web layer
+provides a Elixir API through its API modules. If you need a off-the-shelf web layer
 that provides a JSON API please checkout [Freshcom JSONAPI](https://github.com/freshcom/freshcom_web)
 which builds on top of freshcom.
 
