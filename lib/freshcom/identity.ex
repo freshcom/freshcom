@@ -780,6 +780,28 @@ defmodule Freshcom.Identity do
 
   @doc """
   Update the general information of an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.update_account_info(%Request{
+    requester_id: requester_id,
+    client_id: client_id,
+    account_id: account_id,
+    fields: %{
+      "handle" => "spacex",
+      "name" => "SpaceX",
+      "caption" => "A new age of space exploration starts...",
+      "description" => "What more do you want?"
+    }
+  })
+  ```
+
+  ## Authorization
+
+  Only user with role `"administrator"` and `"owner"` can update the account's general information.
   """
   @spec update_account_info(Request.t()) :: APIModule.resp()
   def update_account_info(%Request{} = req) do
@@ -793,6 +815,22 @@ defmodule Freshcom.Identity do
 
   @doc """
   Close an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.close_account(%Request{
+    requester_id: requester.id,
+    client_id: client.id,
+    account_id: account_id
+  })
+  ```
+
+  ## Authorization
+
+  Only user with role `"owner"` can close an account through an app with type `"system"`.
   """
   @spec close_account(Request.t()) :: APIModule.resp()
   def close_account(%Request{} = req) do
