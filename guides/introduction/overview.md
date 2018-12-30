@@ -67,7 +67,7 @@ We just covered the API (public) modules that make up freshcom, but its importan
 remember freshcom itself is actually the top layer of a multi-layer system designed
 to be modular and flexible. The layers can be illustrated with the diagram below.
 
-<img alt="Layers Diagram" src="images/introduction/layers.png" width="1022px">
+<img alt="Layers Diagram" src="https://github.com/freshcom/freshcom/blob/master/guides/images/layers.png?raw=true" width="1022px">
 
 ### Application Layer
 
