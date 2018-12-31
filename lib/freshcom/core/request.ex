@@ -24,7 +24,7 @@ defmodule Freshcom.Request do
     field :client_id, String.t()
     field :account_id, String.t()
     field :data, map(), default: %{}
-    field :identifiers, map(), default: %{}
+    field :identifier, map(), default: %{}
     field :filter, list(), default: []
     field :search, String.t()
     field :pagination, map() | nil, default: %{size: 25, number: 1}

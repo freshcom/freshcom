@@ -222,7 +222,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id},
+    identifier: %{"id" => user_id},
     data: %{
       "name" => "Demo User"
     }
@@ -237,11 +237,11 @@ defmodule Freshcom.Identity do
   """
   @spec update_user_info(Request.t()) :: APIModule.resp()
   def update_user_info(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id"])
+    identifier = atomize_keys(req.identifier, ["id"])
 
     req
     |> to_command(%UpdateUserInfo{})
-    |> Map.put(:user_id, identifiers[:id])
+    |> Map.put(:user_id, identifier[:id])
     |> dispatch_and_wait(UserInfoUpdated)
     ~> Map.get(:user)
     ~> preload(req)
@@ -301,7 +301,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id},
+    identifier: %{"id" => user_id},
     data: %{"value" => "manager"}
   })
   ```
@@ -315,7 +315,7 @@ defmodule Freshcom.Identity do
   @spec change_user_role(Request.t()) :: APIModule.resp()
   def change_user_role(%Request{} = req) do
     cmd = %ChangeUserRole{
-      user_id: req.identifiers["id"],
+      user_id: req.identifier["id"],
       role: req.data["value"]
     }
 
@@ -346,7 +346,7 @@ defmodule Freshcom.Identity do
   Identity.change_user_role(%Request{
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"username" => username}
+    identifier: %{"username" => username}
   })
   ```
 
@@ -358,7 +358,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id}
+    identifier: %{"id" => user_id}
   })
   ```
 
@@ -367,10 +367,10 @@ defmodule Freshcom.Identity do
   Standard user can only generate a password reset token through an app with type `"system"`
   """
   @spec generate_password_reset_token(Request.t()) :: APIModule.resp()
-  def generate_password_reset_token(%Request{identifiers: %{"username" => username}} = req) do
+  def generate_password_reset_token(%Request{identifier: %{"username" => username}} = req) do
     user =
       req
-      |> Map.put(:identifiers, %{"username" => username})
+      |> Map.put(:identifier, %{"username" => username})
       |> to_query(User)
       |> Repo.one()
 
@@ -384,7 +384,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  def generate_password_reset_token(%Request{identifiers: %{"id" => id}} = req) do
+  def generate_password_reset_token(%Request{identifier: %{"id" => id}} = req) do
     req
     |> to_command(%GeneratePasswordResetToken{
         user_id: id,
@@ -413,7 +413,7 @@ defmodule Freshcom.Identity do
 
   Identity.change_password(%Request{
     client_id: client.id,
-    identifiers: %{"reset_token" => reset_token},
+    identifier: %{"reset_token" => reset_token},
     data: %{"new_password" => "test1234"}
   })
   ```
@@ -426,7 +426,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id},
+    identifier: %{"id" => user_id},
     data: %{"new_password" => "test1234"}
   })
   ```
@@ -438,10 +438,10 @@ defmodule Freshcom.Identity do
   - User with role `"administrator"` and `"owner"` can be change the password of other managed user of the same account
   """
   @spec change_password(Request.t()) :: APIModule.resp()
-  def change_password(%Request{identifiers: %{"reset_token" => reset_token}} = req) do
+  def change_password(%Request{identifier: %{"reset_token" => reset_token}} = req) do
     user =
       req
-      |> Map.put(:identifiers, %{"password_reset_token" => reset_token})
+      |> Map.put(:identifier, %{"password_reset_token" => reset_token})
       |> to_query(User)
       |> Repo.one()
 
@@ -456,7 +456,7 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  def change_password(%Request{identifiers: %{"id" => id}} = req) do
+  def change_password(%Request{identifier: %{"id" => id}} = req) do
     req
     |> to_command(%ChangePassword{})
     |> Map.put(:user_id, id)
@@ -480,7 +480,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id}
+    identifier: %{"id" => user_id}
   })
   ```
 
@@ -491,11 +491,11 @@ defmodule Freshcom.Identity do
   """
   @spec delete_user(Request.t()) :: APIModule.resp()
   def delete_user(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id"])
+    identifier = atomize_keys(req.identifier, ["id"])
 
     req
     |> to_command(%DeleteUser{})
-    |> Map.put(:user_id, identifiers[:id])
+    |> Map.put(:user_id, identifier[:id])
     |> dispatch_and_wait(UserDeleted)
     ~> Map.get(:user)
     |> to_response()
@@ -575,7 +575,7 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.get_user(%Request{
-    identifiers: %{
+    identifier: %{
       "type" => "standard",
       "username" => "demouser",
       "password" => "test1234"
@@ -591,7 +591,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    identifiers: %{"id" => user_id}
+    identifier: %{"id" => user_id}
   })
   ```
 
@@ -605,7 +605,7 @@ defmodule Freshcom.Identity do
     req
     |> expand()
     |> authorize(:get_user)
-    ~> account_id_by_identifiers()
+    ~> account_id_by_identifier()
     ~> to_query(User)
     ~> Repo.one()
     ~> check_password(req)
@@ -614,15 +614,15 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  defp account_id_by_identifiers(%{identifiers: %{"id" => _}} = req) do
+  defp account_id_by_identifier(%{identifier: %{"id" => _}} = req) do
     Request.put(req, :account_id, nil)
   end
 
-  defp account_id_by_identifiers(req), do: req
+  defp account_id_by_identifier(req), do: req
 
   defp check_password(nil, _), do: nil
 
-  defp check_password(user, %{identifiers: %{"password" => password}}) do
+  defp check_password(user, %{identifier: %{"password" => password}}) do
     if User.is_password_valid?(user, password) do
       user
     else
@@ -754,10 +754,10 @@ defmodule Freshcom.Identity do
   - Using an account ID
   """
   @spec get_account(Request.t()) :: APIModule.resp()
-  def get_account(%Request{identifiers: %{"handle" => _}} = req) do
+  def get_account(%Request{identifier: %{"handle" => _}} = req) do
     req
     |> expand()
-    |> Request.put(:identifiers, "status", "active")
+    |> Request.put(:identifier, "status", "active")
     |> authorize(:get_account)
     ~> to_query(Account)
     ~> Repo.one()
@@ -830,11 +830,11 @@ defmodule Freshcom.Identity do
   """
   @spec close_account(Request.t()) :: APIModule.resp()
   def close_account(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id"])
+    identifier = atomize_keys(req.identifier, ["id"])
 
     req
     |> to_command(%CloseAccount{})
-    |> Map.put(:account_id, identifiers[:id])
+    |> Map.put(:account_id, identifier[:id])
     |> dispatch_and_wait(AccountClosed)
     ~> Map.get(:account)
     |> to_response()
@@ -856,8 +856,8 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  defp get_api_key_normalize(%{identifiers: %{"id" => id}} = req) do
-    Request.put(req, :identifiers, "id", APIKey.bare_id(id))
+  defp get_api_key_normalize(%{identifier: %{"id" => id}} = req) do
+    Request.put(req, :identifier, "id", APIKey.bare_id(id))
   end
 
   defp get_api_key_normalize(req), do: req
@@ -886,7 +886,7 @@ defmodule Freshcom.Identity do
 
   defp do_exchange_api_key(%{_account_: nil}), do: nil
 
-  defp do_exchange_api_key(%{_account_: account, identifiers: %{"id" => id}}) do
+  defp do_exchange_api_key(%{_account_: account, identifier: %{"id" => id}}) do
     api_key = Repo.get(APIKey, APIKey.bare_id(id))
 
     cond do
@@ -969,8 +969,8 @@ defmodule Freshcom.Identity do
     |> to_response()
   end
 
-  defp get_app_normalize(%{identifiers: %{"id" => id}} = req) do
-    Request.put(req, :identifiers, "id", App.bare_id(id))
+  defp get_app_normalize(%{identifier: %{"id" => id}} = req) do
+    Request.put(req, :identifier, "id", App.bare_id(id))
   end
 
   defp get_app_normalize(req), do: req
@@ -1010,11 +1010,11 @@ defmodule Freshcom.Identity do
   """
   @spec update_app(Request.t()) :: APIModule.resp()
   def update_app(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id"])
+    identifier = atomize_keys(req.identifier, ["id"])
 
     req
     |> to_command(%UpdateApp{})
-    |> Map.put(:app_id, identifiers[:id])
+    |> Map.put(:app_id, identifier[:id])
     |> dispatch_and_wait(AppUpdated)
     ~> Map.get(:app)
     ~> preload(req)
@@ -1026,11 +1026,11 @@ defmodule Freshcom.Identity do
   """
   @spec delete_app(Request.t()) :: APIModule.resp()
   def delete_app(%Request{} = req) do
-    identifiers = atomize_keys(req.identifiers, ["id"])
+    identifier = atomize_keys(req.identifier, ["id"])
 
     req
     |> to_command(%DeleteApp{})
-    |> Map.put(:app_id, identifiers[:id])
+    |> Map.put(:app_id, identifier[:id])
     |> dispatch_and_wait(AppDeleted)
     ~> Map.get(:app)
     |> to_response()

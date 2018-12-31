@@ -168,7 +168,7 @@ defmodule Freshcom.APIModule do
 
     query
     |> for_account(req.account_id)
-    |> identify(req.identifiers, req._identifiable_fields_)
+    |> identify(req.identifier, req._identifiable_fields_)
     |> filter(req.filter, req._filterable_fields_)
     |> search(req.search, req._searchable_fields_, req.locale, req._default_locale_, translatable_fields)
     |> sort(req.sort, req._sortable_fields_)
@@ -187,9 +187,9 @@ defmodule Freshcom.APIModule do
   end
 
   @spec identify(Query.t(), map, [String.t()]) :: Query.t()
-  def identify(query, identifiers, identifiable_fields) do
+  def identify(query, identifier, identifiable_fields) do
     filter =
-      Enum.reduce(identifiers, [], fn({k, v}, acc) ->
+      Enum.reduce(identifier, [], fn({k, v}, acc) ->
         acc ++ [%{k => v}]
       end)
 

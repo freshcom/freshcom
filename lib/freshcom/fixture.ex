@@ -68,7 +68,7 @@ defmodule Freshcom.Fixture do
   def password_reset_token(user_id, account_id \\ nil) do
     req = %Request{
       account_id: account_id,
-      identifiers: %{"id" => user_id},
+      identifier: %{"id" => user_id},
       _role_: "system"
     }
 

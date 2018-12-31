@@ -23,7 +23,7 @@ defmodule Freshcom.IdentityPolicy do
     {:ok, req}
   end
 
-  def authorize(%{requester_id: rid, identifiers: %{"id" => tid}} = req, :get_user) when rid == tid,
+  def authorize(%{requester_id: rid, identifier: %{"id" => tid}} = req, :get_user) when rid == tid,
     do: {:ok, req}
 
   def authorize(%{_role_: role} = req, :get_user) when role in @admins,
@@ -39,7 +39,7 @@ defmodule Freshcom.IdentityPolicy do
     do: {:ok, req}
 
   def authorize(%{_role_: role, _client_: %{type: "system"}} = req, :get_api_key) when role in @developers do
-    req = Map.put(req, :identifiers, %{"account_id" => req.account_id, "user_id" => nil})
+    req = Map.put(req, :identifier, %{"account_id" => req.account_id, "user_id" => nil})
     {:ok, req}
   end
 
