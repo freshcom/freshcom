@@ -8,7 +8,7 @@ defmodule Freshcom.Shortcut do
       _role_: "system"
     }
 
-    {:ok, %{data: urt}} = Identity.get_refresh_token(req)
+    {:ok, %{data: urt}} = Identity.get_api_key(req)
 
     urt
   end
@@ -20,7 +20,7 @@ defmodule Freshcom.Shortcut do
       _role_: "system"
     }
 
-    {:ok, %{data: prt}} = Identity.get_refresh_token(req)
+    {:ok, %{data: prt}} = Identity.get_api_key(req)
 
     prt
   end

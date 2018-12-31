@@ -30,7 +30,7 @@ defmodule Freshcom.User do
 
     belongs_to :account, Account
     belongs_to :default_account, Account
-    has_many :refresh_tokens, Freshcom.RefreshToken
+    has_many :api_keys, Freshcom.APIKey
   end
 
   @type t :: Ecto.Schema.t()

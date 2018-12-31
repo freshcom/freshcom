@@ -61,7 +61,7 @@ defmodule Freshcom.Identity do
 
   How you use API keys are completely up to you, you can directly expose them to the user,
   or in the case of [freshcom_web](https://github.com/freshcom/freshcom_web)
-  it is used as the refresh token for the actual access token which itself is a JWT
+  it is used as the API Key for the actual access token which itself is a JWT
   that contains the `:account_id` and `:user_id`.
   """
 
@@ -107,7 +107,7 @@ defmodule Freshcom.Identity do
   }
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
-  alias Freshcom.{User, Account, RefreshToken, App}
+  alias Freshcom.{User, Account, APIKey, App}
 
   @doc """
   Register a standard user.
@@ -845,69 +845,69 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Get a refresh token.
+  Get a API Key.
   """
-  @spec get_refresh_token(Request.t()) :: APIModule.resp()
-  def get_refresh_token(%Request{} = req) do
+  @spec get_api_key(Request.t()) :: APIModule.resp()
+  def get_api_key(%Request{} = req) do
     req = expand(req)
 
     req
-    |> authorize(:get_refresh_token)
-    ~> get_refresh_token_normalize()
-    ~> to_query(RefreshToken)
+    |> authorize(:get_api_key)
+    ~> get_api_key_normalize()
+    ~> to_query(APIKey)
     ~> Repo.one()
-    ~> RefreshToken.put_prefixed_id(req._account_)
+    ~> APIKey.put_prefixed_id(req._account_)
     |> to_response()
   end
 
-  defp get_refresh_token_normalize(%{identifiers: %{"id" => id}} = req) do
-    Request.put(req, :identifiers, "id", RefreshToken.bare_id(id))
+  defp get_api_key_normalize(%{identifiers: %{"id" => id}} = req) do
+    Request.put(req, :identifiers, "id", APIKey.bare_id(id))
   end
 
-  defp get_refresh_token_normalize(req), do: req
+  defp get_api_key_normalize(req), do: req
 
   @doc """
-  Exchange the given refresh token identified by its ID for a refresh token of
+  Exchange the given API Key identified by its ID for a API Key of
   the same user but for the account specified by `account_id` of the request.
 
-  If the given refresh token is already for the specified account, then it is simply
+  If the given API Key is already for the specified account, then it is simply
   returned.
 
-  This function is intended for exchanging a live refresh token for a corresponding
-  test refresh token or for another live refresh token owned by the same user but
+  This function is intended for exchanging a live API Key for a corresponding
+  test API Key or for another live API Key owned by the same user but
   for a different account.
   """
-  @spec exchange_refresh_token(Request.t()) :: APIModule.resp()
-  def exchange_refresh_token(%Request{} = req) do
+  @spec exchange_api_key(Request.t()) :: APIModule.resp()
+  def exchange_api_key(%Request{} = req) do
     req = expand(req)
 
     req
-    |> authorize(:exchange_refresh_token)
-    ~> do_exchange_refresh_token()
-    ~> RefreshToken.put_prefixed_id(req._account_)
+    |> authorize(:exchange_api_key)
+    ~> do_exchange_api_key()
+    ~> APIKey.put_prefixed_id(req._account_)
     |> to_response()
   end
 
-  defp do_exchange_refresh_token(%{_account_: nil}), do: nil
+  defp do_exchange_api_key(%{_account_: nil}), do: nil
 
-  defp do_exchange_refresh_token(%{_account_: account, identifiers: %{"id" => id}}) do
-    refresh_token = Repo.get(RefreshToken, RefreshToken.bare_id(id))
+  defp do_exchange_api_key(%{_account_: account, identifiers: %{"id" => id}}) do
+    api_key = Repo.get(APIKey, APIKey.bare_id(id))
 
     cond do
-      is_nil(refresh_token) ->
+      is_nil(api_key) ->
         nil
 
       # Exchanging for the same account
-      refresh_token.account_id == account.id ->
-        refresh_token
+      api_key.account_id == account.id ->
+        api_key
 
       # Exchanging for the test account
-      refresh_token.account_id == account.live_account_id ->
-        Repo.get_by(RefreshToken, account_id: account.id, user_id: refresh_token.user_id)
+      api_key.account_id == account.live_account_id ->
+        Repo.get_by(APIKey, account_id: account.id, user_id: api_key.user_id)
 
       # Exchanging for other live account owned by the same user
-      refresh_token.user_id == account.owner_id ->
-        Repo.get_by(RefreshToken, account_id: account.id, user_id: refresh_token.user_id)
+      api_key.user_id == account.owner_id ->
+        Repo.get_by(APIKey, account_id: account.id, user_id: api_key.user_id)
 
       true ->
         nil

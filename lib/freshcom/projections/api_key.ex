@@ -1,10 +1,10 @@
-defmodule Freshcom.RefreshToken do
+defmodule Freshcom.APIKey do
   use Freshcom.Projection
 
   alias Freshcom.Repo
   alias Freshcom.Account
 
-  schema "refresh_tokens" do
+  schema "api_keys" do
     field :account_id, UUID
     field :user_id, UUID
     field :prefixed_id, :string, virtual: true

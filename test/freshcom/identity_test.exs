@@ -61,13 +61,13 @@ defmodule Freshcom.IdentityTest do
           "role" => "developer",
           "password" => Faker.String.base64(12)
         },
-        include: "refresh_tokens"
+        include: "api_keys"
       }
 
       assert {:ok, %{data: data}} = Identity.add_user(req)
       assert data.id
       assert data.username == req.fields["username"]
-      assert length(data.refresh_tokens) == 2
+      assert length(data.api_keys) == 2
     end
   end
 
@@ -707,11 +707,11 @@ defmodule Freshcom.IdentityTest do
     end
   end
 
-  describe "get_refresh_token/1" do
+  describe "get_api_key/1" do
     test "given unauthorized requester" do
       req = %Request{}
 
-      assert {:error, :access_denied} = Identity.get_refresh_token(req)
+      assert {:error, :access_denied} = Identity.get_api_key(req)
     end
 
     test "given valid request by admin" do
@@ -725,7 +725,7 @@ defmodule Freshcom.IdentityTest do
         account_id: account_id
       }
 
-      assert {:ok, %{data: data}} = Identity.get_refresh_token(req)
+      assert {:ok, %{data: data}} = Identity.get_api_key(req)
       assert data.account_id == account_id
       assert data.user_id == nil
       assert data.prefixed_id
@@ -743,19 +743,19 @@ defmodule Freshcom.IdentityTest do
         _role_: "system"
       }
 
-      assert {:ok, %{data: data}} = Identity.get_refresh_token(req)
+      assert {:ok, %{data: data}} = Identity.get_api_key(req)
       assert data.account_id == account_id
       assert data.user_id == user.id
       assert data.prefixed_id
     end
   end
 
-  describe "exchange_refresh_token/1" do
+  describe "exchange_api_key/1" do
     test "given no refresh token given" do
       client = system_app()
       req = %Request{client_id: client.id}
 
-      assert {:error, :not_found} = Identity.exchange_refresh_token(req)
+      assert {:error, :not_found} = Identity.exchange_api_key(req)
     end
 
     test "target account with no user refresh token" do
@@ -770,7 +770,7 @@ defmodule Freshcom.IdentityTest do
         identifiers: %{"id" => urt.prefixed_id}
       }
 
-      assert {:error, :not_found} = Identity.exchange_refresh_token(req)
+      assert {:error, :not_found} = Identity.exchange_api_key(req)
     end
 
     test "target corresponding test account" do
@@ -785,7 +785,7 @@ defmodule Freshcom.IdentityTest do
         identifiers: %{"id" => urt.prefixed_id}
       }
 
-      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert {:ok, %{data: data}} = Identity.exchange_api_key(req)
       assert data.prefixed_id
       assert data.account_id == test_account_id
       assert data.user_id == requester.id
@@ -803,7 +803,7 @@ defmodule Freshcom.IdentityTest do
         identifiers: %{"id" => urt.prefixed_id}
       }
 
-      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert {:ok, %{data: data}} = Identity.exchange_api_key(req)
       assert data.prefixed_id
       assert data.id == urt.id
     end
@@ -822,7 +822,7 @@ defmodule Freshcom.IdentityTest do
         identifiers: %{"id" => urt.prefixed_id}
       }
 
-      assert {:ok, %{data: data}} = Identity.exchange_refresh_token(req)
+      assert {:ok, %{data: data}} = Identity.exchange_api_key(req)
       assert data.id != urt.id
       assert data.prefixed_id
     end

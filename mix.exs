@@ -78,7 +78,7 @@ defmodule Freshcom.MixProject do
         Freshcom.User,
         Freshcom.App,
         Freshcom.Account,
-        Freshcom.RefreshToken
+        Freshcom.APIKey
       ],
 
       "Core": [

@@ -19,7 +19,7 @@ defmodule Freshcom.Supervisor do
       # Projectors
       Freshcom.AccountProjector,
       Freshcom.UserProjector,
-      Freshcom.RefreshTokenProjector,
+      Freshcom.APIKeyProjector,
       Freshcom.AppProjector
     ]
 

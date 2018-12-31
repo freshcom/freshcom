@@ -1,4 +1,4 @@
-defmodule Freshcom.RefreshTokenProjector do
+defmodule Freshcom.APIKeyProjector do
   @moduledoc false
 
   use Freshcom.Projector
@@ -7,15 +7,15 @@ defmodule Freshcom.RefreshTokenProjector do
   import UUID
 
   alias Freshcom.Repo
-  alias Freshcom.{Account, RefreshToken}
+  alias Freshcom.{Account, APIKey}
   alias FCIdentity.{
     AccountCreated,
     UserAdded
   }
 
   project(%AccountCreated{} = event, _metadata) do
-    prt = %RefreshToken{id: uuid4(), account_id: event.account_id}
-    urt = %RefreshToken{id: uuid4(), user_id: event.owner_id, account_id: event.account_id}
+    prt = %APIKey{id: uuid4(), account_id: event.account_id}
+    urt = %APIKey{id: uuid4(), user_id: event.owner_id, account_id: event.account_id}
 
     multi
     |> Multi.insert(:prt, prt)
@@ -23,12 +23,12 @@ defmodule Freshcom.RefreshTokenProjector do
   end
 
   project(%UserAdded{} = event, _metadata) do
-    target_urt = %RefreshToken{id: uuid4(), user_id: event.user_id, account_id: event.account_id}
+    target_urt = %APIKey{id: uuid4(), user_id: event.user_id, account_id: event.account_id}
     multi = Multi.insert(multi, :target_urt, target_urt)
 
     %{test_account_id: test_account_id} = Repo.get!(Account, event.account_id)
     if test_account_id do
-      test_urt = %RefreshToken{id: uuid4(), user_id: event.user_id, account_id: test_account_id}
+      test_urt = %APIKey{id: uuid4(), user_id: event.user_id, account_id: test_account_id}
       Multi.insert(multi, :test_urt, test_urt)
     else
       multi
