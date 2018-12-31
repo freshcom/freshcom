@@ -4,7 +4,7 @@ defmodule Freshcom.Fixture do
 
   def standard_user(opts \\ []) do
     req = %Request{
-      fields: %{
+      data: %{
         name: Name.name(),
         username: Internet.user_name(),
         email: Internet.email(),
@@ -23,7 +23,7 @@ defmodule Freshcom.Fixture do
   def managed_user(account_id, fields \\ []) do
     req = %Request{
       account_id: account_id,
-      fields: %{
+      data: %{
         "username" => fields[:username] || Internet.user_name(),
         "role" => fields[:role] || "developer",
         "password" => fields[:password] || "test1234"
@@ -39,7 +39,7 @@ defmodule Freshcom.Fixture do
   def standard_app(account_id) do
     req = %Request{
       account_id: account_id,
-      fields: %{
+      data: %{
         "type" => "standard",
         "name" => "Standard App",
       },
@@ -53,7 +53,7 @@ defmodule Freshcom.Fixture do
 
   def system_app() do
     req = %Request{
-      fields: %{
+      data: %{
         "type" => "system",
         "name" => "System App"
       },

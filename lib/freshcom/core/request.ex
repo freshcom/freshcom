@@ -23,7 +23,7 @@ defmodule Freshcom.Request do
     field :requester_id, String.t()
     field :client_id, String.t()
     field :account_id, String.t()
-    field :fields, map(), default: %{}
+    field :data, map(), default: %{}
     field :identifiers, map(), default: %{}
     field :filter, list(), default: []
     field :search, String.t()

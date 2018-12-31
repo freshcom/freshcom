@@ -67,14 +67,14 @@ defmodule Freshcom.APIModule do
 
   @spec to_command(Request.t(), struct) :: struct
   def to_command(req, cmd) do
-    fields = atomize_keys(req.fields, Map.keys(cmd))
+    data = atomize_keys(req.data, Map.keys(cmd))
     effective_keys =
-      fields
+      data
       |> Map.keys()
       |> stringify_list()
 
     cmd
-    |> Struct.merge(fields)
+    |> Struct.merge(data)
     |> Struct.put(:requester_id, req.requester_id)
     |> Struct.put(:requester_role, req._role_)
     |> Struct.put(:client_id, App.bare_id(req.client_id))

@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Freshcom.Demo do
     Application.ensure_all_started(:freshcom)
 
     req = %Request{
-      fields: %{
+      data: %{
         "name" => "Demo User",
         "username" => "test@example.com",
         "email" => "test@example.com",
@@ -21,7 +21,7 @@ defmodule Mix.Tasks.Freshcom.Demo do
     {:ok, _} = Identity.register_user(req)
 
     req = %Request{
-      fields: %{
+      data: %{
         "type" => "system",
         "name" => "Freshcom Dashboard"
       },

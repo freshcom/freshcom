@@ -119,7 +119,7 @@ defmodule Freshcom.Identity do
 
   Identity.register_user(%Request{
     client_id: client_id,
-    fields: %{
+    data: %{
       "name" => "Demo User",
       "username" => "test@example.com",
       "email" => "test@example.com",
@@ -131,31 +131,23 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Field Validations
-
-  `username` _(required)_
-  - Must be unique across all standard user
-  - Length between 3 and 120 characters
-  - Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`
-
-  `password` _(required)_
-  - Length must be greater than 8 characters
-
-  `is_term_accepted` _(required)_
-  - Must be true
-
-  `email`
-  - Must be in correct format
-
-  `account_name`
-  - Default is `"Unamed Account"`
-
-  `default_locale`
-  - Default is `"en"`
-
   ## Authorization
 
-  User can only register through an app with type `"system"`.
+  | Key         | Description                                                 |
+  |-------------|-------------------------------------------------------------|
+  | `:cient_id` | _(required)_ Must be the ID of an app with type `"system"`. |
+
+  ## Fields
+
+  | Key                  | Description                                                                                                                                                 |
+  |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"username"`         | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"password"`         | _(required)_ Must be at least 8 characters long.                                                                                                            |
+  | `"is_term_accepted"` | _(required)_ Must be true.                                                                                                                                  |
+  | `"email"`            | Must be in correct format.                                                                                                                                  |
+  | `"name"`             | Name of the user.                                                                                                                                           |
+  | `"account_name"`     | Name of the default account to be created, defaults to `"Unnamed Account"`                                                                             |
+  | `"default_locale"`   | Default locale of the default account.                                                                                                                      |
   """
   @spec register_user(Request.t()) :: APIModule.resp()
   def register_user(%Request{} = req) do
@@ -179,7 +171,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    fields: %{
+    data: %{
       "username" => "testuser",
       "password" => "test1234",
       "role" => "developer",
@@ -235,7 +227,7 @@ defmodule Freshcom.Identity do
     client_id: client_id,
     account_id: account_id,
     identifiers: %{"id" => user_id},
-    fields: %{
+    data: %{
       "name" => "Demo User"
     }
   })
@@ -271,7 +263,7 @@ defmodule Freshcom.Identity do
   Identity.change_default_account(%Request{
     requester_id: requester_id,
     client_id: client_id,
-    fields: %{"id" => account_id}
+    data: %{"id" => account_id}
   })
   ```
 
@@ -286,7 +278,7 @@ defmodule Freshcom.Identity do
     req
     |> to_command(%ChangeDefaultAccount{})
     |> Map.put(:user_id, req.requester_id)
-    |> Map.put(:account_id, req.fields["id"])
+    |> Map.put(:account_id, req.data["id"])
     |> dispatch_and_wait(DefaultAccountChanged)
     ~> Map.get(:user)
     ~> preload(req)
@@ -306,7 +298,7 @@ defmodule Freshcom.Identity do
     client_id: client_id,
     account_id: account_id,
     identifiers: %{"id" => user_id},
-    fields: %{"value" => "manager"}
+    data: %{"value" => "manager"}
   })
   ```
 
@@ -320,7 +312,7 @@ defmodule Freshcom.Identity do
   def change_user_role(%Request{} = req) do
     cmd = %ChangeUserRole{
       user_id: req.identifiers["id"],
-      role: req.fields["value"]
+      role: req.data["value"]
     }
 
     req
@@ -418,7 +410,7 @@ defmodule Freshcom.Identity do
   Identity.change_password(%Request{
     client_id: client.id,
     identifiers: %{"reset_token" => reset_token},
-    fields: %{"new_password" => "test1234"}
+    data: %{"new_password" => "test1234"}
   })
   ```
 
@@ -431,7 +423,7 @@ defmodule Freshcom.Identity do
     client_id: client_id,
     account_id: account_id,
     identifiers: %{"id" => user_id},
-    fields: %{"new_password" => "test1234"}
+    data: %{"new_password" => "test1234"}
   })
   ```
 
@@ -725,7 +717,7 @@ defmodule Freshcom.Identity do
   Identity.create_account(%Request{
     requester_id: requester_id,
     client_id: client_id,
-    fields: %{
+    data: %{
       "name" => "SpaceX",
       "default_locale" => "en"
     }
@@ -790,7 +782,7 @@ defmodule Freshcom.Identity do
     requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
-    fields: %{
+    data: %{
       "handle" => "spacex",
       "name" => "SpaceX",
       "caption" => "A new age of space exploration starts...",

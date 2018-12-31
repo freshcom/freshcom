@@ -15,7 +15,7 @@ defmodule Freshcom.IdentityTest do
 
       req = %Request{
         client_id: client.id,
-        fields: %{
+        data: %{
           "name" => Faker.Name.name(),
           "username" => Faker.Internet.user_name(),
           "email" => Faker.Internet.email(),
@@ -38,7 +38,7 @@ defmodule Freshcom.IdentityTest do
     test "given unauthorized requester" do
       req = %Request{
         account_id: uuid4(),
-        fields: %{
+        data: %{
           "username" => Faker.Internet.user_name(),
           "role" => "developer",
           "password" => Faker.String.base64(12)
@@ -56,7 +56,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: requester.id,
         client_id: client.id,
         account_id: account_id,
-        fields: %{
+        data: %{
           "username" => Faker.Internet.user_name(),
           "role" => "developer",
           "password" => Faker.String.base64(12)
@@ -66,7 +66,7 @@ defmodule Freshcom.IdentityTest do
 
       assert {:ok, %{data: data}} = Identity.add_user(req)
       assert data.id
-      assert data.username == req.fields["username"]
+      assert data.username == req.data["username"]
       assert length(data.api_keys) == 2
     end
   end
@@ -99,7 +99,7 @@ defmodule Freshcom.IdentityTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => requester.id},
-        fields: %{"name" => new_name}
+        data: %{"name" => new_name}
       }
 
       assert {:ok, %{data: data}} = Identity.update_user_info(req)
@@ -116,7 +116,7 @@ defmodule Freshcom.IdentityTest do
     test "given invalid identifiers" do
       req = %Request{
         requester_id: uuid4(),
-        fields: %{"id" => uuid4()}
+        data: %{"id" => uuid4()}
       }
       assert {:error, :not_found} = Identity.change_default_account(req)
     end
@@ -129,7 +129,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
-        fields: %{"id" => account_id}
+        data: %{"id" => account_id}
       }
 
       assert {:error, :access_denied} = Identity.change_default_account(req)
@@ -143,7 +143,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
-        fields: %{"id" => account.id}
+        data: %{"id" => account.id}
       }
 
       assert {:ok, %{data: data}} = Identity.change_default_account(req)
@@ -161,7 +161,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         account_id: uuid4(),
         identifiers: %{"id" => uuid4()},
-        fields: %{"value" => "manager"}
+        data: %{"value" => "manager"}
       }
       assert {:error, :not_found} = Identity.change_user_role(req)
     end
@@ -171,7 +171,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         account_id: requester.default_account_id,
         identifiers: %{"id" => requester.id},
-        fields: %{"value" => "manager"}
+        data: %{"value" => "manager"}
       }
 
       assert {:error, :access_denied} = Identity.change_user_role(req)
@@ -187,7 +187,7 @@ defmodule Freshcom.IdentityTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id},
-        fields: %{"value" => "manager"}
+        data: %{"value" => "manager"}
       }
 
       assert {:ok, %{data: data}} = Identity.change_user_role(req)
@@ -247,7 +247,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: uuid4(),
         identifiers: %{"id" => uuid4()},
-        fields: %{"new_password" => "test1234"}
+        data: %{"new_password" => "test1234"}
       }
       assert {:error, :not_found} = Identity.change_password(req)
     end
@@ -258,7 +258,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: uuid4(),
         identifiers: %{"id" => user.id},
-        fields: %{"new_password" => "test1234"}
+        data: %{"new_password" => "test1234"}
       }
       assert {:error, :access_denied} = Identity.change_password(req)
     end
@@ -273,7 +273,7 @@ defmodule Freshcom.IdentityTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => user.id},
-        fields: %{"new_password" => "test1234"}
+        data: %{"new_password" => "test1234"}
       }
 
       assert {:ok, %{data: data}} = Identity.change_password(req)
@@ -286,7 +286,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         client_id: client.id,
         identifiers: %{"reset_token" => requester.password_reset_token},
-        fields: %{"new_password" => "test1234"}
+        data: %{"new_password" => "test1234"}
       }
 
       assert {:ok, %{data: data}} = Identity.change_password(req)
@@ -559,7 +559,7 @@ defmodule Freshcom.IdentityTest do
     test "given unauthorized requester" do
       req = %Request{
         requester_id: uuid4(),
-        fields: %{
+        data: %{
           "name" => Faker.Company.name(),
           "default_locale" => "en"
         }
@@ -574,7 +574,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
-        fields: %{
+        data: %{
           "name" => Faker.Company.name(),
           "default_locale" => "en"
         }
@@ -582,8 +582,8 @@ defmodule Freshcom.IdentityTest do
 
       assert {:ok, %{data: data}} = Identity.create_account(req)
       assert data.id
-      assert data.name == req.fields["name"]
-      assert data.default_locale == req.fields["default_locale"]
+      assert data.name == req.data["name"]
+      assert data.default_locale == req.data["default_locale"]
     end
   end
 
@@ -671,7 +671,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: requester.id,
         client_id: client.id,
         account_id: requester.default_account_id,
-        fields: %{"name" => new_name}
+        data: %{"name" => new_name}
       }
 
       assert {:ok, %{data: data}} = Identity.update_account_info(req)
@@ -837,7 +837,7 @@ defmodule Freshcom.IdentityTest do
     test "given unauthorized requester" do
       req = %Request{
         account_id: uuid4(),
-        fields: %{
+        data: %{
           "name" => "Test"
         }
       }
@@ -848,7 +848,7 @@ defmodule Freshcom.IdentityTest do
     test "given valid request by system" do
       req = %Request{
         _role_: "system",
-        fields: %{
+        data: %{
           "type" => "system",
           "name" => "Test"
         }
@@ -865,7 +865,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: requester.id,
         client_id: client.id,
         account_id: requester.default_account_id,
-        fields: %{
+        data: %{
           "name" => "Test"
         }
       }
@@ -968,12 +968,12 @@ defmodule Freshcom.IdentityTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         identifiers: %{"id" => app.id},
-        fields: %{"name" => Faker.Company.name()}
+        data: %{"name" => Faker.Company.name()}
       }
 
       assert {:ok, %{data: data}} = Identity.update_app(req)
       assert data.id == app.id
-      assert data.name == req.fields["name"]
+      assert data.name == req.data["name"]
     end
   end
 
