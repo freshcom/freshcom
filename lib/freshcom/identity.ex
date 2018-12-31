@@ -183,11 +183,11 @@ defmodule Freshcom.Identity do
 
   ## Identity Fields
 
-  | Key             | Description                                                                                                                                                 |
-  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                  |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be the ID of an app with type `"system"`.  |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with role `"owner"` or `"administrator"`.                     |
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                        |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`.  |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with role `"owner"` or `"administrator"`.           |
 
   ## Data Fields
 
@@ -263,11 +263,19 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  - User can only change their default account through an app with type `"system"`
-  - Only standard user can change their default account
-  - The target account must be owned by the user
+  | Key             | Description                                                                                                                                      |
+  |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`. |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a standard user.                                          |
+
+  ## Data Fields
+
+  | Key    | Description                                                                                          |
+  |--------|------------------------------------------------------------------------------------------------------|
+  | `"id"` | _(required)_ the ID of the new default account. The provided account must be owned by the requester. |
+
   """
   @spec change_default_account(Request.t()) :: APIModule.resp()
   def change_default_account(%Request{} = req) do
@@ -922,10 +930,10 @@ defmodule Freshcom.Identity do
 
   ## Identity Fields
 
-  | Key             | Description                                                                                                                                                              |
-  |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                               |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be the ID of an app with type `"system"`.                    |
+  | Key             | Description                                                                                                                                                                   |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                                    |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`.                              |
   | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with one of the following roles: `"owner"`, `"administrator"` or `"developer"`. |
 
   ## Data Fields
