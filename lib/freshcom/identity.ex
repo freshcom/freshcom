@@ -131,13 +131,13 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  | Key         | Description                                                 |
-  |-------------|-------------------------------------------------------------|
-  | `:cient_id` | _(required)_ Must be the ID of an app with type `"system"`. |
+  | Key          | Description                                                 |
+  |--------------|-------------------------------------------------------------|
+  | `:client_id` | _(required)_ Must be the ID of an app with type `"system"`. |
 
-  ## Fields
+  ## Data Fields
 
   | Key                  | Description                                                                                                                                                 |
   |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -146,7 +146,7 @@ defmodule Freshcom.Identity do
   | `"is_term_accepted"` | _(required)_ Must be true.                                                                                                                                  |
   | `"email"`            | Must be in correct format.                                                                                                                                  |
   | `"name"`             | Name of the user.                                                                                                                                           |
-  | `"account_name"`     | Name of the default account to be created, defaults to `"Unnamed Account"`                                                                             |
+  | `"account_name"`     | Name of the default account to be created, defaults to `"Unnamed Account"`                                                                                  |
   | `"default_locale"`   | Default locale of the default account.                                                                                                                      |
   """
   @spec register_user(Request.t()) :: APIModule.resp()
@@ -168,9 +168,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.add_user(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
     account_id: account_id,
+    client_id: client_id,
+    requester_id: requester_id,
     data: %{
       "username" => "testuser",
       "password" => "test1234",
@@ -181,28 +181,24 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Field Validations
+  ## Identity Fields
 
-  `username` _(required)_
-  - Must be unique across all managed user of the same account
-  - Length between 3 and 120 characters
-  - Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                  |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be the ID of an app with type `"system"`.  |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with role `"owner"` or `"administrator"`.                     |
 
-  `password` _(required)_
-  - Length must be greater than 8 characters
+  ## Data Fields
 
-  `role` _(required)_
-  - Please see `Freshcom.User` for list of valid roles
+  | Key                  | Description                                                                                                                                                 |
+  |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"username"`         | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"password"`         | _(required)_ Must be at least 8 characters long.                                                                                                            |
+  | `"role"`             | _(required)_ Please see `Freshcom.User` for list of valid roles.                                                                                            |
+  | `"email"`            | Must be in correct format.                                                                                                                                  |
+  | `"name"`             | Name of the user.                                                                                                                                           |
 
-  `email`
-  - Must be in correct format
-
-  `name`
-  - Length must be between 2 to 255
-
-  ## Authorization
-
-  Only user with role `"owner"` and `"administrator"` can add a user.
   """
   @spec add_user(Request.t()) :: APIModule.resp()
   def add_user(%Request{} = req) do
@@ -909,9 +905,35 @@ defmodule Freshcom.Identity do
   @doc """
   Add an app to an account.
 
-  ## Authorization
+  ## Examples
 
-  Only user with the following roles can add an app: `"owner"`, `"administrator"`, `"developer"`.
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.add_app(%Request{
+    account_id: account_id,
+    client_id: client_id,
+    requester_id: requester_id,
+    data: %{
+      "name" => "Test"
+    }
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                              |
+  |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                               |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be the ID of an app with type `"system"`.                    |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with one of the following roles: `"owner"`, `"administrator"` or `"developer"`. |
+
+  ## Data Fields
+
+  | Key      | Description                   |
+  |----------|-------------------------------|
+  | `"name"` | _(required)_ Name of the app. |
+
   """
   @spec add_app(Request.t()) :: APIModule.resp()
   def add_app(%Request{} = req) do
