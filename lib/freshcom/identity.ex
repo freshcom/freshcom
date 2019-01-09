@@ -139,15 +139,16 @@ defmodule Freshcom.Identity do
 
   ## Data Fields
 
-  | Key                  | Description                                                                                                                                                 |
-  |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `"username"`         | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
-  | `"password"`         | _(required)_ Must be at least 8 characters long.                                                                                                            |
-  | `"is_term_accepted"` | _(required)_ Must be true.                                                                                                                                  |
-  | `"email"`            | Must be in correct format.                                                                                                                                  |
-  | `"name"`             | Name of the user.                                                                                                                                           |
-  | `"account_name"`     | Name of the default account to be created, defaults to `"Unnamed Account"`                                                                                  |
-  | `"default_locale"`   | Default locale of the default account.                                                                                                                      |
+  | Key                  | Type      | Description                                                                                                                                                 |
+  |----------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"username"`         | _String_  | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"password"`         | _String_  | _(required)_ Must be at least 8 characters long.                                                                                                            |
+  | `"is_term_accepted"` | _Boolean_ | _(required)_ Must be true.                                                                                                                                  |
+  | `"email"`            | _String_  | Must be in correct format.                                                                                                                                  |
+  | `"name"`             | _String_  | Name of the user.                                                                                                                                           |
+  | `"account_name"`     | _String_  | Name of the default account to be created, defaults to `"Unnamed Account"`.                                                                                 |
+  | `"default_locale"`   | _String_  | Default locale of the default account.                                                                                                                      |
+
   """
   @spec register_user(Request.t()) :: APIModule.resp()
   def register_user(%Request{} = req) do
@@ -186,18 +187,20 @@ defmodule Freshcom.Identity do
   | Key             | Description                                                                                                                                       |
   |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
   | `:account_id`   | _(required)_ The ID of the target account.                                                                                                        |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`.  |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with role `"owner"` or `"administrator"`.           |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.  |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a user with role `"owner"` or `"administrator"`.           |
 
   ## Data Fields
 
-  | Key                  | Description                                                                                                                                                 |
-  |----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `"username"`         | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
-  | `"password"`         | _(required)_ Must be at least 8 characters long.                                                                                                            |
-  | `"role"`             | _(required)_ Please see `Freshcom.User` for list of valid roles.                                                                                            |
-  | `"email"`            | Must be in correct format.                                                                                                                                  |
-  | `"name"`             | Name of the user.                                                                                                                                           |
+  | Key            | Type     | Description                                                                                                                                                 |
+  |----------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"username"`   | _String_ | _(required)_ Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"password"`   | _String_ | _(required)_ Must be at least 8 characters long.                                                                                                            |
+  | `"role"`       | _String_ | _(required)_ Please see `Freshcom.User` for list of valid roles.                                                                                            |
+  | `"email"`      | _String_ | Must be in correct format.                                                                                                                                  |
+  | `"name"`       | _String_ | Full name of the user.                                                                                                                                           |
+  | `"first_name"` | _String_ | First name of the user.
+  | `"last_name"`  | _String_ | Last name of the user.
 
   """
   @spec add_user(Request.t()) :: APIModule.resp()
@@ -229,11 +232,25 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  - All user can update their own information
-  - User with role `"owner"` and `"administrator"` can update the information of other managed user of the same account
-  - User with role `"support_specialist"` can update other managed user with role `"customer"`
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                  |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/>                                                                       |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same as `identifier["id"]`</li><li>be a user with role `"owner"`, `"administrator"` or `"support_specialist"` if `identifier["id"]` is a user with role `"customer"`</li><li>be a user with role `"owner"` or `"administrator"` if `identifier["id"]` is a managed user</li></ul> |
+
+  ## Data Fields
+
+  | Key                  | Type     | Description                                                                                                                                                 |
+  |----------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"username"`         | _String_ | Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"email"`            | _String_ | Must be in correct format.                                                                                                                                  |
+  | `"name"`             | _String_ | Full name of the user. |
+  | `"first_name"`       | _String_ | First name of the user. |
+  | `"last_name"`        | _String_ | Last name of the user. |
+  | `"custom_data"`      | _Map_    | Set of key-value pairs that you can attach to this resource. |
+
   """
   @spec update_user_info(Request.t()) :: APIModule.resp()
   def update_user_info(%Request{} = req) do
@@ -267,14 +284,14 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                      |
   |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`. |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a standard user.                                          |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`. |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a standard user.                                          |
 
   ## Data Fields
 
-  | Key    | Description                                                                                          |
-  |--------|------------------------------------------------------------------------------------------------------|
-  | `"id"` | _(required)_ the ID of the new default account. The provided account must be owned by the requester. |
+  | Key    | Type     | Description                                                                                          |
+  |--------|----------|------------------------------------------------------------------------------------------------------|
+  | `"id"` | _String_ | _(required)_ the ID of the new default account. The provided account must be owned by the requester. |
 
   """
   @spec change_default_account(Request.t()) :: APIModule.resp()
@@ -933,14 +950,14 @@ defmodule Freshcom.Identity do
   | Key             | Description                                                                                                                                                                   |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                                    |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> For this function, it must be an app with type `"system"`.                              |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> For this function, it must be a user with one of the following roles: `"owner"`, `"administrator"` or `"developer"`. |
+  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.                              |
+  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a user with role `"owner"`, `"administrator"` or `"developer"`. |
 
   ## Data Fields
 
-  | Key      | Description                   |
-  |----------|-------------------------------|
-  | `"name"` | _(required)_ Name of the app. |
+  | Key      | Type     | Description                   |
+  |----------|----------|-------------------------------|
+  | `"name"` | _String_ |_(required)_ Name of the app. |
 
   """
   @spec add_app(Request.t()) :: APIModule.resp()
