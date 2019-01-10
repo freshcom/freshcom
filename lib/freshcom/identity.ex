@@ -8,7 +8,7 @@ defmodule Freshcom.Identity do
   - The app that is making the request on behalf of the user (the client)
   - The account that the request is targeting
 
-  These three resources are used together to authorize each request. The ID of
+  These three resources are used together to authorize each request. ID of
   these 3 resources are required for all API module functions which means the
   `:requester_id`, `:client_id`, and `:account_id` (collectively referred as "identity fields")
   must be set on the `Freshom.Request` struct unless otherwise indicated in the documentation.
@@ -186,9 +186,9 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                       |
   |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                        |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.  |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a user with role `"owner"` or `"administrator"`.           |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                        |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be an app with type `"system"`.  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role `"owner"` or `"administrator"`.           |
 
   ## Data Fields
 
@@ -199,8 +199,8 @@ defmodule Freshcom.Identity do
   | `"role"`       | _String_ | _(required)_ Please see `Freshcom.User` for list of valid roles.                                                                                            |
   | `"email"`      | _String_ | Must be in correct format.                                                                                                                                  |
   | `"name"`       | _String_ | Full name of the user.                                                                                                                                           |
-  | `"first_name"` | _String_ | First name of the user.
-  | `"last_name"`  | _String_ | Last name of the user.
+  | `"first_name"` | _String_ | First name of the user. |
+  | `"last_name"`  | _String_ | Last name of the user. |
 
   """
   @spec add_user(Request.t()) :: APIModule.resp()
@@ -236,15 +236,15 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                  |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/>                                                                       |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same as `identifier["id"]`</li><li>be a user with role `"owner"`, `"administrator"` or `"support_specialist"` if `identifier["id"]` is a user with role `"customer"`</li><li>be a user with role `"owner"` or `"administrator"` if `identifier["id"]` is a managed user</li></ul> |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.<br/>                                                                       |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same as `identifier["id"]`</li><li>be a user with role `"owner"`, `"administrator"` or `"support_specialist"` if `identifier["id"]` is a user with role `"customer"`</li><li>be a user with role `"owner"` or `"administrator"` if `identifier["id"]` is a managed user</li></ul> |
 
   ## Data Fields
 
   | Key                  | Type     | Description                                                                                                                                                 |
   |----------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `"username"`         | _String_ | Must be unique across all standard user. Length between 3 and 120 characters. Can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
+  | `"username"`         | _String_ | Must be unique across all standard user. Length between 3 and 120 characters. It can contain alphanumeric characters and `'`, `.`, `+`, `-`, `@`. |
   | `"email"`            | _String_ | Must be in correct format.                                                                                                                                  |
   | `"name"`             | _String_ | Full name of the user. |
   | `"first_name"`       | _String_ | First name of the user. |
@@ -284,14 +284,14 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                      |
   |-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`. |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a standard user.                                          |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be an app with type `"system"`. |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user.                                          |
 
   ## Data Fields
 
   | Key    | Type     | Description                                                                                          |
   |--------|----------|------------------------------------------------------------------------------------------------------|
-  | `"id"` | _String_ | _(required)_ the ID of the new default account. The provided account must be owned by the requester. |
+  | `"id"` | _String_ | _(required)_ ID of the new default account. The provided account must be owned by the requester. |
 
   """
   @spec change_default_account(Request.t()) :: APIModule.resp()
@@ -448,11 +448,28 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  - If reset token is given, no further authorization is required
-  - User can change their own password
-  - User with role `"administrator"` and `"owner"` can be change the password of other managed user of the same account
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:account_id`   | ID of the target account, required if `identifier["reset_token"]` is not provided.                                                                                      |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. If the target user is a standard user then the client must be an app with type `"system"`. |
+  | `:requester_id` | ID of the user making the request, required if `identifier["reset_token"]` is not provided. When required must be the same as `identifier["id"]` or be a user with role `"owner"` or `"administrator"`. |
+
+  ## Identifier Fields
+
+  | Key                  | Type     | Description                                                                                                                                                 |
+  |----------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"id"`               | _String_ | ID of the target user, required if `identifier["reset_token"]` is not provided. |
+  | `"reset_token"`      | _String_ | A password reset token of the target user, required if `identifier["id"]` is not provided.|
+
+  ## Data Fields
+
+  | Key                  | Type     | Description                                                                                                                                                 |
+  |----------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"new_password"`     | _String_ | _(required)_ New password of the user. Must be at least 8 character long.                                                                                   |
+  | `"current_password"` | _String_ | Current password of the user, required if `:requester_id` is the same as `identifier["id"]`.  |
+
   """
   @spec change_password(Request.t()) :: APIModule.resp()
   def change_password(%Request{identifier: %{"reset_token" => reset_token}} = req) do
@@ -949,9 +966,9 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                                   |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ The ID of the target account.                                                                                                                                    |
-  | `:client_id`    | _(required)_ The ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.                              |
-  | `:requester_id` | _(required)_ The ID of the user making the request.<br/> Must be a user with role `"owner"`, `"administrator"` or `"developer"`. |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                                    |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.                              |
+  | `:requester_id` | _(required)_ ID of the user making the request.<br/> Must be a user with role `"owner"`, `"administrator"` or `"developer"`. |
 
   ## Data Fields
 
