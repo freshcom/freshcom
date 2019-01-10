@@ -10,7 +10,7 @@ defmodule Freshcom.Identity do
 
   These three resources are used together to authorize each request. ID of
   these 3 resources are required for all API module functions which means the
-  `:requester_id`, `:client_id`, and `:account_id` (collectively referred as "identity fields")
+  `:client_id`, `:account_id` and `:requester_id` (collectively referred as "identity fields")
   must be set on the `Freshom.Request` struct unless otherwise indicated in the documentation.
 
   This module provides functions to help you create and manage these three resources
@@ -118,7 +118,7 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.register_user(%Request{
-    client_id: client_id,
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
     data: %{
       "name" => "Demo User",
       "username" => "test@example.com",
@@ -169,9 +169,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.add_user(%Request{
-    account_id: account_id,
-    client_id: client_id,
-    requester_id: requester_id,
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
     data: %{
       "username" => "testuser",
       "password" => "test1234",
@@ -186,8 +186,8 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                       |
   |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ ID of the target account.                                                                                                        |
   | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be an app with type `"system"`.  |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                        |
   | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role `"owner"` or `"administrator"`.           |
 
   ## Data Fields
@@ -222,10 +222,10 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.update_user_info(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"id" => user_id},
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"},
     data: %{
       "name" => "Demo User"
     }
@@ -236,8 +236,8 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
   | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.<br/>                                                                       |
   | `:requester_id` | _(required)_ ID of the user making the request. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same as `identifier["id"]`</li><li>be a user with role `"owner"`, `"administrator"` or `"support_specialist"` if `identifier["id"]` is a user with role `"customer"`</li><li>be a user with role `"owner"` or `"administrator"` if `identifier["id"]` is a managed user</li></ul> |
 
   ## Data Fields
@@ -274,9 +274,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.change_default_account(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    data: %{"id" => account_id}
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    data: %{"id" => "3a0ab0a2-1865-4f80-9127-e2d413ba4b5e"}
   })
   ```
 
@@ -315,10 +315,10 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.change_user_role(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"id" => user_id},
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"},
     data: %{"value" => "manager"}
   })
   ```
@@ -361,9 +361,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.change_user_role(%Request{
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"username" => username}
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    identifier: %{"username" => "roy"}
   })
   ```
 
@@ -372,10 +372,10 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.change_user_role(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"id" => user_id}
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"}
   })
   ```
 
@@ -440,10 +440,10 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.change_password(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"id" => user_id},
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"},
     data: %{"new_password" => "test1234"}
   })
   ```
@@ -452,8 +452,8 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | ID of the target account, required if `identifier["reset_token"]` is not provided.                                                                                      |
   | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. If the target user is a standard user then the client must be an app with type `"system"`. |
+  | `:account_id`   | ID of the target account, required if `identifier["reset_token"]` is not provided.                                                                                      |
   | `:requester_id` | ID of the user making the request, required if `identifier["reset_token"]` is not provided. When required must be the same as `identifier["id"]` or be a user with role `"owner"` or `"administrator"`. |
 
   ## Identifier Fields
@@ -511,17 +511,27 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.delete_user(%Request{
-    requester_id: requester_id,
-    client_id: client_id,
-    account_id: account_id,
-    identifier: %{"id" => user_id}
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"}
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  - User cannot delete themself
-  - User with role `"administrator"` and `"owner"` can delete other managed user of the same account
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role `"owner"` or `"administrator"`. |
+
+  ## Identifier Fields
+
+  | Key     | Type     | Description                                                                                                                                                 |
+  |---------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"id"`  | _String_ | _(required)_ ID of the target user. Must be a managed user and cannot be the same as `:requester_id`. |
+
   """
   @spec delete_user(Request.t()) :: APIModule.resp()
   def delete_user(%Request{} = req) do
@@ -544,9 +554,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.list_user(%Request{
-    requester_id: requester_id,
     client_id: client_id,
-    account_id: account_id
+    account_id: account_id,
+    requester_id: requester_id
   })
   ```
 
@@ -574,9 +584,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.count_user(%Request{
-    requester_id: requester_id,
     client_id: client_id,
-    account_id: account_id
+    account_id: account_id,
+    requester_id: requester_id
   })
   ```
 
@@ -622,9 +632,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.get_user(%Request{
-    requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
+    requester_id: requester_id,
     identifier: %{"id" => user_id}
   })
   ```
@@ -690,8 +700,8 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.list_account(%Request{
-    requester_id: requester_id,
-    client_id: client_id
+    client_id: client_id,
+    requester_id: requester_id
   })
   ```
 
@@ -723,8 +733,8 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.count_account(%Request{
-    requester_id: requester_id,
-    client_id: client_id
+    client_id: client_id,
+    requester_id: requester_id
   })
   ```
 
@@ -753,8 +763,8 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.create_account(%Request{
-    requester_id: requester_id,
     client_id: client_id,
+    requester_id: requester_id,
     data: %{
       "name" => "SpaceX",
       "default_locale" => "en"
@@ -817,9 +827,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.update_account_info(%Request{
-    requester_id: requester_id,
     client_id: client_id,
     account_id: account_id,
+    requester_id: requester_id,
     data: %{
       "handle" => "spacex",
       "name" => "SpaceX",
@@ -852,9 +862,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.close_account(%Request{
-    requester_id: requester.id,
     client_id: client.id,
-    account_id: account_id
+    account_id: account_id,
+    requester_id: requester.id
   })
   ```
 
@@ -953,9 +963,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.add_app(%Request{
-    account_id: account_id,
-    client_id: client_id,
-    requester_id: requester_id,
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
     data: %{
       "name" => "Test"
     }
@@ -966,8 +976,8 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                                   |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                                    |
   | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.<br/> Must be an app with type `"system"`.                              |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                                    |
   | `:requester_id` | _(required)_ ID of the user making the request.<br/> Must be a user with role `"owner"`, `"administrator"` or `"developer"`. |
 
   ## Data Fields
