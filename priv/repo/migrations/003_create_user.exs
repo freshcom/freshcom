@@ -45,6 +45,7 @@ defmodule Freshcom.Repo.Migrations.CreateUser do
     create index(:users, [:email])
     create index(:users, [:account_id, :status])
     create index(:users, [:status])
+    create index(:users, [:account_id, :role])
 
     execute "ALTER SEQUENCE users_sid_seq START with 72018102 RESTART"
   end
