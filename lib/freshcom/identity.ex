@@ -247,6 +247,12 @@ defmodule Freshcom.Identity do
   | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
   | `:requester_id` | _(required)_ ID of the user making the request. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same user as the target user</li><li>be a user with role in [Customer Management Roles](#module-roles) if the target user is of role `"customer"`</li><li>be a user with role in [Admin Roles](#module-roles) if the target user is a managed user</li></ul> |
 
+  ## Identifier Fields
+
+  | Key       | Description                                                                                               |
+  |-----------|-----------------------------------------------------------------------------------------------------------|
+  | `"id"`    | _(required)_ ID of the target user.                                                                       |
+
   ## Data Fields
 
   | Key                  | Type     | Description                                                                                                                                                 |
@@ -412,7 +418,7 @@ defmodule Freshcom.Identity do
   | Key          | Type     | Description                                                                                                                                                 |
   |--------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | `"id"`       | _String_ | ID of the target user, required if `identifier["username"]` is not provided. Must be the ID a managed user.  |
-  | `"username"` | _String_ | username of the target user, required if `identifier["id"]` is not provided. |
+  | `"username"` | _String_ | Username of the target user, required if `identifier["id"]` is not provided. |
 
   """
   @spec generate_password_reset_token(Request.t()) :: APIModule.resp()
