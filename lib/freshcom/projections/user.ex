@@ -18,10 +18,12 @@ defmodule Freshcom.User do
 
     field :password_reset_token, :string
     field :password_reset_token_expires_at, :naive_datetime
+    field :password_updated_at, :naive_datetime
 
     field :email_verified, :boolean
     field :email_verification_token, :string
     field :email_verification_token_expires_at, :naive_datetime
+    field :email_verified_at, :naive_datetime
 
     field :custom_data, :map, default: %{}
     field :translations, :map, default: %{}
