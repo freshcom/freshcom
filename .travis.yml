@@ -8,3 +8,5 @@ before_script:
   - mix freshcom.setup
 script:
   - mix test
+env:
+  - DB_USERNAME="postgres"
