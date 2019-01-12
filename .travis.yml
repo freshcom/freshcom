@@ -9,7 +9,8 @@ otp_release: '21.0'
 before_script:
   - mix freshcom.setup
 script:
-  - mix test
+  - cd services/fc_identity; mix test
+  - cd ../../; mix test
 env:
   global:
     - DB_USERNAME="postgres"
