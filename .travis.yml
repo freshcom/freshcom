@@ -10,3 +10,4 @@ script:
   - mix test
 env:
   - DB_USERNAME="postgres"
+  - DB_PASSWORD="postgres"

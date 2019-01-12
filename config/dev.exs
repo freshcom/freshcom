@@ -5,6 +5,7 @@ config :logger, level: :warn
 config :eventstore, EventStore.Storage,
   serializer: Commanded.Serialization.JsonSerializer,
   username: System.get_env("DB_USERNAME"),
+  password: System.get_env("DB_PASSWORD"),
   database: "freshcom_eventstore_dev",
   hostname: "localhost",
   pool_size: 10
@@ -16,4 +17,5 @@ config :freshcom, Freshcom.Repo,
   database: "freshcom_projections_dev",
   hostname: "localhost",
   username: System.get_env("DB_USERNAME"),
+  password: System.get_env("DB_PASSWORD"),
   pool_size: 10

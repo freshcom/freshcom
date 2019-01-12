@@ -7,6 +7,7 @@ config :argon2_elixir, t_cost: 1, m_cost: 8
 config :eventstore, EventStore.Storage,
   serializer: Commanded.Serialization.JsonSerializer,
   username: System.get_env("DB_USERNAME"),
+  password: System.get_env("DB_PASSWORD"),
   database: "freshcom_eventstore_test",
   hostname: "localhost",
   pool_size: 10
@@ -21,4 +22,5 @@ config :freshcom, Freshcom.Repo,
   database: "freshcom_projections_test",
   hostname: "localhost",
   username: System.get_env("DB_USERNAME"),
+  password: System.get_env("DB_PASSWORD"),
   pool: Ecto.Adapters.SQL.Sandbox
