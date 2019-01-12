@@ -1,7 +1,8 @@
+dist: xenial
 services:
   - postgresql
 addons:
-  postgresql: "10.4"
+  postgresql: "10"
 language: elixir
 elixir: '1.7'
 before_script:
@@ -11,3 +12,4 @@ script:
 env:
   global:
     - DB_USERNAME="postgres"
+    - DB_PASSWORD="postgres"
