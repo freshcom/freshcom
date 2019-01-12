@@ -25,7 +25,8 @@ defmodule FCBase.MixProject do
       {:fc_state_storage, path: "../fc_state_storage"},
       {:commanded_eventstore_adapter, "~> 0.3"},
       {:phoenix_pubsub, "~> 1.1"},
-      {:ok, "~> 2.0"}
+      {:ok, "~> 2.0"},
+      {:postgrex, "~> 0.13.0"}
     ]
   end
 end
