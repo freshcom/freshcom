@@ -1,6 +1,10 @@
+services:
+  - postgresql
 language: elixir
 elixir: '1.7'
 before_script:
+  - psql -c 'create database freshcom_eventstore_test;' -U postgres
+  - psql -c 'create database freshcom_projections_test;' -U postgres
   - mix freshcom.setup
 script:
   - mix test
