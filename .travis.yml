@@ -12,4 +12,3 @@ script:
 env:
   global:
     - DB_USERNAME="postgres"
-    - DB_PASSWORD="postgres"
