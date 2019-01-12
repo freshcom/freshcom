@@ -1,5 +1,7 @@
 # Freshcom
 
+[![Build Status](https://travis-ci.org/freshcom/freshcom.svg?branch=master)](https://travis-ci.org/freshcom/freshcom)
+
 **Fast, scalable and extensible eCommerce backend in Elixir.**
 
 Please see an overview of frehscom [here](https://github.com/freshcom/freshcom/blob/master/guides/introduction/overview.md).
