@@ -66,7 +66,32 @@ defmodule Freshcom.Identity do
 
   ## Bypass Authorization
 
+  Sometime you will need to make calls to an API module's function without having the identity
+  information. This is especially the case when you are implementing your own authentication
+  method on top of freshcom's Elixir API. For example in [freshcom_web](https://github.com/freshcom/freshcom_web)
+  the API key needs to be retrieved before a user is authenticated, but the `get_api_key/1`
+  function requires all identity fields be provided.
 
+  To solve this problem, freshcom allow you bypass authorization by setting
+  the value of `:_role_` of the request struct. If you set the value of `:_role_`
+  to any of the following then authorization will be bypassed:
+  `"system"`, `"sysdev"`, `"appdev"`. When authorizatino is bypassed you can omit
+  all identity fields, however we recommand you still provide as much as you know
+  so they can still be logged and useful for debugging and auditing.
+
+  The authorization bypass works for all API module functions, however we recommand
+  you only bypass when necessary.
+
+  ### Example to bypass authorization
+
+   ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_api_key(%Request{
+    identifier: %{"id" => "cae028f2-f5e8-402d-a0b9-4bf5ae478151"},
+    _role_: "system"
+  })
+  ```
 
   ## Role Groups
 
