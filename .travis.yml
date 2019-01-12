@@ -5,7 +5,7 @@ addons:
   postgresql: "10"
 language: elixir
 elixir: '1.7'
-otp_release: '21'
+otp_release: '21.0'
 before_script:
   - mix freshcom.setup
 script:
