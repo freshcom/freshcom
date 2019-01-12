@@ -47,29 +47,40 @@ defmodule Freshcom.Identity do
 
   ## API Key
 
-  In most cases it is not secure to directly allow a user to directly pass in the
+  In most cases it is not secure to allow a user to directly pass in the
   `:user_id` and `:account_id` because these IDs are not changeable and cannot be deleted
   if compromised, so freshcom provides you with API keys that can help you implement
   your authentication method. Using a API key you can retrieve the `:account_id`
   and `:user_id` it belongs to, it can also be easily re-generated in case it is compromised.
 
   Standard user have an API Key for each account they own including test accounts.
-  managed user for a live account have two API keys, one for the live account, one
+  Managed user for a live account have two API keys, one for the live account, one
   for the corresponding test account. Managed user for test account only have one
   API Key. Each account also have an API Key that is not associated with any user
   you can use this API key if you only want to identify the account without any user.
 
   How you use API keys are completely up to you, you can directly expose them to the user,
   or in the case of [freshcom_web](https://github.com/freshcom/freshcom_web)
-  it is used as the API Key for the actual access token which itself is a JWT
+  it is used as the refresh token for the actual access token which itself is a JWT
   that contains the `:account_id` and `:user_id`.
 
-  ## Roles
+  ## Bypass Authorization
+
+
+
+  ## Role Groups
 
   For the purpose of this documentation we group user roles in to the following groups:
 
-  - Customer Management Roles: `"owner"`, `"administrator"`, `"manager"`, `"support_specialist"`
+  - Customer Management Roles: `"owner"`, `"administrator"`, `"manager"`, `"developer"`,  `"support_specialist"`
+  - Development Roles: `"owner"`, `"administrator"`, `"developer"`
   - Admin Roles: `"owner"`, `"administrator"`
+
+  ## Abbreviation
+
+  For better formatting the following abbreviation are used in the documentation:
+
+  - C/S: Case Sensitive
   """
 
   import FCSupport.Normalization, only: [atomize_keys: 2]
@@ -154,7 +165,7 @@ defmodule Freshcom.Identity do
   | `"email"`            | _String_  | Must be in correct format.                                                                                                                                  |
   | `"name"`             | _String_  | Name of the user.                                                                                                                                           |
   | `"account_name"`     | _String_  | Name of the default account to be created, defaults to `"Unnamed Account"`.                                                                                 |
-  | `"default_locale"`   | _String_  | Default locale of the default account.                                                                                                                      |
+  | `"default_locale"`   | _String_  | Default locale of the default account, defaults to `"en"`.                                                                                                                      |
 
   """
   @spec register_user(Request.t()) :: APIModule.resp()
@@ -592,15 +603,44 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.list_user(%Request{
-    client_id: client_id,
-    account_id: account_id,
-    requester_id: requester_id
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    filter: [%{"role" => "customer"}],
+    search: "roy"
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  Only user with role `"administrator"` and `"owner"` can list user
+  | Key             | Description                                                                                               |
+  |-----------------|-----------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                              |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                    |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Admin Roles](#module-roles). |
+
+  ## Filter Fields
+
+  | Key                     | Type                | [C/S](#module-abbreviation) | Supported Operators | Default                                 |
+  |-------------------------|---------------------|------|---------------------------------------|----------------------------------------------|
+  | `"status"`              | _String_            | Yes  | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | `%{"$eq" => "active"}` |
+  | `"username"`            | _String_            | No   | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"email"`               | _String_            | No   | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"name"`                | _String_            | Yes  | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"first_name"`          | _String_            | Yes  | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"last_name"`           | _String_            | Yes  | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"role"`                | _String_            | Yes  | [Equality Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"email_verified"`      | _Boolean_           | N/A  | `"$eq"` | N/A |
+  | `"email_verified_at"`   | _String_ (ISO8601)  | N/A  | `"$eq"` and [Range Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+  | `"password_changed_at"` | _String_ (ISO8601)  | N/A  | `"$eq"` and [Range Operators](Freshcom.Filter.html#module-operator-groups) | N/A |
+
+  Please see `Freshcom.Filter` for details on how to use filter.
+
+  ## Other Fields
+
+  - Searchable fields: `["name", "username", "email"]`
+  - Sortable fields: `["status", "username", "email", "role"]`
+
   """
   @spec list_user(Request.t()) :: APIModule.resp()
   def list_user(%Request{} = req) do
@@ -622,15 +662,18 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.count_user(%Request{
-    client_id: client_id,
-    account_id: account_id,
-    requester_id: requester_id
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    filter: [%{"role" => "customer"}],
+    search: "roy"
   })
   ```
 
-  ## Authorization
+  ## Request Fields
 
-  Only user with role `"administrator"` and `"owner"` can count user
+  All fields are the same as `list_user/1`, except any pagination will be ignored.
+
   """
   def count_user(%Request{} = req) do
     req
@@ -643,7 +686,7 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Get a specific user.
+  Get the details of a specific user.
 
   There are two ways to get a user:
 
@@ -657,6 +700,7 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.get_user(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
     identifier: %{
       "type" => "standard",
       "username" => "demouser",
@@ -670,17 +714,30 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.get_user(%Request{
-    client_id: client_id,
-    account_id: account_id,
-    requester_id: requester_id,
-    identifier: %{"id" => user_id}
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"}
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  - User can get themself
-  - User with role `"administrator"` and `"owner"` can get other managed user of the same account
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user.  |
+  | `:account_id`   | ID of the target account, required if the target user is a managed user.                                                                                                        |
+  | `:requester_id` | ID of the user making the request, required if `identifier["id"]` is provided. When required, must be the same as the target user or be a user with role in [Admin Roles](#module-roles).           |
+
+  ## Identifier Fields
+
+  | Key          | Type     | Description                                                                                                                                                 |
+  |--------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"id"`       | _String_ | ID of the target user, required if `identifier["username"]` and `identifier["password"]` is not provided. |
+  | `"username"` | _String_ | Username of the target user, required if `identifier["id"]` is not provided. |
+  | `"password"` | _String_ | Password of the target user, required if `identifier["id"]` is not provided. |
+  | `"type"`     | _String_ | Type of the target user. |
+
   """
   @spec get_user(Request.t()) :: APIModule.resp()
   def get_user(%Request{} = req) do
@@ -738,14 +795,18 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.list_account(%Request{
-    client_id: client_id,
-    requester_id: requester_id
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4"
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  Only standard user can list account through an app with type `"system"`
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app.  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user.           |
+
   """
   @spec list_account(Request.t()) :: APIModule.resp()
   def list_account(%Request{} = req) do
@@ -771,14 +832,15 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.count_account(%Request{
-    client_id: client_id,
-    requester_id: requester_id
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    requester_id: "c59ca218-3850-497b-a03f-a0584e5c7763"
   })
   ```
 
-  ## Authorization
+  ## Request Fields
 
-  Only standard user can count account through an app with type `"system"`
+  All fields are the same as `list_account/1`, except any pagination will be ignored.
+
   """
   def count_account(%Request{} = req) do
     req
@@ -801,8 +863,8 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.create_account(%Request{
-    client_id: client_id,
-    requester_id: requester_id,
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
     data: %{
       "name" => "SpaceX",
       "default_locale" => "en"
@@ -810,9 +872,20 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  Only standard user can create an account through an app with type `"system"`
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app.  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user.           |
+
+  ## Data Fields
+
+  | Key                  | Type      | Description                                                                                                                                                 |
+  |----------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"name"`             | _String_  | Name of the default account to be created, defaults to `"Unnamed Account"`.                                                                                 |
+  | `"default_locale"`   | _String_  | Default locale of the default account, defaults to `"en"`.                                                                                                                      |
+
   """
   @spec create_account(Request.t()) :: APIModule.resp()
   def create_account(%Request{} = req) do
@@ -828,12 +901,51 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Get an account.
+  Get the details of an account.
 
   There are two ways to get an account:
 
   - Using an account handle
   - Using an account ID
+
+  ## Examples
+
+  ### Using an account handle
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_account(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    identifier: %{"handle" => "freshcom"}
+  })
+  ```
+
+  ### Using an account ID
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_account(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763"
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.  |
+  | `:account_id`   | ID of the target account, required if `identifier["handle"]` is not provided.                                                                    |
+  | `:requester_id` | ID of the user making the request.           |
+
+  ## Identifier Fields
+
+  | Key          | Type     | Description                                                                                                                                                 |
+  |--------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"handle"`   | _String_ | ID of the target account, required if `:account_id` is not provided. |
+
   """
   @spec get_account(Request.t()) :: APIModule.resp()
   def get_account(%Request{identifier: %{"handle" => _}} = req) do
@@ -865,9 +977,9 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.update_account_info(%Request{
-    client_id: client_id,
-    account_id: account_id,
-    requester_id: requester_id,
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
     data: %{
       "handle" => "spacex",
       "name" => "SpaceX",
@@ -877,9 +989,24 @@ defmodule Freshcom.Identity do
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  Only user with role `"administrator"` and `"owner"` can update the account's general information.
+  | Key             | Description                                                                                                                                       |
+  |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.  |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                        |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Admin Roles](#module-roles).           |
+
+  ## Data Fields
+
+  | Key                  | Type     | Description                                                                                                                                                 |
+  |----------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"handle"`           | _String_ | A unique identifier of the account, must be unique across all accounts. |
+  | `"name"`             | _String_ | Name of the account.                                                                                                                                  |
+  | `"caption"`          | _String_ | Short description of the account. |
+  | `"description"`      | _String_ | Long description of the account. |
+  | `"custom_data"`      | _Map_    | Set of key-value pairs that you can attach to this resource. |
+
   """
   @spec update_account_info(Request.t()) :: APIModule.resp()
   def update_account_info(%Request{} = req) do
@@ -900,15 +1027,20 @@ defmodule Freshcom.Identity do
   alias Freshcom.{Identity, Request}
 
   Identity.close_account(%Request{
-    client_id: client.id,
-    account_id: account_id,
-    requester_id: requester.id
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4"
   })
   ```
 
-  ## Authorization
+  ## Identity Fields
 
-  Only user with role `"owner"` can close an account through an app with type `"system"`.
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user that owns the target account. |
+
   """
   @spec close_account(Request.t()) :: APIModule.resp()
   def close_account(%Request{} = req) do
@@ -923,7 +1055,34 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Get a API Key.
+  Get the details an API Key.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_api_key(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4"
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same as `identifier["user_id"]` if that is provided</li><li>be a user with role in [Admin Roles](#module-roles).</li></ul> |
+
+  ## Identifier Fields
+
+  | Key            | Description                                                                                               |
+  |----------------|-----------------------------------------------------------------------------------------------------------|
+  | `"user_id"`    | ID of the target user, if provided will get user specific API keys, otherwise will only get the account's publishable API key.  |
+
   """
   @spec get_api_key(Request.t()) :: APIModule.resp()
   def get_api_key(%Request{} = req) do
@@ -945,8 +1104,7 @@ defmodule Freshcom.Identity do
   defp get_api_key_normalize(req), do: req
 
   @doc """
-  Exchange the given API Key identified by its ID for a API Key of
-  the same user but for the account specified by `account_id` of the request.
+  Exchange the given API key an API Key of the same user but for a differnt account.
 
   If the given API Key is already for the specified account, then it is simply
   returned.
@@ -954,6 +1112,34 @@ defmodule Freshcom.Identity do
   This function is intended for exchanging a live API Key for a corresponding
   test API Key or for another live API Key owned by the same user but
   for a different account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.exchange_api_key(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    data: %{"id" => "cae028f2-f5e8-402d-a0b9-4bf5ae478151"}
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user that owns the API key. |
+
+  ## Data Fields
+
+  | Key       | Description                                                                                               |
+  |-----------|-----------------------------------------------------------------------------------------------------------|
+  | `"id"`    | _(required)_ ID of the API key. |
+
   """
   @spec exchange_api_key(Request.t()) :: APIModule.resp()
   def exchange_api_key(%Request{} = req) do
@@ -1022,7 +1208,7 @@ defmodule Freshcom.Identity do
 
   | Key      | Type     | Description                   |
   |----------|----------|-------------------------------|
-  | `"name"` | _String_ |_(required)_ Name of the app. |
+  | `"name"` | _String_ | _(required)_ Name of the app. |
 
   """
   @spec add_app(Request.t()) :: APIModule.resp()
@@ -1037,7 +1223,35 @@ defmodule Freshcom.Identity do
   end
 
   @doc """
-  Get an app.
+  Get the details of an app.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.get_app(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"}
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Development Roles](#module-roles). |
+
+  ## Identifier Fields
+
+  | Key       | Description                                                                                               |
+  |-----------|-----------------------------------------------------------------------------------------------------------|
+  | `"id"`    | _(required)_ ID of the target app.                                                                       |
+
   """
   @spec get_app(Request.t()) :: APIModule.resp()
   def get_app(%Request{} = req) do
@@ -1059,6 +1273,27 @@ defmodule Freshcom.Identity do
 
   @doc """
   List all app of an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.list_app(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4"
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Development Roles](#module-roles). |
+
   """
   @spec list_app(Request.t()) :: APIModule.resp()
   def list_app(%Request{} = req) do
@@ -1076,6 +1311,23 @@ defmodule Freshcom.Identity do
 
   @doc """
   Count the number of apps of an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.list_app(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4"
+  })
+  ```
+
+  ## Request Fields
+
+  All fields are the same as `list_app/1`, except any pagination will be ignored.
+
   """
   def count_app(%Request{} = req) do
     req
@@ -1089,6 +1341,43 @@ defmodule Freshcom.Identity do
 
   @doc """
   Update an app.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.update_app(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"},
+    data: %{
+      "name" => "Example App"
+    }
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Development Roles](#module-roles). |
+
+  ## Identifier Fields
+
+  | Key       | Description                                                                                               |
+  |-----------|-----------------------------------------------------------------------------------------------------------|
+  | `"id"`    | _(required)_ ID of the target app.                                                                       |
+
+  ## Data Fields
+
+  | Key      | Type     | Description                   |
+  |----------|----------|-------------------------------|
+  | `"name"` | _String_ | Name of the app. |
+
   """
   @spec update_app(Request.t()) :: APIModule.resp()
   def update_app(%Request{} = req) do
@@ -1105,6 +1394,34 @@ defmodule Freshcom.Identity do
 
   @doc """
   Delete an app from an account.
+
+  ## Examples
+
+  ```
+  alias Freshcom.{Identity, Request}
+
+  Identity.delete_app(%Request{
+    client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
+    account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
+    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
+    identifier: %{"id" => "8d168caa-dc9c-420e-bd88-7474463bcdea"}
+  })
+  ```
+
+  ## Identity Fields
+
+  | Key             | Description                                                                                                                                                 |
+  |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
+  | `:requester_id` | _(required)_ ID of the user making the request. Must be a user with role in [Development Roles](#module-roles). |
+
+  ## Identifier Fields
+
+  | Key     | Type     | Description                                                                                                                                                 |
+  |---------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | `"id"`  | _String_ | _(required)_ ID of the target app. |
+
   """
   @spec delete_app(Request.t()) :: APIModule.resp()
   def delete_app(%Request{} = req) do

@@ -15,6 +15,11 @@ defmodule Freshcom.Filter do
     ]}
   ]
   ```
+
+  ## Operator Groups
+
+  - Equality Operators: `"$eq"`, `"$in"`, `"$ne"`, `"$nin"`
+  - Range Operators: `"$gt"`, `"$gte"`, `"$lt"`, `"$lte"`
   """
 
   import Ecto.Query
