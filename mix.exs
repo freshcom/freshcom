@@ -33,6 +33,7 @@ defmodule Freshcom.MixProject do
     [
       {:fc_base, path: "base/fc_base"},
       {:fc_identity, path: "services/fc_identity"},
+      {:fc_goods, path: "services/fc_goods"},
       {:ecto, "~> 2.1"},
       {:postgrex, "~> 0.13"},
       {:commanded, "~> 0.17"},
