@@ -55,6 +55,7 @@ defmodule FCIdentity.MixProject do
     [
       "Commands": [
         FCIdentity.AddUser,
+        FCIdentity.ChangeDefaultAccount,
         FCIdentity.ChangePassword,
         FCIdentity.ChangeUserRole,
         FCIdentity.DeleteUser,
@@ -65,10 +66,17 @@ defmodule FCIdentity.MixProject do
         FCIdentity.VerifyEmail,
 
         FCIdentity.CreateAccount,
-        FCIdentity.UpdateAccountInfo
+        FCIdentity.ChangeAccountSystemLabel,
+        FCIdentity.CloseAccount,
+        FCIdentity.UpdateAccountInfo,
+
+        FCIdentity.AddApp,
+        FCIdentity.DeleteApp,
+        FCIdentity.UpdateApp
       ],
 
       "Events": [
+        FCIdentity.DefaultAccountChanged,
         FCIdentity.EmailVerificationTokenGenerated,
         FCIdentity.EmailVerified,
         FCIdentity.PasswordChanged,
@@ -81,11 +89,19 @@ defmodule FCIdentity.MixProject do
         FCIdentity.UserRoleChanged,
 
         FCIdentity.AccountCreated,
+        FCIdentity.AccountClosed,
         FCIdentity.AccountInfoUpdated,
+        FCIdentity.AccountSystemLabelChanged,
+
+        FCIdentity.AppAdded,
+        FCIdentity.AppDeleted,
+        FCIdentity.AppUpdated
       ],
 
       "Stores": [
-        FCIdentity.UsernameStore
+        FCIdentity.UsernameStore,
+        FCIdentity.AccountHandleStore,
+        FCIdentity.TestAccountIdStore
       ]
     ]
   end

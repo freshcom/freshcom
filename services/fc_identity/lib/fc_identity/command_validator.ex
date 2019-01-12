@@ -1,4 +1,6 @@
 defmodule FCIdentity.CommandValidator do
+  @moduledoc false
+
   alias FCIdentity.UsernameStore
   alias FCSupport.Validation
 

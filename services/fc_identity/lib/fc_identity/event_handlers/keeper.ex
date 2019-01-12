@@ -1,4 +1,6 @@
 defmodule FCIdentity.Keeper do
+  @moduledoc false
+
   use Commanded.Event.Handler,
     name: "event-handler:f25377d2-2658-4357-9648-1c429d65965b",
     consistency: :strong
