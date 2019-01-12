@@ -2,7 +2,7 @@ dist: xenial
 services:
   - postgresql
 addons:
-  postgresql: "10"
+  postgresql: '10'
 language: elixir
 elixir: '1.7'
 otp_release: '21.0'
