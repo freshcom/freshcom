@@ -12,3 +12,4 @@ script:
 env:
   global:
     - DB_USERNAME="postgres"
+    - MIX_ENV="test"
