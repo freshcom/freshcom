@@ -7,7 +7,8 @@ language: elixir
 elixir: '1.7'
 otp_release: '21.0'
 before_script:
-  - mix freshcom.setup
+  - cd services/fc_identity; mix deps.get
+  - cd ../../; mix freshcom.setup
 script:
   - cd services/fc_identity; mix test
   - cd ../../; mix test
