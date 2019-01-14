@@ -11,19 +11,27 @@ defmodule Freshcom.Repo.Migrations.CreateStockable do
 
       add :status, :string
       add :code, :string
+      add :barcode, :string
+
       add :name, :string
       add :label, :string
-
       add :print_name, :string
       add :unit_of_measure, :string
+      add :specification, :text
+
       add :variable_weight, :boolean
+      add :weight, :decimal
+      add :weight_unit, :string
 
       add :storage_type, :string
       add :storage_size, :integer
+      add :storage_description, :string
       add :stackable, :boolean
 
-      add :specification, :text
-      add :storage_description, :text
+      add :width, :decimal
+      add :length, :decimal
+      add :height, :decimal
+      add :dimension_unit, :string
 
       add :caption, :string
       add :description, :text

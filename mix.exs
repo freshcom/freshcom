@@ -39,6 +39,7 @@ defmodule Freshcom.MixProject do
       {:commanded, "~> 0.17"},
       {:commanded_ecto_projections, "~> 0.7"},
       {:inflex, "~> 1.10"},
+      {:decimal, "~> 1.6"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:faker, "~> 0.11", only: [:test, :dev]}
     ]

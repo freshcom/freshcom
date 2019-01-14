@@ -32,6 +32,7 @@ defmodule FCGoods.MixProject do
     [
       {:fc_base, path: "../../base/fc_base"},
       {:commanded, "~> 0.17"},
+      {:decimal, "~> 1.6"},
       {:hackney, "~> 1.9"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.3"},

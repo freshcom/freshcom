@@ -33,7 +33,6 @@ defmodule Freshcom.GoodsTest do
     #   assert {:ok, _} = Identity.add_app(req)
     # end
 
-    @tag :focus
     test "given valid request by user" do
       requester = standard_user()
       client = system_app()
@@ -44,7 +43,34 @@ defmodule Freshcom.GoodsTest do
         account_id: requester.default_account_id,
         data: %{
           "status" => "active",
-          "name" => "Test"
+          "code" => "WD-12345",
+          "barcode" => "94038503940912309",
+
+          "name" => "Warp Drive",
+          "label" => "gen3",
+          "print_name" => "WARP DRV",
+          "unit_of_measure" => "EA",
+          "specification" => "Antimatter Engine x 1",
+
+          "variable_weight" => false,
+          "weight" => 200,
+          "weight_unit" => "tons",
+
+          "storage_type" => "frozen",
+          "storage_description" => "keep at -150 C",
+          "stackable" => false,
+
+          "width" => 500,
+          "length" => 500,
+          "height" => 500,
+          "dimension_unit" => "meters",
+
+          "caption" => "A good core for your spaceship",
+          "description" => "buy 1 get 1 free",
+
+          "custom_data" => %{
+            "fuel_type" => "antimatter"
+          }
         }
       }
 
