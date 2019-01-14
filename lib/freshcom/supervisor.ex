@@ -11,6 +11,7 @@ defmodule Freshcom.Supervisor do
     children = [
       # Services
       FCIdentity.Supervisor,
+      FCGoods.Supervisor,
 
       # Infrastructure
       Freshcom.PubSub,

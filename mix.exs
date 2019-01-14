@@ -20,7 +20,8 @@ defmodule Freshcom.MixProject do
       mod: {Freshcom.Application, []},
       extra_applications: [:logger],
       included_applications: [
-        :fc_identity
+        :fc_identity,
+        :fc_goods
       ]
     ]
   end
