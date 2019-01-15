@@ -1,12 +1,9 @@
 defmodule FCIdentity.AccountPolicy do
   @moduledoc false
 
-  alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
+  use FCBase, :policy
 
-  def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
-  def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
-  def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
-  def authorize(%{client_type: "unkown"}, _), do: {:error, :access_denied}
+  alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
 
   def authorize(%CreateAccount{mode: "live", requester_id: nil}, _), do: {:error, :access_denied}
 
@@ -19,7 +16,7 @@ defmodule FCIdentity.AccountPolicy do
   end
 
   def authorize(%UpdateAccountInfo{requester_role: role} = cmd, %{mode: "live"})
-      when role in ["owner", "administrator"] do
+      when role in @admin_roles do
     {:ok, cmd}
   end
 
