@@ -107,15 +107,11 @@ defmodule Freshcom.Identity do
 
   - C/S: Case Sensitive
   """
+  use Freshcom, :api_module
 
   import FCSupport.Normalization, only: [atomize_keys: 2]
-  import Freshcom.APIModule
   import Freshcom.IdentityPolicy
   import UUID
-
-  use OK.Pipe
-
-  alias Freshcom.{APIModule, Request}
 
   alias FCIdentity.{
     RegisterUser,
@@ -151,7 +147,6 @@ defmodule Freshcom.Identity do
     AppDeleted
   }
 
-  alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
   alias Freshcom.{User, Account, APIKey, App}
 

@@ -1,12 +1,8 @@
 defmodule Freshcom.Goods do
-  import Freshcom.APIModule
+  use Freshcom, :api_module
 
-  use OK.Pipe
-
-  alias Freshcom.{APIModule, Request}
   alias FCGoods.{AddStockable}
   alias FCGoods.{StockableAdded}
-  alias Freshcom.{Repo, Projector}
   alias Freshcom.{StockableProjector}
 
   @spec add_stockable(Request.t()) :: APIModule.resp()
