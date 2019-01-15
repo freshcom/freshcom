@@ -4,8 +4,8 @@ defmodule FCBase do
       import FCBase.Policy
 
       @admin_roles ["owner", "administrator"]
-      @dev_roles ["owner", "administrator", "developer"]
-      @customer_management_roles ["owner", "administrator", "manager", "support_specialist"]
+      @dev_roles @admin_roles ++ ["developer"]
+      @customer_management_roles @dev_roles ++ ["manager", "support_specialist"]
 
       def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
       def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
