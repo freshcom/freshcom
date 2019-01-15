@@ -16,53 +16,82 @@ defmodule FCIdentity.UserPolicy do
     VerifyEmail
   }
 
-  def authorize(%AddUser{requester_role: role} = cmd, _) when role in ["owner", "administrator"],
+  def authorize(%AddUser{requester_role: role} = cmd, _) when role in @admin_roles,
     do: {:ok, cmd}
 
   def authorize(%RegisterUser{} = cmd, _),
     do: {:ok, cmd}
 
-  def authorize(%GeneratePasswordResetToken{client_type: "system"} = cmd, %{type: "standard"}), do: {:ok, cmd}
-  def authorize(%GeneratePasswordResetToken{} = cmd, %{type: "managed"}), do: {:ok, cmd}
+  def authorize(%GeneratePasswordResetToken{} = cmd, state) do
+    cond do
+      state.type == "standard" && cmd.client_type == "system" ->
+        {:ok, cmd}
 
-  # Changing user's own password
-  def authorize(
-        %ChangePassword{
-          requester_id: rid,
-          requester_type: "standard",
-          user_id: uid,
-          client_type: "system"
-        } = cmd,
-        _
-      )
-      when rid == uid,
-      do: {:ok, cmd}
+      state.type == "standard" ->
+        {:error, :access_denied}
 
-  def authorize(%ChangePassword{requester_id: rid, requester_type: "managed", user_id: uid} = cmd, _) when rid == uid,
-    do: {:ok, cmd}
+      state.type == "managed" ->
+        {:ok, cmd}
 
-  # Reseting password
-  def authorize(%ChangePassword{requester_id: nil} = cmd, _),
-    do: {:ok, cmd}
+      true ->
+        {:error, :access_denied}
+    end
+  end
 
-  # Other user cannot change owner's password
-  def authorize(%ChangePassword{}, %{role: "owner"}),
-    do: {:error, :access_denied}
+  def authorize(%ChangePassword{} = cmd, state) do
+    cond do
+      # Standard user can change their own password through system app
+      state.type == "standard" && cmd.requester_id == cmd.user_id && cmd.client_type == "system" ->
+        {:ok, cmd}
 
-  # Manage other user's password
-  def authorize(%ChangePassword{} = cmd, state),
-    do: default(cmd, state, ["owner", "administrator"])
+      # Standard user can reset their password through system app
+      state.type == "standard" && is_nil(cmd.requester_id) && cmd.client_type == "system" ->
+        {:ok, cmd}
 
-  # Updating user's own info
-  def authorize(%UpdateUserInfo{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
-    do: {:ok, cmd}
+      # Standard user's password cannot be changed in any other way
+      state.type == "standard" ->
+        {:error, :access_denied}
 
-  # Support specailist can update customer's info
-  def authorize(%UpdateUserInfo{} = cmd, %{role: "customer"} = state),
-    do: default(cmd, state, ["owner", "administrator", "support_specialist"])
+      # Managed user can change their own password
+      cmd.requester_id && cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
 
-  def authorize(%UpdateUserInfo{} = cmd, state),
-    do: default(cmd, state, ["owner", "administrator"])
+      # Managed user can reset their password
+      is_nil(cmd.requester_id) ->
+        {:ok, cmd}
+
+      # Password of customer can be changed by user with specific roles
+      state.role == "customer" ->
+        default(cmd, state, @customer_management_roles)
+
+      # Owner's password cannot be changed by other user
+      state.role == "owner" ->
+        {:error, :access_denied}
+
+      # Password of managed users can be changed by admin users
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
+
+  def authorize(%UpdateUserInfo{} = cmd, state) do
+    cond do
+      state.type == "standard" && cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
+
+      state.type == "standard" ->
+        {:error, :access_denied}
+
+      cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
+
+      state.role == "customer" ->
+        default(cmd, state, @customer_management_roles)
+
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
 
   def authorize(
         %ChangeDefaultAccount{
@@ -77,52 +106,72 @@ defmodule FCIdentity.UserPolicy do
       when rid == uid,
       do: {:ok, cmd}
 
-  def authorize(%DeleteUser{} = cmd, state),
-    do: default(cmd, state, ["owner", "administrator"])
+  def authorize(%DeleteUser{} = cmd, state) do
+    cond do
+      state.type == "standard" ->
+        {:error, :access_denied}
 
-  def authorize(%ChangeUserRole{} = cmd, state),
-    do: default(cmd, state, ["owner", "administrator"])
+      cmd.requester_id == cmd.user_id ->
+        {:error, :access_denied}
 
-  # User can generate evt for self
-  def authorize(%GenerateEmailVerificationToken{requester_id: rid, user_id: uid} = cmd, _) when rid == uid,
-    do: {:ok, cmd}
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
 
-  def authorize(%GenerateEmailVerificationToken{} = cmd, %{role: "customer"} = state),
-    do: default(cmd, state, ["owner", "administrator", "support_specialist"])
+  def authorize(%ChangeUserRole{} = cmd, state) do
+    cond do
+      state.type == "standard" ->
+        {:error, :access_denied}
 
-  # Using verification token does not require requester to be identified
-  def authorize(%VerifyEmail{requester_id: nil} = cmd, _),
-    do: {:ok, cmd}
+      cmd.requester_id == cmd.user_id ->
+        {:error, :access_denied}
 
-  def authorize(%VerifyEmail{} = cmd, %{role: "customer"} = state),
-    do: default(cmd, state, ["owner", "administrator", "support_specialist"])
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
 
-  def authorize(%VerifyEmail{} = cmd, state),
-    do: default(cmd, state, ["owner", "administrator"])
+  def authorize(%GenerateEmailVerificationToken{} = cmd, state) do
+    cond do
+      state.type == "standard" && cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
+
+      state.type == "standard" ->
+        {:error, :access_denied}
+
+      cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
+
+      state.role == "customer" ->
+        default(cmd, state, @customer_management_roles)
+
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
+
+  def authorize(%VerifyEmail{} = cmd, state) do
+    cond do
+      state.type == "standard" && cmd.requester_id == cmd.user_id && cmd.client_type == "system" ->
+        {:ok, cmd}
+
+      state.type == "standard" && is_nil(cmd.requester_id) && cmd.client_type == "system" ->
+        {:ok, cmd}
+
+      state.type == "standard" ->
+        {:error, :access_denied}
+
+      cmd.requester_id == cmd.user_id ->
+        {:ok, cmd}
+
+      state.role == "customer" ->
+        default(cmd, state, @customer_management_roles)
+
+      true ->
+        default(cmd, state, @admin_roles)
+    end
+  end
 
   def authorize(_, _), do: {:error, :access_denied}
-
-  # defp default_authorize(_, %{role: "owner"}, _), do: {:error, :access_denied}
-
-  # defp default_authorize(cmd, state, roles) do
-  #   cmd
-  #   |> authorize_by_account(state.account_id)
-  #   ~>> authorize_by_role(roles)
-  # end
-
-  # defp authorize_by_account(%{account_id: t_aid} = cmd, aid) when t_aid == aid do
-  #   {:ok, cmd}
-  # end
-
-  # defp authorize_by_account(_, _), do: {:error, :access_denied}
-
-  # defp authorize_by_role(%{requester_role: role} = cmd, roles) do
-  #   if role in roles do
-  #     {:ok, cmd}
-  #   else
-  #     {:error, :access_denied}
-  #   end
-  # end
-
-  # defp authorize_by_role(_, _), do: {:error, :access_denied}
 end

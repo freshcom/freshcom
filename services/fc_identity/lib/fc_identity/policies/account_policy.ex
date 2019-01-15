@@ -5,8 +5,6 @@ defmodule FCIdentity.AccountPolicy do
 
   alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
 
-  def authorize(%CreateAccount{mode: "live", requester_id: nil}, _), do: {:error, :access_denied}
-
   def authorize(%CreateAccount{mode: "live", requester_type: "standard", client_type: "system"} = cmd, _) do
     {:ok, cmd}
   end

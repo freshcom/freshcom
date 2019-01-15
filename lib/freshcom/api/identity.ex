@@ -282,7 +282,7 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user.              |
   | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
   | `:requester_id` | _(required)_ ID of the user making the request. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be the same user as the target user</li><li>be a user with role in [Customer Management Roles](#module-roles) if the target user is of role `"customer"`</li><li>be a user with role in [Admin Roles](#module-roles) if the target user is a managed user</li></ul> |
 
@@ -448,7 +448,7 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user                     |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user.                     |
   | `:account_id`   | ID of the target account, if provided will only look for managed user of the target account, otherwise will only look for standard user.                     |
   | `:requester_id` | ID of the user making the request, required if `identifier["id"]` is provided. Must meet one of the following conditions: <ul style="margin: 0px;"><li>be a user with role in [Customer Management Roles](#module-roles) if the target user is of role `"customer"`</li><li>be a user with role in [Admin Roles](#module-roles)</li></ul> |
 
@@ -529,7 +529,7 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                 |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. If the target user is a standard user then the client must be an a system app. |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user. |
   | `:account_id`   | ID of the target account, required if `identifier["reset_token"]` is not provided.                                                                          |
   | `:requester_id` | ID of the user making the request, required if `identifier["reset_token"]` is not provided. When required must be the same as `identifier["id"]` or be a user with role `"owner"` or `"administrator"`. |
 
@@ -1253,7 +1253,7 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                                                   |
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.<br/> Must be a system app.                              |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app.                              |
   | `:account_id`   | _(required)_ ID of the target account.                                                                                                                                    |
   | `:requester_id` | _(required)_ ID of the user making the request.<br/> Must be a user with role `"owner"`, `"administrator"` or `"developer"`. |
 
