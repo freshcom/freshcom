@@ -674,7 +674,7 @@ defmodule Freshcom.Identity do
   def list_user(%Request{} = req) do
     req
     |> expand()
-    |> Map.put(:_filterable_fields_, [
+    |> Map.put(:_filterable_keys_, [
       "status",
       "username",
       "email",
@@ -686,8 +686,8 @@ defmodule Freshcom.Identity do
       "email_verified_at",
       "password_changed_at"
     ])
-    |> Map.put(:_searchable_fields_, ["name", "username", "email"])
-    |> Map.put(:_sortable_fields_, ["status", "username", "email", "role"])
+    |> Map.put(:_searchable_keys_, ["name", "username", "email"])
+    |> Map.put(:_sortable_keys_, ["status", "username", "email", "role"])
     |> authorize(:list_user)
     ~> to_query(User)
     ~> Repo.all()
@@ -854,8 +854,8 @@ defmodule Freshcom.Identity do
   def list_account(%Request{} = req) do
     req
     |> expand()
-    |> Map.put(:_searchable_fields_, [])
-    |> Map.put(:_sortable_fields_, [])
+    |> Map.put(:_searchable_keys_, [])
+    |> Map.put(:_sortable_keys_, [])
     |> authorize(:list_account)
     ~> Map.put(:account_id, nil)
     ~> Map.put(:filter, [%{"mode" => "live"}, %{"status" => "active"}])
@@ -995,7 +995,7 @@ defmodule Freshcom.Identity do
   def get_account(%Request{identifier: %{"handle" => _}} = req) do
     req
     |> expand()
-    |> Map.put(:_identifiable_fields_, ["handle"])
+    |> Map.put(:_identifiable_keys_, ["handle"])
     |> authorize(:get_account)
     ~> to_query(Account)
     ~> Repo.one()
@@ -1006,7 +1006,7 @@ defmodule Freshcom.Identity do
   def get_account(%Request{} = req) do
     req
     |> expand()
-    |> Map.put(:_identifiable_fields_, ["id"])
+    |> Map.put(:_identifiable_keys_, ["id"])
     |> authorize(:get_account)
     ~> Map.get(:_account_)
     ~> Account.put_prefixed_id()
@@ -1134,7 +1134,7 @@ defmodule Freshcom.Identity do
     req = expand(req)
 
     req
-    |> Map.put(:_identifiable_fields_, ["id", "user_id"])
+    |> Map.put(:_identifiable_keys_, ["id", "user_id"])
     |> authorize(:get_api_key)
     ~> get_api_key_normalize()
     ~> to_query(APIKey)
@@ -1353,9 +1353,9 @@ defmodule Freshcom.Identity do
     req = expand(req)
 
     req
-    |> Map.put(:_filterable_fields_, [])
-    |> Map.put(:_searchable_fields_, [])
-    |> Map.put(:_sortable_fields_, [])
+    |> Map.put(:_filterable_keys_, [])
+    |> Map.put(:_searchable_keys_, [])
+    |> Map.put(:_sortable_keys_, [])
     |> authorize(:list_app)
     ~> to_query(App)
     ~> Repo.all()

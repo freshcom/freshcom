@@ -181,16 +181,16 @@ defmodule Freshcom.APIModule do
 
     query
     |> for_account(req.account_id)
-    |> identify(req.identifier, req._identifiable_fields_)
-    |> filter(req.filter, req._filterable_fields_)
+    |> identify(req.identifier, req._identifiable_keys_)
+    |> filter(req.filter, req._filterable_keys_)
     |> search(
       req.search,
-      req._searchable_fields_,
+      req._searchable_keys_,
       req.locale,
       req._default_locale_,
       translatable_fields
     )
-    |> sort(req.sort, req._sortable_fields_)
+    |> sort(req.sort, req._sortable_keys_)
     |> paginate(req.pagination)
   end
 
@@ -206,21 +206,21 @@ defmodule Freshcom.APIModule do
   end
 
   @spec identify(Query.t(), map, [String.t()]) :: Query.t()
-  def identify(query, identifier, identifiable_fields) do
+  def identify(query, identifier, identifiable_keys) do
     filter =
       Enum.reduce(identifier, [], fn {k, v}, acc ->
         acc ++ [%{k => v}]
       end)
 
-    Filter.attr_only(query, filter, identifiable_fields)
+    Filter.attr_only(query, filter, identifiable_keys)
   end
 
   @spec filter(Query.t(), [map], [String.t()]) :: Query.t()
-  def filter(query, filter, filterable_fields) do
-    if has_assoc_field(filterable_fields) do
-      Filter.with_assoc(query, filter, filterable_fields)
+  def filter(query, filter, filterable_keys) do
+    if has_assoc_field(filterable_keys) do
+      Filter.with_assoc(query, filter, filterable_keys)
     else
-      Filter.attr_only(query, filter, filterable_fields)
+      Filter.attr_only(query, filter, filterable_keys)
     end
   end
 
@@ -238,13 +238,13 @@ defmodule Freshcom.APIModule do
   def search(query, "", _, _, _, _), do: query
   def search(query, _, [], _, _, _), do: query
 
-  def search(query, keyword, searchable_fields, locale, default_locale, _)
+  def search(query, keyword, searchable_keys, locale, default_locale, _)
       when is_nil(locale) or locale == default_locale do
-    search_fields(query, keyword, searchable_fields)
+    search_fields(query, keyword, searchable_keys)
   end
 
-  def search(query, keyword, searchable_fields, locale, translatable_fields) do
-    search_translations(query, keyword, searchable_fields, locale, translatable_fields)
+  def search(query, keyword, searchable_keys, locale, translatable_fields) do
+    search_translations(query, keyword, searchable_keys, locale, translatable_fields)
   end
 
   defp search_fields(query, keyword, [field | rest]) do
@@ -262,10 +262,10 @@ defmodule Freshcom.APIModule do
   end
 
   # TODO: use dynamic
-  defp search_translations(query, keyword, searchable_fields, locale, translatable_fields) do
+  defp search_translations(query, keyword, searchable_keys, locale, translatable_fields) do
     keyword = "%#{keyword}%"
 
-    Enum.reduce(searchable_fields, query, fn field, query ->
+    Enum.reduce(searchable_keys, query, fn field, query ->
       if Enum.member?(translatable_fields, field) do
         from(q in query,
           or_where: ilike(fragment("?->?->>?", q.translations, ^locale, ^field), ^keyword)
@@ -281,12 +281,12 @@ defmodule Freshcom.APIModule do
   def sort(query, [], _), do: query
   def sort(query, _, []), do: query
 
-  def sort(query, sort, sortable_fields) do
+  def sort(query, sort, sortable_keys) do
     orderings =
       Enum.reduce(sort, [], fn sorter, acc ->
         {field, ordering} = Enum.at(sorter, 0)
 
-        if (field in sortable_fields || sortable_fields == :all) && ordering in ["asc", "desc"] do
+        if (field in sortable_keys || sortable_keys == :all) && ordering in ["asc", "desc"] do
           acc ++ [{String.to_existing_atom(ordering), String.to_existing_atom(field)}]
         else
           acc

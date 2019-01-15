@@ -37,11 +37,11 @@ defmodule Freshcom.Request do
     field :_role_, String.t()
     field :_account_, map()
     field :_default_locale_, String.t()
-    field :_identifiable_fields_, atom | [String.t()], default: :all
+    field :_identifiable_keys_, atom | [String.t()], default: :all
     field :_include_filters_, map(), default: %{}
-    field :_filterable_fields_, atom | [String.t()], default: :all
-    field :_searchable_fields_, [String.t()], default: []
-    field :_sortable_fields_, [String.t()], default: :all
+    field :_filterable_keys_, atom | [String.t()], default: :all
+    field :_searchable_keys_, [String.t()], default: []
+    field :_sortable_keys_, [String.t()], default: :all
   end
 
   def put(req, root_key, key, value) do
