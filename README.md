@@ -10,14 +10,10 @@ Please see an overview of freshcom [here](https://github.com/freshcom/freshcom/b
 
 ### External Dependencies
 
-Currently freshcom requires the following external dependencies to work:
+Freshcom requires the following external dependencies to work:
 
-- AWS DynamoDB for (write side) state storage
-
-Our goal is to remove these hard dependencies when we hit beta. If you are not able to use AWS DynamoDB you can also try write your own adapter for state storage. It just need to implement the [FCStateStorage](https://github.com/freshcom/freshcom/blob/master/base/fc_state_storage/lib/fc_state_storage.ex) behaviour and are pretty straight forward to write, take a look at the two default adapaters for reference.
-
-- [FCStateStorage.DynamoAdapter](https://github.com/freshcom/freshcom/blob/master/base/fc_state_storage/lib/fc_state_storage/adapters/dynamo_adapter.ex)
-- [FCStateStorage.MemoryAdapter](https://github.com/freshcom/freshcom/blob/master/base/fc_state_storage/lib/fc_state_storage/adapters/memory_adapter.ex)
+- Postgres for event store and projections
+- Redis for write side state storage
 
 ### Setup
 
