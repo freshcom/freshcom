@@ -22,8 +22,6 @@ defmodule FCStateStorage.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_aws, "~> 2.1"},
-      {:ex_aws_dynamo, "~> 2.0"},
       {:redix, "~> 0.8.2"},
       {:jason, "~> 1.1"}
       # {:dep_from_hexpm, "~> 0.3.0"},

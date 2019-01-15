@@ -12,12 +12,12 @@ config :commanded,
 config :commanded_ecto_projections,
   repo: Freshcom.Repo
 
-config :ex_aws, region: System.get_env("AWS_REGION")
+# config :ex_aws, region: System.get_env("AWS_REGION")
 
-config :ex_aws, :retries,
-  max_attempts: 3,
-  base_backoff_in_ms: 10,
-  max_backoff_in_ms: 10_000
+# config :ex_aws, :retries,
+#   max_attempts: 3,
+#   base_backoff_in_ms: 10,
+#   max_backoff_in_ms: 10_000
 
 config :freshcom,
   ecto_repos: [Freshcom.Repo]
