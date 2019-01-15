@@ -674,7 +674,18 @@ defmodule Freshcom.Identity do
   def list_user(%Request{} = req) do
     req
     |> expand()
-    |> Map.put(:_filterable_fields_, ["status", "username", "email", "name", "first_name", "last_name", "role", "email_verified", "email_verified_at", "password_changed_at"])
+    |> Map.put(:_filterable_fields_, [
+      "status",
+      "username",
+      "email",
+      "name",
+      "first_name",
+      "last_name",
+      "role",
+      "email_verified",
+      "email_verified_at",
+      "password_changed_at"
+    ])
     |> Map.put(:_searchable_fields_, ["name", "username", "email"])
     |> Map.put(:_sortable_fields_, ["status", "username", "email", "role"])
     |> authorize(:list_user)
@@ -818,7 +829,7 @@ defmodule Freshcom.Identity do
   @doc """
   List all the accounts owned by a standard user.
 
-  Only live account with `"active"` status is listed.
+  Only live account with `"active"` status can be listed.
 
   ## Examples
 
@@ -843,6 +854,8 @@ defmodule Freshcom.Identity do
   def list_account(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:_searchable_fields_, [])
+    |> Map.put(:_sortable_fields_, [])
     |> authorize(:list_account)
     ~> Map.put(:account_id, nil)
     ~> Map.put(:filter, [%{"mode" => "live"}, %{"status" => "active"}])
@@ -982,7 +995,7 @@ defmodule Freshcom.Identity do
   def get_account(%Request{identifier: %{"handle" => _}} = req) do
     req
     |> expand()
-    |> Request.put(:identifier, "status", "active")
+    |> Map.put(:_identifiable_fields_, ["handle"])
     |> authorize(:get_account)
     ~> to_query(Account)
     ~> Repo.one()
@@ -993,6 +1006,7 @@ defmodule Freshcom.Identity do
   def get_account(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:_identifiable_fields_, ["id"])
     |> authorize(:get_account)
     ~> Map.get(:_account_)
     ~> Account.put_prefixed_id()
@@ -1120,6 +1134,7 @@ defmodule Freshcom.Identity do
     req = expand(req)
 
     req
+    |> Map.put(:_identifiable_fields_, ["id", "user_id"])
     |> authorize(:get_api_key)
     ~> get_api_key_normalize()
     ~> to_query(APIKey)
@@ -1130,6 +1145,14 @@ defmodule Freshcom.Identity do
 
   defp get_api_key_normalize(%{identifier: %{"id" => id}} = req) do
     Request.put(req, :identifier, "id", APIKey.bare_id(id))
+  end
+
+  defp get_api_key_normalize(%{identifier: identifier} = req) do
+    if !identifier["user_id"] do
+      Map.put(req, :identifier, %{"user_id" => nil})
+    else
+      req
+    end
   end
 
   defp get_api_key_normalize(req), do: req
@@ -1152,7 +1175,6 @@ defmodule Freshcom.Identity do
   Identity.exchange_api_key(%Request{
     client_id: "ab9f27c5-8636-498e-96ab-515de6aba53e",
     account_id: "c59ca218-3850-497b-a03f-a0584e5c7763",
-    requester_id: "4df750ca-ea88-4150-8a0b-7bb77efa43a4",
     data: %{"id" => "cae028f2-f5e8-402d-a0b9-4bf5ae478151"}
   })
   ```
@@ -1163,7 +1185,7 @@ defmodule Freshcom.Identity do
   |-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
   | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user.                                                                       |
   | `:account_id`   | _(required)_ ID of the target account.                                                                                                                  |
-  | `:requester_id` | _(required)_ ID of the user making the request. Must be a standard user that owns the API key. |
+  | `:requester_id` | ID of the user making the request. |
 
   ## Data Fields
 
@@ -1331,6 +1353,9 @@ defmodule Freshcom.Identity do
     req = expand(req)
 
     req
+    |> Map.put(:_filterable_fields_, [])
+    |> Map.put(:_searchable_fields_, [])
+    |> Map.put(:_sortable_fields_, [])
     |> authorize(:list_app)
     ~> to_query(App)
     ~> Repo.all()

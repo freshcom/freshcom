@@ -42,11 +42,13 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_client_: %{type: "system"}} = req, :exchange_api_key),
     do: {:ok, req}
 
-  def authorize(%{_role_: role, _client_: %{type: "system"}} = req, :get_api_key)
-      when role in @developers do
-    req = Map.put(req, :identifier, %{"account_id" => req.account_id, "user_id" => nil})
-    {:ok, req}
-  end
+  def authorize(%{requester_id: rid, identifier: %{"user_id" => uid}} = req, :get_api_key)
+      when rid == uid and not is_nil(rid),
+      do: {:ok, req}
+
+  def authorize(%{_role_: role} = req, :get_api_key)
+      when role in @developers,
+      do: {:ok, req}
 
   def authorize(%{_role_: role, _client_: %{type: "system"}} = req, :list_app)
       when role in @developers,
