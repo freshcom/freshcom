@@ -24,7 +24,7 @@ defmodule Freshcom.Repo.Migrations.CreateUser do
 
       add :password_reset_token, :string
       add :password_reset_token_expires_at, :utc_datetime
-      add :password_updated_at, :utc_datetime
+      add :password_changed_at, :utc_datetime
 
       add :email_verified, :boolean
       add :email_verification_token, :string

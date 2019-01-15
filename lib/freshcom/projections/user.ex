@@ -18,7 +18,7 @@ defmodule Freshcom.User do
 
     field :password_reset_token, :string
     field :password_reset_token_expires_at, :naive_datetime
-    field :password_updated_at, :naive_datetime
+    field :password_changed_at, :naive_datetime
 
     field :email_verified, :boolean
     field :email_verification_token, :string

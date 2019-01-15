@@ -76,7 +76,7 @@ defmodule Freshcom.UserProjector do
         password_hash: event.new_password_hash,
         password_reset_token: nil,
         password_reset_token_expires_at: nil,
-        password_updated_at: metadata.created_at
+        password_changed_at: metadata.created_at
       )
 
     Multi.update(multi, :user, changeset)
