@@ -70,8 +70,8 @@ req = %Request{
 
 ### Services
 
-- [ ] Identity
-- [ ] Goods
+- [ ] Identity (In Progress) (90%)
+- [ ] Goods (In Progress)
 - [ ] Inventory
 - [ ] Catalogue
 - [ ] CRM
