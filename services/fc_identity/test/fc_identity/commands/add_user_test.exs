@@ -9,6 +9,7 @@ defmodule FCIdentity.AddUserTest do
     test "given existing username" do
       account_id = uuid4()
       UsernameStore.put("roy", uuid4(), account_id)
+
       cmd = %AddUser{
         user_id: uuid4(),
         account_id: account_id,

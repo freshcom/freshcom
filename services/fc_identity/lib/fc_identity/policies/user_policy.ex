@@ -31,8 +31,12 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%GeneratePasswordResetToken{} = cmd, %{type: "managed"}), do: {:ok, cmd}
 
   # Changing user's own password
-  def authorize(%ChangePassword{requester_id: rid, requester_type: "standard", user_id: uid, client_type: "system"} = cmd, _) when rid == uid,
-    do: {:ok, cmd}
+  def authorize(
+        %ChangePassword{requester_id: rid, requester_type: "standard", user_id: uid, client_type: "system"} = cmd,
+        _
+      )
+      when rid == uid,
+      do: {:ok, cmd}
 
   def authorize(%ChangePassword{requester_id: rid, requester_type: "managed", user_id: uid} = cmd, _) when rid == uid,
     do: {:ok, cmd}
@@ -56,12 +60,18 @@ defmodule FCIdentity.UserPolicy do
   def authorize(%UpdateUserInfo{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])
 
-  def authorize(%ChangeDefaultAccount{
-    requester_id: rid,
-    requester_type: "standard",
-    requester_role: "owner",
-    client_type: "system",
-    user_id: uid} = cmd, _) when rid == uid, do: {:ok, cmd}
+  def authorize(
+        %ChangeDefaultAccount{
+          requester_id: rid,
+          requester_type: "standard",
+          requester_role: "owner",
+          client_type: "system",
+          user_id: uid
+        } = cmd,
+        _
+      )
+      when rid == uid,
+      do: {:ok, cmd}
 
   def authorize(%DeleteUser{} = cmd, state),
     do: default_authorize(cmd, state, ["owner", "administrator"])

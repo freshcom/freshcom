@@ -7,7 +7,7 @@ defmodule FCIdentity.MixProject do
       name: "Freshcom Identity",
       version: "0.1.0",
       elixir: "~> 1.7",
-      elixirc_paths: elixirc_paths(Mix.env),
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs()
@@ -53,7 +53,7 @@ defmodule FCIdentity.MixProject do
 
   defp groups_for_modules do
     [
-      "Commands": [
+      Commands: [
         FCIdentity.AddUser,
         FCIdentity.ChangeDefaultAccount,
         FCIdentity.ChangePassword,
@@ -64,18 +64,15 @@ defmodule FCIdentity.MixProject do
         FCIdentity.RegisterUser,
         FCIdentity.UpdateUserInfo,
         FCIdentity.VerifyEmail,
-
         FCIdentity.CreateAccount,
         FCIdentity.ChangeAccountSystemLabel,
         FCIdentity.CloseAccount,
         FCIdentity.UpdateAccountInfo,
-
         FCIdentity.AddApp,
         FCIdentity.DeleteApp,
         FCIdentity.UpdateApp
       ],
-
-      "Events": [
+      Events: [
         FCIdentity.DefaultAccountChanged,
         FCIdentity.EmailVerificationTokenGenerated,
         FCIdentity.EmailVerified,
@@ -87,18 +84,15 @@ defmodule FCIdentity.MixProject do
         FCIdentity.UserRegistered,
         FCIdentity.UserRegistrationRequested,
         FCIdentity.UserRoleChanged,
-
         FCIdentity.AccountCreated,
         FCIdentity.AccountClosed,
         FCIdentity.AccountInfoUpdated,
         FCIdentity.AccountSystemLabelChanged,
-
         FCIdentity.AppAdded,
         FCIdentity.AppDeleted,
         FCIdentity.AppUpdated
       ],
-
-      "Stores": [
+      Stores: [
         FCIdentity.UsernameStore,
         FCIdentity.AccountHandleStore,
         FCIdentity.TestAccountIdStore

@@ -16,6 +16,7 @@ defmodule FCIdentity.PasswordResetTokenGenerated do
 
     field :user_id, String.t()
     field :token, String.t()
-    field :expires_at, String.t() # IS8601 Format
+    # IS8601 Format
+    field :expires_at, String.t()
   end
 end

@@ -5,6 +5,7 @@ defmodule FCIdentity.User do
   use FCBase, :aggregate
 
   alias FCStateStorage.GlobalStore.DefaultLocaleStore
+
   alias FCIdentity.{
     UserAdded,
     UserRegistered,
@@ -73,19 +74,16 @@ defmodule FCIdentity.User do
   def apply(state, %EmailVerificationTokenGenerated{} = event) do
     {:ok, datetime, 0} = DateTime.from_iso8601(event.expires_at)
 
-    %{state |
-      email_verified: false,
-      email_verification_token: event.token,
-      email_verification_token_expires_at: datetime
+    %{
+      state
+      | email_verified: false,
+        email_verification_token: event.token,
+        email_verification_token_expires_at: datetime
     }
   end
 
   def apply(state, %PasswordChanged{} = event) do
-    %{state |
-      password_hash: event.new_password_hash,
-      password_reset_token: nil,
-      password_reset_token_expires_at: nil
-    }
+    %{state | password_hash: event.new_password_hash, password_reset_token: nil, password_reset_token_expires_at: nil}
   end
 
   def apply(state, %UserRoleChanged{} = event) do
@@ -106,10 +104,6 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %EmailVerified{}) do
-    %{state |
-      email_verified: true,
-      email_verification_token: nil,
-      email_verification_token_expires_at: nil
-    }
+    %{state | email_verified: true, email_verification_token: nil, email_verification_token_expires_at: nil}
   end
 end

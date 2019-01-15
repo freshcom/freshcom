@@ -24,13 +24,13 @@ defmodule FCIdentity.RouterCase do
 
   def append_to_stream(stream_uuid, events, expected_version \\ 0) do
     event_data =
-      Enum.map(events, fn(event) ->
+      Enum.map(events, fn event ->
         %Commanded.EventStore.EventData{
           causation_id: uuid4(),
           correlation_id: uuid4(),
           event_type: Commanded.EventStore.TypeProvider.to_string(event),
           data: event,
-          metadata: %{},
+          metadata: %{}
         }
       end)
 

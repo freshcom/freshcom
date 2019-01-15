@@ -5,6 +5,7 @@ defmodule FCIdentity.RouterTest do
 
   alias FCStateStorage.GlobalStore.{UserRoleStore, UserTypeStore, AppStore}
   alias FCIdentity.Router
+
   alias FCIdentity.{
     RegisterUser,
     DeleteUser,
@@ -20,12 +21,14 @@ defmodule FCIdentity.RouterTest do
     UpdateApp,
     DeleteApp
   }
+
   alias FCIdentity.{
     AccountCreated,
     AccountInfoUpdated,
     AccountSystemLabelChanged,
     AccountClosed
   }
+
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
@@ -39,6 +42,7 @@ defmodule FCIdentity.RouterTest do
     EmailVerificationTokenGenerated,
     EmailVerified
   }
+
   alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
 
   def user_id(account_id, role) do
@@ -62,25 +66,25 @@ defmodule FCIdentity.RouterTest do
   end
 
   def account_stream(events) do
-    groups = Enum.group_by(events, &(&1.account_id))
+    groups = Enum.group_by(events, & &1.account_id)
 
-    Enum.each(groups, fn({account_id, events}) ->
+    Enum.each(groups, fn {account_id, events} ->
       append_to_stream("account-" <> account_id, events)
     end)
   end
 
   def user_stream(events) do
-    groups = Enum.group_by(events, &(&1.user_id))
+    groups = Enum.group_by(events, & &1.user_id)
 
-    Enum.each(groups, fn({user_id, events}) ->
+    Enum.each(groups, fn {user_id, events} ->
       append_to_stream("user-" <> user_id, events)
     end)
   end
 
   def app_stream(events) do
-    groups = Enum.group_by(events, &(&1.app_id))
+    groups = Enum.group_by(events, & &1.app_id)
 
-    Enum.each(groups, fn({app_id, events}) ->
+    Enum.each(groups, fn {app_id, events} ->
       append_to_stream("app-" <> app_id, events)
     end)
   end
@@ -97,9 +101,10 @@ defmodule FCIdentity.RouterTest do
         is_term_accepted: true,
         name: Faker.Name.name()
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(UserRegistered, fn(event) ->
+      assert_receive_event(UserRegistered, fn event ->
         assert event.username == cmd.username
         assert event.default_account_id
         assert event.is_term_accepted == cmd.is_term_accepted
@@ -107,21 +112,24 @@ defmodule FCIdentity.RouterTest do
         assert event.email == cmd.email
       end)
 
-      assert_receive_event(EmailVerificationTokenGenerated, fn(event) ->
+      assert_receive_event(EmailVerificationTokenGenerated, fn event ->
         assert event.token
         assert event.expires_at
       end)
-      assert_receive_event(AccountCreated,
-        fn(event) -> event.mode == "live" end,
-        fn(event) ->
+
+      assert_receive_event(
+        AccountCreated,
+        fn event -> event.mode == "live" end,
+        fn event ->
           assert event.name == "Unamed Account"
           assert event.default_locale == "en"
         end
       )
 
-      assert_receive_event(AccountCreated,
-        fn(event) -> event.mode == "test" end,
-        fn(event) ->
+      assert_receive_event(
+        AccountCreated,
+        fn event -> event.mode == "test" end,
+        fn event ->
           assert event.name == "Unamed Account"
           assert event.default_locale == "en"
         end
@@ -145,12 +153,15 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("standard", account_id)
 
       user_id = uuid4()
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        type: "managed",
-        role: "developer"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          type: "managed",
+          role: "developer"
+        }
+      ])
 
       cmd = %DeleteUser{
         requester_id: requester_id,
@@ -158,9 +169,10 @@ defmodule FCIdentity.RouterTest do
         client_id: client_id,
         user_id: user_id
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(UserDeleted, fn(event) ->
+      assert_receive_event(UserDeleted, fn event ->
         assert event.user_id == cmd.user_id
       end)
     end
@@ -186,12 +198,15 @@ defmodule FCIdentity.RouterTest do
       account_id = uuid4()
       user_id = uuid4()
       client_id = app_id("standard", account_id)
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        type: "managed",
-        role: "developer"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          type: "managed",
+          role: "developer"
+        }
+      ])
 
       cmd = %GeneratePasswordResetToken{
         client_id: client_id,
@@ -199,9 +214,10 @@ defmodule FCIdentity.RouterTest do
         user_id: user_id,
         expires_at: Timex.shift(Timex.now(), hours: 24)
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(PasswordResetTokenGenerated, fn(event) ->
+      assert_receive_event(PasswordResetTokenGenerated, fn event ->
         assert event.user_id == cmd.user_id
         assert event.token
         assert event.expires_at
@@ -230,12 +246,15 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("standard", account_id)
 
       user_id = uuid4()
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        type: "managed",
-        role: "customer"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          type: "managed",
+          role: "customer"
+        }
+      ])
 
       cmd = %GenerateEmailVerificationToken{
         requester_id: user_id,
@@ -244,9 +263,10 @@ defmodule FCIdentity.RouterTest do
         user_id: user_id,
         expires_at: Timex.shift(Timex.now(), hours: 24)
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(EmailVerificationTokenGenerated, fn(event) ->
+      assert_receive_event(EmailVerificationTokenGenerated, fn event ->
         assert event.user_id == cmd.user_id
         assert event.token
         assert event.expires_at
@@ -278,13 +298,16 @@ defmodule FCIdentity.RouterTest do
       UserTypeStore.put(user_id, "managed")
 
       original_password_hash = hashpwsalt("test1234")
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        password_hash: original_password_hash,
-        type: "managed",
-        role: "developer"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          password_hash: original_password_hash,
+          type: "managed",
+          role: "developer"
+        }
+      ])
 
       cmd = %ChangePassword{
         requester_id: user_id,
@@ -294,9 +317,10 @@ defmodule FCIdentity.RouterTest do
         current_password: "test1234",
         new_password: "test1234"
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(PasswordChanged, fn(event) ->
+      assert_receive_event(PasswordChanged, fn event ->
         assert event.user_id == user_id
         assert event.new_password_hash != original_password_hash
       end)
@@ -326,12 +350,16 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("standard", account_id)
 
       user_id = uuid4()
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        type: "managed",
-        role: "read_only"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          type: "managed",
+          role: "read_only"
+        }
+      ])
+
       cmd = %ChangeUserRole{
         requester_id: requester_id,
         account_id: account_id,
@@ -342,7 +370,7 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(UserRoleChanged, fn(event) ->
+      assert_receive_event(UserRoleChanged, fn event ->
         assert event.user_id == cmd.user_id
         assert event.role == cmd.role
       end)
@@ -372,12 +400,16 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("standard", account_id)
 
       user_id = uuid4()
-      user_stream([%UserAdded{
-        account_id: account_id,
-        user_id: user_id,
-        type: "managed",
-        role: "read_only"
-      }])
+
+      user_stream([
+        %UserAdded{
+          account_id: account_id,
+          user_id: user_id,
+          type: "managed",
+          role: "read_only"
+        }
+      ])
+
       cmd = %UpdateUserInfo{
         requester_id: requester_id,
         client_id: client_id,
@@ -389,7 +421,7 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(UserInfoUpdated, fn(event) ->
+      assert_receive_event(UserInfoUpdated, fn event ->
         assert event.user_id == cmd.user_id
         assert event.name == cmd.name
       end)
@@ -417,13 +449,16 @@ defmodule FCIdentity.RouterTest do
       requester_id = user_id(account_id, "owner")
       client_id = app_id("system")
 
-      user_stream([%UserRegistered{
-        user_id: requester_id,
-        status: "active",
-        role: "owner",
-        default_locale: "en",
-        account_name: Faker.Company.name()
-      }])
+      user_stream([
+        %UserRegistered{
+          user_id: requester_id,
+          status: "active",
+          role: "owner",
+          default_locale: "en",
+          account_name: Faker.Company.name()
+        }
+      ])
+
       account_stream([
         %AccountCreated{
           account_id: account_id,
@@ -435,6 +470,7 @@ defmodule FCIdentity.RouterTest do
           handle: "test"
         }
       ])
+
       cmd = %ChangeDefaultAccount{
         requester_id: requester_id,
         client_id: client_id,
@@ -444,13 +480,14 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(DefaultAccountChanged, fn(event) ->
+      assert_receive_event(DefaultAccountChanged, fn event ->
         assert event.default_account_id == cmd.account_id
       end)
 
-      assert_receive_event(AccountSystemLabelChanged,
-        fn(event) -> event.account_id == account_id end,
-        fn(event) ->
+      assert_receive_event(
+        AccountSystemLabelChanged,
+        fn event -> event.account_id == account_id end,
+        fn event ->
           assert event.system_label == "default"
         end
       )
@@ -478,6 +515,7 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("system")
 
       token = uuid4()
+
       user_stream([
         %UserAdded{
           account_id: uuid4(),
@@ -491,6 +529,7 @@ defmodule FCIdentity.RouterTest do
           expires_at: Timex.shift(Timex.now(), hours: 24)
         }
       ])
+
       cmd = %VerifyEmail{
         user_id: user_id,
         client_id: client_id,
@@ -499,7 +538,7 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(EmailVerified, fn(event) ->
+      assert_receive_event(EmailVerified, fn event ->
         assert event.user_id == cmd.user_id
       end)
     end
@@ -563,7 +602,7 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AccountInfoUpdated, fn(event) ->
+      assert_receive_event(AccountInfoUpdated, fn event ->
         assert event.name == cmd.name
       end)
     end
@@ -599,18 +638,21 @@ defmodule FCIdentity.RouterTest do
         client_id: client_id,
         account_id: account_id
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AccountClosed,
-        fn(event) -> event.mode == "live" end,
-        fn(event) ->
+      assert_receive_event(
+        AccountClosed,
+        fn event -> event.mode == "live" end,
+        fn event ->
           assert event.account_id == account_id
         end
       )
 
-      assert_receive_event(AccountClosed,
-        fn(event) -> event.mode == "test" end,
-        fn(event) ->
+      assert_receive_event(
+        AccountClosed,
+        fn event -> event.mode == "test" end,
+        fn event ->
           assert event.account_id == test_account_id
         end
       )
@@ -624,9 +666,10 @@ defmodule FCIdentity.RouterTest do
         type: "system",
         name: Faker.String.base64(12)
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AppAdded, fn(event) ->
+      assert_receive_event(AppAdded, fn event ->
         assert event.name == cmd.name
         assert event.type == cmd.type
       end)
@@ -643,9 +686,10 @@ defmodule FCIdentity.RouterTest do
         account_id: account_id,
         name: Faker.String.base64(12)
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AppAdded, fn(event) ->
+      assert_receive_event(AppAdded, fn event ->
         assert event.name == cmd.name
         assert event.account_id == cmd.account_id
         assert event.type == cmd.type
@@ -666,11 +710,13 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("system")
       app_id = app_id("standard", account_id)
 
-      app_stream([%AppAdded{
-        account_id: account_id,
-        app_id: app_id,
-        type: "standard"
-      }])
+      app_stream([
+        %AppAdded{
+          account_id: account_id,
+          app_id: app_id,
+          type: "standard"
+        }
+      ])
 
       cmd = %DeleteApp{
         requester_id: requester_id,
@@ -678,9 +724,10 @@ defmodule FCIdentity.RouterTest do
         account_id: account_id,
         app_id: app_id
       }
+
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AppDeleted, fn(event) ->
+      assert_receive_event(AppDeleted, fn event ->
         assert event.app_id == cmd.app_id
       end)
     end
@@ -709,11 +756,13 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("system")
       app_id = app_id("standard", account_id)
 
-      app_stream([%AppAdded{
-        account_id: account_id,
-        app_id: app_id,
-        type: "standard"
-      }])
+      app_stream([
+        %AppAdded{
+          account_id: account_id,
+          app_id: app_id,
+          type: "standard"
+        }
+      ])
 
       cmd = %UpdateApp{
         requester_id: requester_id,
@@ -726,7 +775,7 @@ defmodule FCIdentity.RouterTest do
 
       :ok = Router.dispatch(cmd)
 
-      assert_receive_event(AppUpdated, fn(event) ->
+      assert_receive_event(AppUpdated, fn event ->
         assert event.app_id == cmd.app_id
         assert event.name == cmd.name
       end)

@@ -5,11 +5,13 @@ defmodule FCIdentity.UserHandlerTest do
 
   alias FCIdentity.UserHandler
   alias FCIdentity.User
+
   alias FCIdentity.{
     RegisterUser,
     AddUser,
     ChangePassword
   }
+
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
@@ -53,13 +55,14 @@ defmodule FCIdentity.UserHandlerTest do
     end
 
     test "when all fields are valid", %{cmd: cmd} do
-      cmd = %{cmd |
-        user_id: uuid4(),
-        account_id: uuid4(),
-        username: Faker.String.base64(8),
-        email: Faker.Internet.email(),
-        name: Faker.Name.name(),
-        password: Faker.Lorem.sentence(1)
+      cmd = %{
+        cmd
+        | user_id: uuid4(),
+          account_id: uuid4(),
+          username: Faker.String.base64(8),
+          email: Faker.Internet.email(),
+          name: Faker.Name.name(),
+          password: Faker.Lorem.sentence(1)
       }
 
       event = %UserAdded{} = UserHandler.handle(%User{}, cmd)
@@ -75,8 +78,9 @@ defmodule FCIdentity.UserHandlerTest do
     test "when changing user's own password with invalid current password" do
       state = %User{
         id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: state.id,
         requester_type: "managed",
@@ -85,6 +89,7 @@ defmodule FCIdentity.UserHandlerTest do
         current_password: "invalid",
         new_password: "test1234"
       }
+
       {:error, {:validation_failed, errors}} = UserHandler.handle(state, cmd)
 
       assert has_error(errors, :current_password, :invalid)
@@ -93,8 +98,9 @@ defmodule FCIdentity.UserHandlerTest do
     test "when changing user's own password and current password is valid" do
       state = %User{
         id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: state.id,
         requester_type: "managed",
@@ -116,12 +122,14 @@ defmodule FCIdentity.UserHandlerTest do
         password_reset_token: uuid4(),
         password_reset_token_expires_at: Timex.shift(Timex.now(), hours: 24)
       }
+
       cmd = %ChangePassword{
         user_id: state.id,
         client_type: "system",
         reset_token: "invalid",
         new_password: "test1234"
       }
+
       {:error, {:validation_failed, errors}} = UserHandler.handle(state, cmd)
 
       assert has_error(errors, :reset_token, :invalid)
@@ -131,14 +139,16 @@ defmodule FCIdentity.UserHandlerTest do
       state = %User{
         id: uuid4(),
         password_reset_token: uuid4(),
-        password_reset_token_expires_at: Timex.shift(Timex.now(), hours: -24),
+        password_reset_token_expires_at: Timex.shift(Timex.now(), hours: -24)
       }
+
       cmd = %ChangePassword{
         user_id: state.id,
         client_type: "standard",
         reset_token: state.password_reset_token,
         new_password: "test1234"
       }
+
       {:error, {:validation_failed, errors}} = UserHandler.handle(state, cmd)
 
       assert has_error(errors, :reset_token, :expired)
@@ -148,8 +158,9 @@ defmodule FCIdentity.UserHandlerTest do
       state = %User{
         id: uuid4(),
         password_reset_token: uuid4(),
-        password_reset_token_expires_at: Timex.shift(Timex.now(), hours: 24),
+        password_reset_token_expires_at: Timex.shift(Timex.now(), hours: 24)
       }
+
       cmd = %ChangePassword{
         user_id: state.id,
         client_type: "system",
@@ -167,8 +178,9 @@ defmodule FCIdentity.UserHandlerTest do
       state = %User{
         id: uuid4(),
         account_id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: uuid4(),
         requester_role: "customer",
@@ -184,8 +196,9 @@ defmodule FCIdentity.UserHandlerTest do
       state = %User{
         id: uuid4(),
         account_id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: uuid4(),
         requester_role: "administrator",
@@ -202,8 +215,9 @@ defmodule FCIdentity.UserHandlerTest do
         id: uuid4(),
         role: "owner",
         account_id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: uuid4(),
         requester_role: "administrator",
@@ -219,8 +233,9 @@ defmodule FCIdentity.UserHandlerTest do
       state = %User{
         id: uuid4(),
         account_id: uuid4(),
-        password_hash: hashpwsalt("test1234"),
+        password_hash: hashpwsalt("test1234")
       }
+
       cmd = %ChangePassword{
         requester_id: uuid4(),
         requester_role: "administrator",

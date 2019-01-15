@@ -9,6 +9,7 @@ defmodule FCIdentity.UpdateUserInfoTest do
     test "given existing username" do
       account_id = uuid4()
       UsernameStore.put("roy", uuid4(), account_id)
+
       cmd = %UpdateUserInfo{
         user_id: uuid4(),
         account_id: account_id,

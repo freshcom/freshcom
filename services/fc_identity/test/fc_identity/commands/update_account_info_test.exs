@@ -8,6 +8,7 @@ defmodule FCIdentity.UpdateAccountInfoTest do
   describe "validations" do
     test "given existing handle" do
       AccountHandleStore.put("roy", uuid4())
+
       cmd = %UpdateAccountInfo{
         account_id: uuid4(),
         effective_keys: ["handle"],

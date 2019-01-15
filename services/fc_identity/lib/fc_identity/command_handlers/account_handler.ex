@@ -50,11 +50,11 @@ defmodule FCIdentity.AccountHandler do
     |> authorize(state)
     ~> keep_account_handle(state)
     ~> merge_to(%AccountClosed{
-        owner_id: state.owner_id,
-        mode: state.mode,
-        test_account_id: state.test_account_id,
-        handle: state.id
-      })
+      owner_id: state.owner_id,
+      mode: state.mode,
+      test_account_id: state.test_account_id,
+      handle: state.id
+    })
     |> unwrap_ok()
   end
 

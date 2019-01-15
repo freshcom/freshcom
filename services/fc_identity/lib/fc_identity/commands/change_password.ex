@@ -19,7 +19,7 @@ defmodule FCIdentity.ChangePassword do
   end
 
   validates :user_id, presence: true, uuid: true
-  validates :reset_token , presence: [unless: :requester_id]
+  validates :reset_token, presence: [unless: :requester_id]
   validates :current_password, presence: [if: &__MODULE__.changing_own_password?/1]
 
   validates :new_password, presence: true, length: [min: 8]
