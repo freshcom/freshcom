@@ -41,7 +41,7 @@ defmodule Freshcom.Request do
     field :_include_filters_, map(), default: %{}
     field :_filterable_fields_, atom | [String.t()], default: :all
     field :_searchable_fields_, [String.t()], default: []
-    field :_sortable_fields_, [String.t()], default: []
+    field :_sortable_fields_, [String.t()], default: :all
   end
 
   def put(req, root_key, key, value) do

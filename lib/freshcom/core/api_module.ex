@@ -286,7 +286,7 @@ defmodule Freshcom.APIModule do
       Enum.reduce(sort, [], fn sorter, acc ->
         {field, ordering} = Enum.at(sorter, 0)
 
-        if field in sortable_fields && ordering in ["asc", "desc"] do
+        if (field in sortable_fields || sortable_fields == :all) && ordering in ["asc", "desc"] do
           acc ++ [{String.to_existing_atom(ordering), String.to_existing_atom(field)}]
         else
           acc
