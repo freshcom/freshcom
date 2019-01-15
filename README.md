@@ -55,6 +55,31 @@ req = %Request{
 {:ok, %{data: user}} = Freshcom.Identity.register_user(req)
 ```
 
+## Roadmap
+
+### Base
+
+- [ ] Filter
+- [ ] Include
+- [ ] Pagination
+- [ ] I18N
+- [ ] Search
+- [ ] Sort
+- [ ] Store
+- [ ] Validation
+
+### Services
+
+- [ ] Identity
+- [ ] Goods
+- [ ] Inventory
+- [ ] Catalogue
+- [ ] CRM
+- [ ] Finance
+- [ ] Storefront
+- [ ] Fulfillment
+- [ ] Notification
+
 ## Learn more
 
   * Documentation: http://www.comingsoon.io/
