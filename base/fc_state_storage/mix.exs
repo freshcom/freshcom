@@ -14,6 +14,7 @@ defmodule FCStateStorage.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {FCStateStorage.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -22,7 +23,9 @@ defmodule FCStateStorage.MixProject do
   defp deps do
     [
       {:ex_aws, "~> 2.1"},
-      {:ex_aws_dynamo, "~> 2.0"}
+      {:ex_aws_dynamo, "~> 2.0"},
+      {:redix, "~> 0.8.2"},
+      {:jason, "~> 1.1"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
     ]

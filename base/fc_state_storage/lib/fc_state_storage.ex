@@ -4,6 +4,7 @@ defmodule FCStateStorage do
   @callback get(key :: String.t(), opts :: keyword) :: any
   @callback put(key :: String.t(), record :: map, opts :: keyword) :: {:ok, any} | {:error, any}
   @callback delete(key :: String.t(), opts :: keyword) :: :ok
+  @callback reset!() :: :ok
 
   defdelegate get(key, opts \\ []), to: @store
   defdelegate put(key, record, opts \\ []), to: @store
