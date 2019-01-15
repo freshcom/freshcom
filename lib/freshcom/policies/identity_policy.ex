@@ -20,7 +20,6 @@ defmodule Freshcom.IdentityPolicy do
   def authorize(%{_client_: nil}, _), do: {:error, :access_denied}
 
   def authorize(%{_role_: role} = req, :list_user) when role in @admins do
-    req = %{req | _searchable_fields_: ["name", "username", "email"]}
     {:ok, req}
   end
 

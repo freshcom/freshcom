@@ -674,6 +674,9 @@ defmodule Freshcom.Identity do
   def list_user(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:_filterable_fields_, ["status", "username", "email", "name", "first_name", "last_name", "role", "email_verified", "email_verified_at", "password_changed_at"])
+    |> Map.put(:_searchable_fields_, ["name", "username", "email"])
+    |> Map.put(:_sortable_fields_, ["status", "username", "email", "role"])
     |> authorize(:list_user)
     ~> to_query(User)
     ~> Repo.all()
@@ -753,7 +756,7 @@ defmodule Freshcom.Identity do
 
   | Key             | Description                                                                                                                                       |
   |-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. Must be a system app if the target user is a standard user.  |
+  | `:client_id`    | _(required)_ ID of the app that is making the request on behalf of the user. |
   | `:account_id`   | ID of the target account, required if the target user is a managed user.                                                                                                        |
   | `:requester_id` | ID of the user making the request, required if `identifier["id"]` is provided. When required, must be the same as the target user or be a user with role in [Admin Roles](#module-roles).           |
 
