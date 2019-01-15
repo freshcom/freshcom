@@ -59,14 +59,14 @@ req = %Request{
 
 ### Base
 
-- [ ] Filter
-- [ ] Include
-- [ ] Pagination
-- [ ] I18N
-- [ ] Search
-- [ ] Sort
-- [ ] Store
-- [ ] Validation
+- [x] Filter
+- [x] Include
+- [x] Pagination
+- [x] I18N
+- [x] Search
+- [x] Sort
+- [x] Store
+- [x] Validation
 
 ### Services
 
