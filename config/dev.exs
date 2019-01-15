@@ -10,7 +10,8 @@ config :eventstore, EventStore.Storage,
   hostname: "localhost",
   pool_size: 10
 
-config :fc_state_storage, adapter: FCStateStorage.DynamoAdapter
+config :fc_state_storage, :adapter, FCStateStorage.RedisAdapter
+config :fc_state_storage, :redis, "redis://localhost:6379/0"
 
 config :freshcom, Freshcom.Repo,
   adapter: Ecto.Adapters.Postgres,
