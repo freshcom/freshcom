@@ -31,6 +31,7 @@ defmodule FCIdentity.AccountHandler do
     |> authorize(state)
     ~> keep_account_handle(state)
     ~> merge_to(%AccountInfoUpdated{})
+    ~> put_original_fields(state)
     |> unwrap_ok()
   end
 

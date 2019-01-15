@@ -27,6 +27,7 @@ defmodule FCBase do
       use OK.Pipe
 
       import FCSupport.{ControlFlow, Struct}
+      import FCBase.CommandHandler
 
       alias FCSupport.Translation
     end

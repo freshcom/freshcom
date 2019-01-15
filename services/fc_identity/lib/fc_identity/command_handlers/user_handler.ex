@@ -122,14 +122,17 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~>> validate_current_password(state)
     ~>> validate_reset_token(state)
-    ~> merge_to(%PasswordChanged{new_password_hash: hashpwsalt(cmd.new_password)})
+    ~> merge_to(%PasswordChanged{
+      new_password_hash: hashpwsalt(cmd.new_password),
+      original_password_hash: state.password_hash
+    })
     |> unwrap_ok()
   end
 
   def handle(state, %ChangeUserRole{} = cmd) do
     cmd
     |> authorize(state)
-    ~> merge_to(%UserRoleChanged{})
+    ~> merge_to(%UserRoleChanged{original_role: state.role})
     |> unwrap_ok()
   end
 
@@ -138,6 +141,7 @@ defmodule FCIdentity.UserHandler do
     |> authorize(state)
     ~> keep_username(state)
     ~> merge_to(%UserInfoUpdated{})
+    ~> put_original_fields(state)
     |> unwrap_ok()
   end
 

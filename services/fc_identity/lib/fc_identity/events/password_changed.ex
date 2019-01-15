@@ -16,5 +16,6 @@ defmodule FCIdentity.PasswordChanged do
 
     field :user_id, String.t()
     field :new_password_hash, String.t()
+    field :original_password_hash, String.t()
   end
 end

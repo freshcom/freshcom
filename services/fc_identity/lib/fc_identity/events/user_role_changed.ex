@@ -16,5 +16,6 @@ defmodule FCIdentity.UserRoleChanged do
 
     field :user_id, String.t()
     field :role, String.t()
+    field :original_role, String.t()
   end
 end

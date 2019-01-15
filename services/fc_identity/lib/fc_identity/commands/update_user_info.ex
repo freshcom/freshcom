@@ -14,6 +14,7 @@ defmodule FCIdentity.UpdateUserInfo do
     field :account_id, String.t()
 
     field :effective_keys, [String.t()], default: []
+    field :original_fields, map()
     field :locale, String.t()
 
     field :user_id, String.t()
