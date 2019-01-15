@@ -5,6 +5,7 @@ defmodule Freshcom.StockableProjector do
   use Commanded.Projections.Ecto, name: "projector:ade1e158-ccbe-4263-8195-649c4f0dfdf8"
 
   alias Freshcom.Stockable
+
   alias FCGoods.{
     StockableAdded
   }

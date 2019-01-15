@@ -7,6 +7,7 @@ defmodule Freshcom.AccountProjector do
   alias Ecto.Changeset
   alias Freshcom.Repo
   alias Freshcom.Account
+
   alias FCIdentity.{
     AccountCreated,
     AccountInfoUpdated,

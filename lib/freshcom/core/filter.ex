@@ -38,7 +38,8 @@ defmodule Freshcom.Filter do
     from(q in query, where: ^dynamic)
   end
 
-  def attr_only(%Ecto.Query{} = query, statements, permitted_fields) when is_list(permitted_fields) do
+  def attr_only(%Ecto.Query{} = query, statements, permitted_fields)
+      when is_list(permitted_fields) do
     dynamic = do_attr_only("$and", statements, permitted_fields)
     from(q in query, where: ^dynamic)
   end
@@ -59,7 +60,7 @@ defmodule Freshcom.Filter do
 
   defp collect_dynamics(statements, permitted_fields) do
     dynamics =
-      Enum.reduce(statements, [], fn(statement_or_expression, acc) ->
+      Enum.reduce(statements, [], fn statement_or_expression, acc ->
         {operator_or_attr, statements_or_expression} = Enum.at(statement_or_expression, 0)
         acc ++ [do_attr_only(operator_or_attr, statements_or_expression, permitted_fields)]
       end)
@@ -113,7 +114,7 @@ defmodule Freshcom.Filter do
   end
 
   defp compare_attr(attr, %{"$ne" => nil}) do
-    dynamic([q], not(is_nil(field(q, ^attr))))
+    dynamic([q], not is_nil(field(q, ^attr)))
   end
 
   defp compare_attr(attr, %{"$ne" => value}) do
@@ -121,7 +122,7 @@ defmodule Freshcom.Filter do
   end
 
   defp compare_attr(attr, %{"$nin" => value}) do
-    dynamic([q], not(field(q, ^attr) in ^value))
+    dynamic([q], not (field(q, ^attr) in ^value))
   end
 
   defp is_field_permitted(_, :all), do: true
@@ -129,7 +130,7 @@ defmodule Freshcom.Filter do
 
   @spec with_assoc(Ecto.Query.t(), [map], [String.t()], map) :: Ecto.Query.t()
   def with_assoc(query, expressions, permitted_fields, assoc_queries \\ %{}) do
-    Enum.reduce(expressions, query, fn(expression, acc_query) ->
+    Enum.reduce(expressions, query, fn expression, acc_query ->
       {field, comparison} = Enum.at(expression, 0)
 
       if is_field_permitted(field, permitted_fields) do
@@ -151,6 +152,7 @@ defmodule Freshcom.Filter do
         |> expression(assoc_field, comparison, assoc_assoc_queries)
 
       %{owner_key: owner_key, related_key: related_key} = reflection(query, assoc)
+
       from(q in query,
         join: aq in subquery(assoc_query),
         on: field(q, ^owner_key) == field(aq, ^related_key)
@@ -176,7 +178,7 @@ defmodule Freshcom.Filter do
   end
 
   defp assoc_queries(assoc_queries, target_assoc) do
-    Enum.reduce(assoc_queries, %{}, fn({assoc, query}, acc) ->
+    Enum.reduce(assoc_queries, %{}, fn {assoc, query}, acc ->
       if assoc != target_assoc && String.starts_with?(assoc, target_assoc) do
         {_, assoc_field} = assoc(assoc)
         Map.put(acc, assoc_field, query)
@@ -202,7 +204,7 @@ defmodule Freshcom.Filter do
 
   @spec normalize(list, String.t(), function) :: list
   def normalize(filter, key, func) when is_list(filter) do
-    Enum.map(filter, fn(statement_or_expression) ->
+    Enum.map(filter, fn statement_or_expression ->
       {operator_or_attr, statements_or_expression} = Enum.at(statement_or_expression, 0)
 
       cond do

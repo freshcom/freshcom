@@ -11,6 +11,6 @@ defmodule Mix.Tasks.Freshcom.Setup do
       {"event_store.init", []}
     ]
 
-    Enum.each(tasks, fn({cmd, opts}) -> Mix.Task.run(cmd, opts) end)
+    Enum.each(tasks, fn {cmd, opts} -> Mix.Task.run(cmd, opts) end)
   end
 end

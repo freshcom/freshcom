@@ -8,6 +8,7 @@ defmodule Freshcom.APIKeyProjector do
 
   alias Freshcom.Repo
   alias Freshcom.{Account, APIKey}
+
   alias FCIdentity.{
     AccountCreated,
     UserAdded
@@ -27,6 +28,7 @@ defmodule Freshcom.APIKeyProjector do
     multi = Multi.insert(multi, :target_urt, target_urt)
 
     %{test_account_id: test_account_id} = Repo.get!(Account, event.account_id)
+
     if test_account_id do
       test_urt = %APIKey{id: uuid4(), user_id: event.user_id, account_id: test_account_id}
       Multi.insert(multi, :test_urt, test_urt)

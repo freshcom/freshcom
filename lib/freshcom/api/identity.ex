@@ -116,6 +116,7 @@ defmodule Freshcom.Identity do
   use OK.Pipe
 
   alias Freshcom.{APIModule, Request}
+
   alias FCIdentity.{
     RegisterUser,
     AddUser,
@@ -132,6 +133,7 @@ defmodule Freshcom.Identity do
     UpdateApp,
     DeleteApp
   }
+
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
@@ -148,6 +150,7 @@ defmodule Freshcom.Identity do
     AppUpdated,
     AppDeleted
   }
+
   alias Freshcom.{Repo, Projector}
   alias Freshcom.{UserProjector, AccountProjector, AppProjector}
   alias Freshcom.{User, Account, APIKey, App}
@@ -467,9 +470,9 @@ defmodule Freshcom.Identity do
 
     req
     |> to_command(%GeneratePasswordResetToken{
-        user_id: (user || %{id: uuid4()}).id,
-        expires_at: Timex.shift(Timex.now(), hours: 24)
-      })
+      user_id: (user || %{id: uuid4()}).id,
+      expires_at: Timex.shift(Timex.now(), hours: 24)
+    })
     |> dispatch_and_wait(PasswordResetTokenGenerated)
     ~> Map.get(:user)
     |> to_response()
@@ -478,9 +481,9 @@ defmodule Freshcom.Identity do
   def generate_password_reset_token(%Request{identifier: %{"id" => id}} = req) do
     req
     |> to_command(%GeneratePasswordResetToken{
-        user_id: id,
-        expires_at: Timex.shift(Timex.now(), hours: 24)
-      })
+      user_id: id,
+      expires_at: Timex.shift(Timex.now(), hours: 24)
+    })
     |> dispatch_and_wait(PasswordResetTokenGenerated)
     ~> Map.get(:user)
     |> to_response()
@@ -555,9 +558,9 @@ defmodule Freshcom.Identity do
 
     req
     |> to_command(%ChangePassword{
-        user_id: (user || %{id: uuid4()}).id,
-        reset_token: reset_token
-      })
+      user_id: (user || %{id: uuid4()}).id,
+      reset_token: reset_token
+    })
     |> dispatch_and_wait(PasswordChanged)
     ~> Map.get(:user)
     ~> preload(req)
@@ -1464,7 +1467,7 @@ defmodule Freshcom.Identity do
     dispatch_and_wait(cmd, event, &wait/1)
   end
 
-  defp wait(%UserRegistered{user_id: user_id, }) do
+  defp wait(%UserRegistered{user_id: user_id}) do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)},
       {:live_account, AccountProjector, &(&1.owner_id == user_id && &1.mode == "live")},
@@ -1474,13 +1477,23 @@ defmodule Freshcom.Identity do
     ])
   end
 
-  defp wait(%et{user_id: user_id}) when et in [UserAdded, UserInfoUpdated, DefaultAccountChanged, UserRoleChanged, PasswordResetTokenGenerated, PasswordChanged, UserDeleted] do
+  defp wait(%et{user_id: user_id})
+       when et in [
+              UserAdded,
+              UserInfoUpdated,
+              DefaultAccountChanged,
+              UserRoleChanged,
+              PasswordResetTokenGenerated,
+              PasswordChanged,
+              UserDeleted
+            ] do
     Projector.wait([
       {:user, UserProjector, &(&1.id == user_id)}
     ])
   end
 
-  defp wait(%et{account_id: account_id}) when et in [AccountCreated, AccountInfoUpdated, AccountClosed] do
+  defp wait(%et{account_id: account_id})
+       when et in [AccountCreated, AccountInfoUpdated, AccountClosed] do
     Projector.wait([
       {:account, AccountProjector, &(&1.id == account_id)}
     ])

@@ -6,7 +6,7 @@ defmodule Freshcom.MixProject do
       app: :freshcom,
       version: "0.1.0",
       elixir: "~> 1.7",
-      elixirc_paths: elixirc_paths(Mix.env),
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
@@ -71,20 +71,17 @@ defmodule Freshcom.MixProject do
       "API Modules": [
         Freshcom.Identity
       ],
-
       "Request & Response": [
         Freshcom.Request,
         Freshcom.Response
       ],
-
-      "Projections": [
+      Projections: [
         Freshcom.User,
         Freshcom.App,
         Freshcom.Account,
         Freshcom.APIKey
       ],
-
-      "Core": [
+      Core: [
         Freshcom.APIModule,
         Freshcom.Filter,
         Freshcom.Fixture,
@@ -104,7 +101,7 @@ defmodule Freshcom.MixProject do
 
   defp groups_for_extras do
     [
-      "Introduction": ~r/guides\/introduction\/.?/
+      Introduction: ~r/guides\/introduction\/.?/
     ]
   end
 end

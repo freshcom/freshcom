@@ -14,6 +14,7 @@ defmodule Freshcom.IntegrationCase do
     {:ok, _} = Application.ensure_all_started(:freshcom)
 
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Freshcom.Repo)
+
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Freshcom.Repo, {:shared, self()})
     end

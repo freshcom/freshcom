@@ -41,7 +41,7 @@ defmodule Freshcom.Fixture do
       account_id: account_id,
       data: %{
         "type" => "standard",
-        "name" => "Standard App",
+        "name" => "Standard App"
       },
       _role_: "system"
     }

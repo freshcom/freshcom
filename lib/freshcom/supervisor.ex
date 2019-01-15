@@ -22,7 +22,6 @@ defmodule Freshcom.Supervisor do
       Freshcom.UserProjector,
       Freshcom.APIKeyProjector,
       Freshcom.AppProjector,
-
       Freshcom.StockableProjector
     ]
 

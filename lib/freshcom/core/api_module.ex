@@ -10,7 +10,11 @@ defmodule Freshcom.APIModule do
   alias Freshcom.{Repo, Filter, Include, Projector, Router}
   alias Freshcom.{Account, User, App}
 
-  @type resp :: {:ok, Response.t()} | {:error, Response.t()} | {:error, :not_found} | {:error, :access_denied}
+  @type resp ::
+          {:ok, Response.t()}
+          | {:error, Response.t()}
+          | {:error, :not_found}
+          | {:error, :access_denied}
 
   @spec to_response({:ok, any} | {:error, any}) :: {:ok | :error, Response.t()}
   def to_response({:ok, nil}) do
@@ -38,7 +42,7 @@ defmodule Freshcom.APIModule do
   end
 
   def to_response(result) do
-    raise "unexpected result returned: #{inspect result}"
+    raise "unexpected result returned: #{inspect(result)}"
   end
 
   @spec dispatch_and_wait(struct, module, function) :: {:ok | :error, any}
@@ -68,6 +72,7 @@ defmodule Freshcom.APIModule do
   @spec to_command(Request.t(), struct) :: struct
   def to_command(req, cmd) do
     data = atomize_keys(req.data, Map.keys(cmd))
+
     effective_keys =
       data
       |> Map.keys()
@@ -95,16 +100,21 @@ defmodule Freshcom.APIModule do
   end
 
   defp put_account(%{account_id: nil} = req), do: %{req | _account_: nil}
-  defp put_account(%{account_id: id} = req), do: %{req | _account_: Repo.get_by(Account, id: id, status: "active")}
+
+  defp put_account(%{account_id: id} = req),
+    do: %{req | _account_: Repo.get_by(Account, id: id, status: "active")}
 
   defp put_default_locale(%{_account_: nil} = req), do: %{req | _default_locale_: nil}
-  defp put_default_locale(%{_account_: account} = req), do: %{req | _default_locale_: account.default_locale}
+
+  defp put_default_locale(%{_account_: account} = req),
+    do: %{req | _default_locale_: account.default_locale}
 
   defp put_requester(%{_account_: nil} = req), do: %{req | _requester_: nil}
   defp put_requester(%{requester_id: nil} = req), do: %{req | _requester_: nil}
 
-  defp put_requester(%{requester_id: id, _account_: %{owner_id: owner_id}} = req) when id == owner_id,
-    do: %{req | _requester_: Repo.get_by(User, id: id)}
+  defp put_requester(%{requester_id: id, _account_: %{owner_id: owner_id}} = req)
+       when id == owner_id,
+       do: %{req | _requester_: Repo.get_by(User, id: id)}
 
   defp put_requester(%{requester_id: id, _account_: %{mode: "live"} = account} = req),
     do: %{req | _requester_: Repo.get_by(User, id: id, account_id: account.id)}
@@ -122,6 +132,7 @@ defmodule Freshcom.APIModule do
   defp put_role(req), do: req
 
   defp put_client(%{client_id: nil} = req), do: %{req | _client_: nil}
+
   defp put_client(%{client_id: client_id, account_id: account_id} = req) do
     client = Repo.get_by(App, id: App.bare_id(client_id))
 
@@ -160,17 +171,25 @@ defmodule Freshcom.APIModule do
   @spec to_query(Request.t(), Query.t() | map) :: Query.t()
   def to_query(req, %Query{} = query) do
     {_, queryable} = query.from
-    translatable_fields = if Keyword.has_key?(queryable.__info__(:functions), :translatable_fields) do
-      queryable.translatable_fields()
-    else
-      []
-    end
+
+    translatable_fields =
+      if Keyword.has_key?(queryable.__info__(:functions), :translatable_fields) do
+        queryable.translatable_fields()
+      else
+        []
+      end
 
     query
     |> for_account(req.account_id)
     |> identify(req.identifier, req._identifiable_fields_)
     |> filter(req.filter, req._filterable_fields_)
-    |> search(req.search, req._searchable_fields_, req.locale, req._default_locale_, translatable_fields)
+    |> search(
+      req.search,
+      req._searchable_fields_,
+      req.locale,
+      req._default_locale_,
+      translatable_fields
+    )
     |> sort(req.sort, req._sortable_fields_)
     |> paginate(req.pagination)
   end
@@ -189,7 +208,7 @@ defmodule Freshcom.APIModule do
   @spec identify(Query.t(), map, [String.t()]) :: Query.t()
   def identify(query, identifier, identifiable_fields) do
     filter =
-      Enum.reduce(identifier, [], fn({k, v}, acc) ->
+      Enum.reduce(identifier, [], fn {k, v}, acc ->
         acc ++ [%{k => v}]
       end)
 
@@ -208,17 +227,19 @@ defmodule Freshcom.APIModule do
   defp has_assoc_field(:all), do: false
 
   defp has_assoc_field(fields) do
-    Enum.any?(fields, fn(field) ->
+    Enum.any?(fields, fn field ->
       Filter.is_assoc(field)
     end)
   end
 
-  @spec search(Query.t(), String.t(), [String.t()], String.t(), String.t(), [String.t()]) :: Query.t()
+  @spec search(Query.t(), String.t(), [String.t()], String.t(), String.t(), [String.t()]) ::
+          Query.t()
   def search(query, nil, _, _, _, _), do: query
   def search(query, "", _, _, _, _), do: query
   def search(query, _, [], _, _, _), do: query
 
-  def search(query, keyword, searchable_fields, locale, default_locale, _) when is_nil(locale) or (locale == default_locale) do
+  def search(query, keyword, searchable_fields, locale, default_locale, _)
+      when is_nil(locale) or locale == default_locale do
     search_fields(query, keyword, searchable_fields)
   end
 
@@ -232,7 +253,7 @@ defmodule Freshcom.APIModule do
     dynamics = dynamic([q], ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
 
     dynamics =
-      Enum.reduce(rest, dynamics, fn(field, dynamics) ->
+      Enum.reduce(rest, dynamics, fn field, dynamics ->
         field = String.to_existing_atom(field)
         dynamic([q], ^dynamics or ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
       end)
@@ -244,12 +265,14 @@ defmodule Freshcom.APIModule do
   defp search_translations(query, keyword, searchable_fields, locale, translatable_fields) do
     keyword = "%#{keyword}%"
 
-    Enum.reduce(searchable_fields, query, fn(field, query) ->
+    Enum.reduce(searchable_fields, query, fn field, query ->
       if Enum.member?(translatable_fields, field) do
-        from q in query, or_where: ilike(fragment("?->?->>?", q.translations, ^locale, ^field), ^keyword)
+        from(q in query,
+          or_where: ilike(fragment("?->?->>?", q.translations, ^locale, ^field), ^keyword)
+        )
       else
         field = String.to_existing_atom(field)
-        from q in query, or_where: ilike(fragment("?::varchar", field(q, ^field)), ^keyword)
+        from(q in query, or_where: ilike(fragment("?::varchar", field(q, ^field)), ^keyword))
       end
     end)
   end
@@ -260,10 +283,10 @@ defmodule Freshcom.APIModule do
 
   def sort(query, sort, sortable_fields) do
     orderings =
-      Enum.reduce(sort, [], fn(sorter, acc) ->
+      Enum.reduce(sort, [], fn sorter, acc ->
         {field, ordering} = Enum.at(sorter, 0)
 
-        if (field in sortable_fields) && (ordering in ["asc", "desc"]) do
+        if field in sortable_fields && ordering in ["asc", "desc"] do
           acc ++ [{String.to_existing_atom(ordering), String.to_existing_atom(field)}]
         else
           acc

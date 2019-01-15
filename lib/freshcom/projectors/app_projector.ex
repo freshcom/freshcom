@@ -6,6 +6,7 @@ defmodule Freshcom.AppProjector do
 
   alias Freshcom.Repo
   alias Freshcom.App
+
   alias FCIdentity.{
     AppAdded,
     AppUpdated,

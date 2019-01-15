@@ -44,6 +44,7 @@ defmodule Freshcom.IdentityTest do
           "password" => Faker.String.base64(12)
         }
       }
+
       assert {:error, :access_denied} = Identity.add_user(req)
     end
 
@@ -94,6 +95,7 @@ defmodule Freshcom.IdentityTest do
       client = standard_app(requester.default_account_id)
 
       new_name = Faker.Name.name()
+
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
@@ -118,6 +120,7 @@ defmodule Freshcom.IdentityTest do
         requester_id: uuid4(),
         data: %{"id" => uuid4()}
       }
+
       assert {:error, :not_found} = Identity.change_default_account(req)
     end
 
@@ -163,11 +166,13 @@ defmodule Freshcom.IdentityTest do
         identifier: %{"id" => uuid4()},
         data: %{"value" => "manager"}
       }
+
       assert {:error, :not_found} = Identity.change_user_role(req)
     end
 
     test "given unauthorize requester" do
       requester = standard_user()
+
       req = %Request{
         account_id: requester.default_account_id,
         identifier: %{"id" => requester.id},
@@ -204,6 +209,7 @@ defmodule Freshcom.IdentityTest do
       req = %Request{
         identifier: %{"id" => uuid4()}
       }
+
       assert {:error, :not_found} = Identity.generate_password_reset_token(req)
     end
 
@@ -249,6 +255,7 @@ defmodule Freshcom.IdentityTest do
         identifier: %{"id" => uuid4()},
         data: %{"new_password" => "test1234"}
       }
+
       assert {:error, :not_found} = Identity.change_password(req)
     end
 
@@ -260,6 +267,7 @@ defmodule Freshcom.IdentityTest do
         identifier: %{"id" => user.id},
         data: %{"new_password" => "test1234"}
       }
+
       assert {:error, :access_denied} = Identity.change_password(req)
     end
 
@@ -361,7 +369,6 @@ defmodule Freshcom.IdentityTest do
 
       managed_user(test_account_id)
       managed_user(test_account_id)
-
 
       req = %Request{
         requester_id: requester.id,
@@ -564,6 +571,7 @@ defmodule Freshcom.IdentityTest do
           "default_locale" => "en"
         }
       }
+
       assert {:error, :access_denied} = Identity.create_account(req)
     end
 
@@ -667,6 +675,7 @@ defmodule Freshcom.IdentityTest do
       client = standard_app(requester.default_account_id)
 
       new_name = Faker.Company.name()
+
       req = %Request{
         requester_id: requester.id,
         client_id: client.id,
@@ -880,7 +889,7 @@ defmodule Freshcom.IdentityTest do
 
       req = %Request{
         identifier: %{
-          "id" => app.id,
+          "id" => app.id
         },
         _role_: "system"
       }

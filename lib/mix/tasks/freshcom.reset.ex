@@ -14,6 +14,6 @@ defmodule Mix.Tasks.Freshcom.Reset do
       {"freshcom.state_storage.reset", []}
     ]
 
-    Enum.each(tasks, fn({cmd, opts}) -> Mix.Task.run(cmd, opts) end)
+    Enum.each(tasks, fn {cmd, opts} -> Mix.Task.run(cmd, opts) end)
   end
 end

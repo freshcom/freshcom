@@ -43,23 +43,24 @@ defmodule Freshcom.Include do
 
   def to_preload_paths(include_paths) do
     preloads = String.split(include_paths, ",")
-    preloads = Enum.sort_by(preloads, fn(item) -> length(String.split(item, ".")) end)
+    preloads = Enum.sort_by(preloads, fn item -> length(String.split(item, ".")) end)
 
-    Enum.reduce(preloads, [], fn(item, acc) ->
+    Enum.reduce(preloads, [], fn item, acc ->
       preload = to_preload_path(item)
 
       # If its a chained preload and the root key already exist in acc
       # then we need to merge it.
       with [{key, value}] <- preload,
-           true <- Keyword.has_key?(acc, key)
-      do
+           true <- Keyword.has_key?(acc, key) do
         # Merge chained preload with existing root key
         existing_value = Keyword.get(acc, key)
-        index = Enum.find_index(acc, fn(item) ->
-          is_tuple(item) && elem(item, 0) == key
-        end)
 
-        List.update_at(acc, index, fn(_) ->
+        index =
+          Enum.find_index(acc, fn item ->
+            is_tuple(item) && elem(item, 0) == key
+          end)
+
+        List.update_at(acc, index, fn _ ->
           {key, List.flatten([existing_value]) ++ value}
         end)
       else
@@ -74,7 +75,7 @@ defmodule Freshcom.Include do
       preload
       |> Inflex.underscore()
       |> String.split(".")
-      |> Enum.map(fn(item) -> String.to_existing_atom(item) end)
+      |> Enum.map(fn item -> String.to_existing_atom(item) end)
 
     nestify(preload)
   end
@@ -89,7 +90,9 @@ defmodule Freshcom.Include do
 
   defp r_nestify(list) do
     case length(list) do
-      1 -> Enum.at(list, 0)
+      1 ->
+        Enum.at(list, 0)
+
       _ ->
         [head | tail] = list
         Keyword.put([], head, r_nestify(tail))
