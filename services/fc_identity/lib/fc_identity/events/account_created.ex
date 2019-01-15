@@ -6,6 +6,7 @@ defmodule FCIdentity.AccountCreated do
   typedstruct do
     field :__version__, integer(), default: @version
 
+    field :request_id, String.t()
     field :requester_id, String.t()
     field :requester_type, String.t()
     field :requester_role, String.t()
