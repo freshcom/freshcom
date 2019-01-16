@@ -10,7 +10,8 @@ defmodule Freshcom.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -42,7 +43,8 @@ defmodule Freshcom.MixProject do
       {:inflex, "~> 1.10"},
       {:decimal, "~> 1.6"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
-      {:faker, "~> 0.11", only: [:test, :dev]}
+      {:faker, "~> 0.11", only: [:test, :dev]},
+      {:excoveralls, "~> 0.10", only: :test}
     ]
   end
 
