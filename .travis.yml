@@ -14,5 +14,6 @@ script:
   - cd ../../; mix test
 env:
   global:
-    - DB_USERNAME="postgres"
+    - EVENTSTORE_DB_USERNAME="postgres"
+    - PROJECTION_DB_USERNAME="postgres"
     - MIX_ENV="test"
