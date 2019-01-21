@@ -18,7 +18,7 @@ defmodule FCGoods.StockableAdded do
     field :avatar_id, String.t()
 
     field :status, String.t()
-    field :code, String.t()
+    field :number, String.t()
     field :barcode, String.t()
 
     field :name, String.t()

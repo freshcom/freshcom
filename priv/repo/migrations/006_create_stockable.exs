@@ -10,7 +10,7 @@ defmodule Freshcom.Repo.Migrations.CreateStockable do
       add :avatar_id, :binary_id
 
       add :status, :string
-      add :code, :string
+      add :number, :string
       add :barcode, :string
 
       add :name, :string

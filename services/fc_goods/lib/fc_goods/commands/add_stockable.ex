@@ -15,10 +15,11 @@ defmodule FCGoods.AddStockable do
     field :avatar_id, String.t()
 
     field :status, String.t(), default: "active"
-    field :code, String.t()
+    field :number, String.t()
+    field :barcode, String.t()
+
     field :name, String.t()
     field :label, String.t()
-
     field :print_name, String.t()
     field :unit_of_measure, String.t(), default: "EA"
     field :specification, String.t()

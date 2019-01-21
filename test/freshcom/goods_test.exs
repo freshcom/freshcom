@@ -29,8 +29,9 @@ defmodule Freshcom.GoodsTest do
         client_id: client.id,
         account_id: requester.default_account_id,
         data: %{
+          "avatar_id" => uuid4(),
           "status" => "active",
-          "code" => "WD-12345",
+          "number" => "WD-12345",
           "barcode" => "94038503940912309",
           "name" => "Warp Drive",
           "label" => "gen3",
@@ -55,7 +56,29 @@ defmodule Freshcom.GoodsTest do
         }
       }
 
-      assert {:ok, _} = Goods.add_stockable(req)
+      assert {:ok, %{data: stockable}} = Goods.add_stockable(req)
+      assert stockable.id
+      assert stockable.status == req.data["status"]
+      assert stockable.number == req.data["number"]
+      assert stockable.barcode == req.data["barcode"]
+      assert stockable.label == req.data["label"]
+      assert stockable.print_name == req.data["print_name"]
+      assert stockable.unit_of_measure == req.data["unit_of_measure"]
+      assert stockable.specification == req.data["specification"]
+      assert stockable.variable_weight == req.data["variable_weight"]
+      assert stockable.weight == req.data["weight"]
+      assert stockable.weight_unit == req.data["weight_unit"]
+      assert stockable.storage_type == req.data["storage_type"]
+      assert stockable.storage_size == req.data["storage_size"]
+      assert stockable.storage_description == req.data["storage_description"]
+      assert stockable.stackable == req.data["stackable"]
+      assert stockable.width == req.data["width"]
+      assert stockable.length == req.data["length"]
+      assert stockable.height == req.data["height"]
+      assert stockable.dimension_unit == req.data["dimension_unit"]
+      assert stockable.caption == req.data["caption"]
+      assert stockable.description == req.data["description"]
+      assert stockable.custom_data == req.data["custom_data"]
     end
   end
 end

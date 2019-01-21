@@ -3,8 +3,10 @@ defmodule Freshcom.Stockable do
   alias Freshcom.Account
 
   schema "stockables" do
+    field :avatar_id, UUID
+
     field :status, :string
-    field :code, :string
+    field :number, :string
     field :barcode, :string
 
     field :name, :string
