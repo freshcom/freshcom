@@ -1,17 +1,12 @@
 defmodule FCGoods.StockablePolicy do
   @moduledoc false
 
-  use OK.Pipe
+  use FCBase, :policy
 
   alias FCGoods.{AddStockable}
 
-  def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
-  def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
-  def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
-
-  def authorize(%AddStockable{requester_role: role} = cmd, _) when role in ["owner", "administrator", "developer", "goods_specialist"] do
-    {:ok, cmd}
-  end
+  def authorize(%AddStockable{requester_role: role} = cmd, _) when role in @goods_management_roles,
+    do: {:ok, cmd}
 
   def authorize(_, _), do: {:error, :access_denied}
 end
