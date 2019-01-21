@@ -11,6 +11,8 @@ defmodule FCBase.RouterCase do
   end
 
   setup do
+    {:ok, _} = Application.ensure_all_started(:commanded)
+
     on_exit(fn ->
       :ok = Application.stop(:commanded)
 
