@@ -51,7 +51,6 @@ defmodule FCIdentity.Account do
   def apply(%{} = state, %AccountInfoUpdated{locale: locale} = event) do
     state
     |> cast(event)
-    |> Translation.put_change(translatable_fields(), locale, state.default_locale)
     |> apply_changes()
   end
 

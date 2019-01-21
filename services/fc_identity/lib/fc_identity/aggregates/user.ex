@@ -91,11 +91,8 @@ defmodule FCIdentity.User do
   end
 
   def apply(state, %UserInfoUpdated{locale: locale} = event) do
-    default_locale = DefaultLocaleStore.get(state.account_id)
-
     state
     |> cast(event)
-    |> Translation.put_change(translatable_fields(), locale, default_locale)
     |> apply_changes()
   end
 

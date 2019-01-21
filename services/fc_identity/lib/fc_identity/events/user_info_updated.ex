@@ -28,5 +28,6 @@ defmodule FCIdentity.UserInfoUpdated do
     field :name, String.t()
 
     field :custom_data, map
+    field :translations, map
   end
 end

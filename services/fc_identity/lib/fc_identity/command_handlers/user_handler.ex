@@ -137,10 +137,14 @@ defmodule FCIdentity.UserHandler do
   end
 
   def handle(state, %UpdateUserInfo{} = cmd) do
+    default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)
+    translatable_fields = FCIdentity.User.translatable_fields()
+
     cmd
     |> authorize(state)
     ~> keep_username(state)
     ~> merge_to(%UserInfoUpdated{})
+    ~> put_translations(state, translatable_fields, default_locale)
     ~> put_original_fields(state)
     |> unwrap_ok()
   end
