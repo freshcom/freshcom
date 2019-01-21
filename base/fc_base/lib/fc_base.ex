@@ -6,6 +6,7 @@ defmodule FCBase do
       @admin_roles ["owner", "administrator"]
       @dev_roles @admin_roles ++ ["developer"]
       @customer_management_roles @dev_roles ++ ["manager", "support_specialist"]
+      @goods_management_roles @dev_roles ++ ["manager", "goods_specialist"]
 
       def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
       def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
