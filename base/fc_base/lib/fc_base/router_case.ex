@@ -6,7 +6,7 @@ defmodule FCBase.RouterCase do
     quote do
       import UUID
       import Commanded.Assertions.EventAssertions
-      import FCBase.RouterCase
+      import FCBase.{RouterCase, Fixture}
     end
   end
 
