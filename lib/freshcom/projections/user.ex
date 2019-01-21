@@ -37,6 +37,10 @@ defmodule Freshcom.User do
 
   @type t :: Ecto.Schema.t()
 
+  def translatable_fields do
+    FCIdentity.User.translatable_fields()
+  end
+
   @spec is_password_valid?(__MODULE__.t(), String.t()) :: boolean
   def is_password_valid?(user, password) do
     case Comeonin.Argon2.check_pass(user, password) do

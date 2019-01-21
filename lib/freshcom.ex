@@ -3,7 +3,7 @@ defmodule Freshcom do
     quote do
       use OK.Pipe
 
-      import Freshcom.APIModule
+      import Freshcom.{APIModule, Translation}
 
       alias Freshcom.{Repo, Projector, APIModule, Request}
     end

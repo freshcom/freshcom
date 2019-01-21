@@ -302,6 +302,7 @@ defmodule Freshcom.Identity do
   @spec update_user_info(Request.t()) :: APIModule.resp()
   def update_user_info(%Request{} = req) do
     identifier = atomize_keys(req.identifier, ["id"])
+    req = expand(req)
 
     req
     |> to_command(%UpdateUserInfo{})
@@ -309,6 +310,7 @@ defmodule Freshcom.Identity do
     |> dispatch_and_wait(UserInfoUpdated)
     ~> Map.get(:user)
     ~> preload(req)
+    ~> translate(req.locale, req._default_locale_)
     |> to_response()
   end
 
@@ -778,8 +780,9 @@ defmodule Freshcom.Identity do
   """
   @spec get_user(Request.t()) :: APIModule.resp()
   def get_user(%Request{} = req) do
+    req = expand(req)
+
     req
-    |> expand()
     |> authorize(:get_user)
     ~> account_id_by_identifier()
     ~> to_query(User)
@@ -787,6 +790,7 @@ defmodule Freshcom.Identity do
     ~> check_password(req)
     ~> check_account_id(req)
     ~> preload(req)
+    ~> translate(req.locale, req._default_locale_)
     |> to_response()
   end
 

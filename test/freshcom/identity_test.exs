@@ -554,6 +554,36 @@ defmodule Freshcom.IdentityTest do
       assert {:ok, %{data: data}} = Identity.get_user(req)
       assert data.id == user.id
     end
+
+    test "target valid user with using locale" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      user = managed_user(account_id)
+      client = standard_app(account_id)
+      custom_data = %{"test" => "你好"}
+
+      req = %Request{
+        client_id: client.id,
+        account_id: requester.default_account_id,
+        requester_id: requester.id,
+        identifier: %{"id" => user.id},
+        data: %{"custom_data" => custom_data},
+        locale: "zh-CN"
+      }
+
+      {:ok, _} = Identity.update_user_info(req)
+
+      req = %Request{
+        requester_id: requester.id,
+        client_id: client.id,
+        account_id: account_id,
+        identifier: %{"id" => user.id},
+        locale: "zh-CN"
+      }
+
+      assert {:ok, %{data: user}} = Identity.get_user(req)
+      assert user.custom_data == custom_data
+    end
   end
 
   describe "create_account/1" do
