@@ -2,7 +2,8 @@ use Mix.Config
 
 config :eventstore, EventStore.Storage,
   serializer: Commanded.Serialization.JsonSerializer,
-  username: System.get_env("DB_USERNAME"),
+  username: System.get_env("EVENTSTORE_DB_USERNAME"),
+  password: System.get_env("EVENTSTORE_DB_PASSWORD"),
   database: "fc_identity_eventstore_dev",
   hostname: "localhost",
   pool_size: 10
