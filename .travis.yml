@@ -15,5 +15,7 @@ script:
 env:
   global:
     - EVENTSTORE_DB_USERNAME="postgres"
+    - EVENTSTORE_DB_PASSWORD=""
     - PROJECTION_DB_USERNAME="postgres"
+    - PROJECTION_DB_PASSWORD=""
     - MIX_ENV="test"
