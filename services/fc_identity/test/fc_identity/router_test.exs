@@ -1,5 +1,5 @@
 defmodule FCIdentity.RouterTest do
-  use FCIdentity.RouterCase, async: true
+  use FCBase.RouterCase, async: true
 
   import Comeonin.Argon2
 
@@ -87,6 +87,12 @@ defmodule FCIdentity.RouterTest do
     Enum.each(groups, fn {app_id, events} ->
       append_to_stream("app-" <> app_id, events)
     end)
+  end
+
+  setup do
+    Application.ensure_all_started(:fc_identity)
+
+    :ok
   end
 
   describe "dispatch RegisterUser" do
