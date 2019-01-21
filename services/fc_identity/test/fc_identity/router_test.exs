@@ -90,6 +90,11 @@ defmodule FCIdentity.RouterTest do
   end
 
   describe "dispatch RegisterUser" do
+    test "with invalid command" do
+      {:error, {:validation_failed, errors}} = Router.dispatch(%RegisterUser{})
+      assert length(errors) > 0
+    end
+
     test "with valid command" do
       client_id = app_id("system")
 
