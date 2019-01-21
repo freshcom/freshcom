@@ -18,8 +18,6 @@ defmodule FCBase do
   def aggregate do
     quote do
       import FCSupport.{Changeset, Struct}
-
-      alias FCSupport.Translation
     end
   end
 
