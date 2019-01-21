@@ -5,33 +5,21 @@ defmodule Freshcom.GoodsTest do
   alias Freshcom.Goods
 
   describe "add_stockable/1" do
-    # test "given invalid request" do
-    #   assert {:error, %{errors: errors}} = Identity.add_app(%Request{})
-    #   assert length(errors) > 0
-    # end
+    test "given invalid request" do
+      assert {:error, %{errors: errors}} = Goods.add_stockable(%Request{})
+      assert length(errors) > 0
+    end
 
-    # test "given unauthorized requester" do
-    #   req = %Request{
-    #     account_id: uuid4(),
-    #     data: %{
-    #       "name" => "Test"
-    #     }
-    #   }
+    test "given unauthorized requester" do
+      req = %Request{
+        account_id: uuid4(),
+        data: %{
+          "name" => Faker.Commerce.product_name()
+        }
+      }
 
-    #   assert {:error, :access_denied} = Identity.add_app(req)
-    # end
-
-    # test "given valid request by system" do
-    #   req = %Request{
-    #     _role_: "system",
-    #     data: %{
-    #       "type" => "system",
-    #       "name" => "Test"
-    #     }
-    #   }
-
-    #   assert {:ok, _} = Identity.add_app(req)
-    # end
+      assert {:error, :access_denied} = Goods.add_stockable(req)
+    end
 
     test "given valid request by user" do
       requester = standard_user()
