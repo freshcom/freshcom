@@ -3,8 +3,10 @@ defmodule Freshcom.IntegrationCase do
 
   using do
     quote do
-      import Freshcom.IntegrationCase
       import UUID
+      import Freshcom.{Fixture, Shortcut}
+      import Freshcom.IntegrationCase
+
 
       alias Freshcom.Request
     end

@@ -1,6 +1,5 @@
 defmodule Freshcom.IdentityTest do
   use Freshcom.IntegrationCase
-  import Freshcom.{Fixture, Shortcut}
 
   alias Freshcom.Identity
 

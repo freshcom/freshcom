@@ -1,6 +1,5 @@
 defmodule Freshcom.GoodsTest do
   use Freshcom.IntegrationCase
-  import Freshcom.{Fixture, Shortcut}
 
   alias Freshcom.Goods
 
