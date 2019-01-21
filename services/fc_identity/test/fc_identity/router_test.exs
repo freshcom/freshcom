@@ -3,7 +3,7 @@ defmodule FCIdentity.RouterTest do
 
   import Comeonin.Argon2
 
-  alias FCStateStorage.GlobalStore.{UserRoleStore, UserTypeStore, AppStore}
+  alias FCStateStorage.GlobalStore.UserTypeStore
   alias FCIdentity.Router
 
   alias FCIdentity.{
@@ -44,26 +44,6 @@ defmodule FCIdentity.RouterTest do
   }
 
   alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
-
-  def user_id(account_id, role) do
-    requester_id = uuid4()
-    UserRoleStore.put(requester_id, account_id, role)
-
-    if role == "owner" do
-      UserTypeStore.put(requester_id, "standard")
-    else
-      UserTypeStore.put(requester_id, "managed")
-    end
-
-    requester_id
-  end
-
-  def app_id(type, account_id \\ nil) do
-    app_id = uuid4()
-    AppStore.put(app_id, type, account_id)
-
-    app_id
-  end
 
   def account_stream(events) do
     groups = Enum.group_by(events, & &1.account_id)
@@ -577,7 +557,7 @@ defmodule FCIdentity.RouterTest do
     test "with valid command" do
       live_account_id = uuid4()
       test_account_id = uuid4()
-      user_id = uuid4()
+      user_id = user_id(live_account_id, "owner")
       client_id = app_id("standard", live_account_id)
 
       event1 = %AccountCreated{
@@ -600,8 +580,6 @@ defmodule FCIdentity.RouterTest do
 
       append_to_stream("account-" <> live_account_id, [event1])
       append_to_stream("account-" <> test_account_id, [event2])
-
-      UserRoleStore.put(user_id, live_account_id, "administrator")
 
       cmd = %UpdateAccountInfo{
         requester_id: user_id,
