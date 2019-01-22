@@ -2,11 +2,13 @@ defmodule FCGoods.RouterTest do
   use FCBase.RouterCase, async: true
 
   alias FCGoods.Router
+
   alias FCGoods.{
     AddStockable,
     UpdateStockable,
     DeleteStockable
   }
+
   alias FCGoods.{
     StockableAdded,
     StockableUpdated,
@@ -45,14 +47,16 @@ defmodule FCGoods.RouterTest do
       cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
 
       assert :ok = Router.dispatch(cmd)
-      assert_receive_event(StockableAdded, fn(event) ->
+
+      assert_receive_event(StockableAdded, fn event ->
         assert event.name == cmd.name
       end)
     end
 
     test "given valid command with system role", %{cmd: cmd} do
       assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
-      assert_receive_event(StockableAdded, fn(event) ->
+
+      assert_receive_event(StockableAdded, fn event ->
         assert event.name == cmd.name
       end)
     end
@@ -96,6 +100,7 @@ defmodule FCGoods.RouterTest do
       account_id = uuid4()
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
+
       to_streams("stockable", [
         %StockableAdded{
           client_id: client_id,
@@ -110,7 +115,8 @@ defmodule FCGoods.RouterTest do
       cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
 
       assert :ok = Router.dispatch(cmd)
-      assert_receive_event(StockableUpdated, fn(event) ->
+
+      assert_receive_event(StockableUpdated, fn event ->
         assert event.name == cmd.name
       end)
     end
@@ -127,7 +133,8 @@ defmodule FCGoods.RouterTest do
       cmd = %{cmd | requester_role: "system"}
 
       assert :ok = Router.dispatch(cmd)
-      assert_receive_event(StockableUpdated, fn(event) ->
+
+      assert_receive_event(StockableUpdated, fn event ->
         assert event.name == cmd.name
       end)
     end
@@ -170,6 +177,7 @@ defmodule FCGoods.RouterTest do
       account_id = uuid4()
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
+
       to_streams("stockable", [
         %StockableAdded{
           client_id: client_id,
@@ -184,7 +192,8 @@ defmodule FCGoods.RouterTest do
       cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
 
       assert :ok = Router.dispatch(cmd)
-      assert_receive_event(StockableDeleted, fn(event) ->
+
+      assert_receive_event(StockableDeleted, fn event ->
         assert event.stockable_id == cmd.stockable_id
       end)
     end
@@ -201,7 +210,8 @@ defmodule FCGoods.RouterTest do
       cmd = %{cmd | requester_role: "system"}
 
       assert :ok = Router.dispatch(cmd)
-      assert_receive_event(StockableDeleted, fn(event) ->
+
+      assert_receive_event(StockableDeleted, fn event ->
         assert event.stockable_id == cmd.stockable_id
       end)
     end
