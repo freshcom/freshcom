@@ -36,4 +36,13 @@ defmodule FCBase.RouterCase do
 
     {:ok, _} = Commanded.EventStore.append_to_stream(stream_uuid, expected_version, event_data)
   end
+
+  def to_streams(type, events) do
+    id_key = String.to_existing_atom("#{type}_id")
+    groups = Enum.group_by(events, &Map.get(&1, id_key))
+
+    Enum.each(groups, fn {id, events} ->
+      append_to_stream("#{type}-" <> id, events)
+    end)
+  end
 end
