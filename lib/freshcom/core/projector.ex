@@ -6,7 +6,7 @@ defmodule Freshcom.Projector do
     quote do
       alias Ecto.{Changeset, Multi}
       alias Phoenix.PubSub
-      alias Freshcom.{Projector, Projection, PubSubServer}
+      alias Freshcom.{Repo, Projector, Projection, PubSubServer}
       alias FCSupport.Struct
     end
   end

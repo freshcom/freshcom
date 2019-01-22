@@ -6,9 +6,7 @@ defmodule Freshcom.APIKeyProjector do
 
   import UUID
 
-  alias Freshcom.Repo
   alias Freshcom.{Account, APIKey}
-
   alias FCIdentity.{
     AccountCreated,
     UserAdded

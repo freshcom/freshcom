@@ -25,8 +25,8 @@ defmodule Freshcom.User do
     field :email_verification_token_expires_at, :naive_datetime
     field :email_verified_at, :naive_datetime
 
-    field :custom_data, :map, default: %{}
-    field :translations, :map, default: %{}
+    field :custom_data, :map
+    field :translations, :map
 
     timestamps()
 

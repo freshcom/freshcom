@@ -31,8 +31,8 @@ defmodule Freshcom.Stockable do
 
     field :caption, :string
     field :description, :string
-    field :custom_data, :map, default: %{}
-    field :translations, :map, default: %{}
+    field :custom_data, :map
+    field :translations, :map
 
     timestamps()
 
