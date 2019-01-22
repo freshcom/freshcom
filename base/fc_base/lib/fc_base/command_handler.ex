@@ -1,5 +1,6 @@
 defmodule FCBase.CommandHandler do
   def put_translations(%{locale: locale} = event, _, _, default_locale) when locale == default_locale, do: event
+  def put_translations(%{locale: nil} = event, _, _, _), do: event
 
   def put_translations(%{locale: locale} = event, %{translations: translations}, translatable_fields, _) do
     effective_keys = Enum.map(event.effective_keys, &String.to_existing_atom/1)
