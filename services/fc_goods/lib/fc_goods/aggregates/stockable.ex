@@ -12,10 +12,11 @@ defmodule FCGoods.Stockable do
     field :avatar_id, String.t()
 
     field :status, String.t()
-    field :code, String.t()
+    field :number, String.t()
+    field :barcode, String.t()
+
     field :name, String.t()
     field :label, String.t()
-
     field :print_name, String.t()
     field :unit_of_measure, String.t()
     field :specification, String.t()
