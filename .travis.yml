@@ -8,9 +8,11 @@ elixir: '1.7'
 otp_release: '21.0'
 before_script:
   - cd services/fc_identity; mix deps.get; mix event_store.create; mix event_store.init
+  - cd services/fc_goods; mix deps.get; mix event_store.create; mix event_store.init
   - cd ../../; mix freshcom.setup
 script:
   - cd services/fc_identity; mix test
+  - cd ../fc_goods; mix test
   - cd ../../; mix test
 env:
   global:
