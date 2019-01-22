@@ -45,30 +45,6 @@ defmodule FCIdentity.RouterTest do
 
   alias FCIdentity.{AppAdded, AppUpdated, AppDeleted}
 
-  def account_stream(events) do
-    groups = Enum.group_by(events, & &1.account_id)
-
-    Enum.each(groups, fn {account_id, events} ->
-      append_to_stream("account-" <> account_id, events)
-    end)
-  end
-
-  def user_stream(events) do
-    groups = Enum.group_by(events, & &1.user_id)
-
-    Enum.each(groups, fn {user_id, events} ->
-      append_to_stream("user-" <> user_id, events)
-    end)
-  end
-
-  def app_stream(events) do
-    groups = Enum.group_by(events, & &1.app_id)
-
-    Enum.each(groups, fn {app_id, events} ->
-      append_to_stream("app-" <> app_id, events)
-    end)
-  end
-
   setup do
     Application.ensure_all_started(:fc_identity)
 
@@ -145,7 +121,7 @@ defmodule FCIdentity.RouterTest do
 
       user_id = uuid4()
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -190,7 +166,7 @@ defmodule FCIdentity.RouterTest do
       user_id = uuid4()
       client_id = app_id("standard", account_id)
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -238,7 +214,7 @@ defmodule FCIdentity.RouterTest do
 
       user_id = uuid4()
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -290,7 +266,7 @@ defmodule FCIdentity.RouterTest do
 
       original_password_hash = hashpwsalt("test1234")
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -342,7 +318,7 @@ defmodule FCIdentity.RouterTest do
 
       user_id = uuid4()
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -392,7 +368,7 @@ defmodule FCIdentity.RouterTest do
 
       user_id = uuid4()
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: account_id,
           user_id: user_id,
@@ -440,7 +416,7 @@ defmodule FCIdentity.RouterTest do
       requester_id = user_id(account_id, "owner")
       client_id = app_id("system")
 
-      user_stream([
+      to_streams("user", [
         %UserRegistered{
           user_id: requester_id,
           status: "active",
@@ -450,7 +426,7 @@ defmodule FCIdentity.RouterTest do
         }
       ])
 
-      account_stream([
+      to_streams("account", [
         %AccountCreated{
           account_id: account_id,
           mode: "live",
@@ -507,7 +483,7 @@ defmodule FCIdentity.RouterTest do
 
       token = uuid4()
 
-      user_stream([
+      to_streams("user", [
         %UserAdded{
           account_id: uuid4(),
           user_id: user_id,
@@ -610,7 +586,7 @@ defmodule FCIdentity.RouterTest do
       requester_id = user_id(account_id, "owner")
       client_id = app_id("system")
 
-      account_stream([
+      to_streams("account", [
         %AccountCreated{
           account_id: account_id,
           mode: "live",
@@ -699,7 +675,7 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("system")
       app_id = app_id("standard", account_id)
 
-      app_stream([
+      to_streams("app", [
         %AppAdded{
           account_id: account_id,
           app_id: app_id,
@@ -745,7 +721,7 @@ defmodule FCIdentity.RouterTest do
       client_id = app_id("system")
       app_id = app_id("standard", account_id)
 
-      app_stream([
+      to_streams("app", [
         %AppAdded{
           account_id: account_id,
           app_id: app_id,

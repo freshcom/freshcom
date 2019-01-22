@@ -4,8 +4,6 @@ defmodule FCIdentity.User do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCStateStorage.GlobalStore.DefaultLocaleStore
-
   alias FCIdentity.{
     UserAdded,
     UserRegistered,
@@ -90,7 +88,7 @@ defmodule FCIdentity.User do
     %{state | role: event.role}
   end
 
-  def apply(state, %UserInfoUpdated{locale: locale} = event) do
+  def apply(state, %UserInfoUpdated{} = event) do
     state
     |> cast(event)
     |> apply_changes()
