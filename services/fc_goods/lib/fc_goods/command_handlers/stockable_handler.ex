@@ -7,8 +7,8 @@ defmodule FCGoods.StockableHandler do
 
   import FCGoods.StockablePolicy
 
-  alias FCGoods.{AddStockable}
-  alias FCGoods.{StockableAdded}
+  alias FCGoods.{AddStockable, UpdateStockable}
+  alias FCGoods.{StockableAdded, StockableUpdated}
   alias FCGoods.Stockable
 
   def handle(%Stockable{id: nil} = state, %AddStockable{} = cmd) do
@@ -19,19 +19,23 @@ defmodule FCGoods.StockableHandler do
   end
 
   def handle(%Stockable{id: _}, %AddStockable{}) do
-    {:error, {:already_exist, :app}}
+    {:error, {:already_exist, :stockable}}
   end
 
-  def handle(%{id: nil}, _), do: {:error, {:not_found, :app}}
-  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :app}}
+  def handle(%{id: nil}, _), do: {:error, {:not_found, :stockable}}
+  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :stockable}}
 
-  # def handle(state, %UpdateStockable{} = cmd) do
-  #   cmd
-  #   |> authorize(state)
-  #   ~> merge_to(%StockableUpdated{})
-  #   ~> put_original_fields(state)
-  #   |> unwrap_ok()
-  # end
+  def handle(state, %UpdateStockable{} = cmd) do
+    default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)
+    translatable_fields = FCGoods.Stockable.translatable_fields()
+
+    cmd
+    |> authorize(state)
+    ~> merge_to(%StockableUpdated{})
+    ~> put_translations(state, translatable_fields, default_locale)
+    ~> put_original_fields(state)
+    |> unwrap_ok()
+  end
 
   # def handle(state, %DeleteStockable{} = cmd) do
   #   cmd

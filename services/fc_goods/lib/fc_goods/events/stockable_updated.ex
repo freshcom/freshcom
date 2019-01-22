@@ -1,21 +1,32 @@
-defmodule FCGoods.Stockable do
-  @moduledoc false
-
+defmodule FCGoods.StockableUpdated do
   use TypedStruct
-  use FCBase, :aggregate
 
-  alias FCGoods.{StockableAdded, StockableUpdated}
+  @version 1
 
   typedstruct do
-    field :id, String.t()
+    field :__version__, integer(), default: @version
+
+    field :request_id, String.t()
+    field :requester_id, String.t()
+    field :requester_type, String.t()
+    field :requester_role, String.t()
+    field :client_id, String.t()
+    field :client_type, String.t()
     field :account_id, String.t()
+
+    field :effective_keys, [String.t()]
+    field :original_fields, map()
+    field :locale, String.t()
+
+    field :stockable_id, String.t()
     field :avatar_id, String.t()
 
     field :status, String.t()
-    field :code, String.t()
+    field :number, String.t()
+    field :barcode, String.t()
+
     field :name, String.t()
     field :label, String.t()
-
     field :print_name, String.t()
     field :unit_of_measure, String.t()
     field :specification, String.t()
@@ -38,31 +49,5 @@ defmodule FCGoods.Stockable do
     field :description, String.t()
     field :custom_data, map()
     field :translations, map()
-  end
-
-  def translatable_fields do
-    [
-      :name,
-      :print_name,
-      :unit_of_measure,
-      :specification,
-      :weight_unit,
-      :storage_description,
-      :dimension_unit,
-      :caption,
-      :description,
-      :custom_data
-    ]
-  end
-
-  def apply(%{} = state, %StockableAdded{} = event) do
-    %{state | id: event.stockable_id}
-    |> merge(event)
-  end
-
-  def apply(state, %StockableUpdated{} = event) do
-    state
-    |> cast(event)
-    |> apply_changes()
   end
 end

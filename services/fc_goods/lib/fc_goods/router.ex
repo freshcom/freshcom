@@ -4,7 +4,8 @@ defmodule FCGoods.Router do
   use Commanded.Commands.Router
 
   alias FCGoods.{
-    AddStockable
+    AddStockable,
+    UpdateStockable
   }
 
   alias FCGoods.{Stockable}
@@ -17,5 +18,5 @@ defmodule FCGoods.Router do
 
   identify(Stockable, by: :stockable_id, prefix: "stockable-")
 
-  dispatch([AddStockable], to: StockableHandler, aggregate: Stockable)
+  dispatch([AddStockable, UpdateStockable], to: StockableHandler, aggregate: Stockable)
 end

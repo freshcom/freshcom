@@ -1,21 +1,28 @@
-defmodule FCGoods.Stockable do
-  @moduledoc false
-
+defmodule FCGoods.UpdateStockable do
   use TypedStruct
-  use FCBase, :aggregate
-
-  alias FCGoods.{StockableAdded, StockableUpdated}
+  use Vex.Struct
 
   typedstruct do
-    field :id, String.t()
+    field :request_id, String.t()
+    field :requester_id, String.t()
+    field :requester_type, String.t()
+    field :requester_role, String.t()
+    field :client_id, String.t()
+    field :client_type, String.t()
     field :account_id, String.t()
+
+    field :effective_keys, [String.t()], default: []
+    field :locale, String.t()
+
+    field :stockable_id, String.t()
     field :avatar_id, String.t()
 
     field :status, String.t()
-    field :code, String.t()
+    field :number, String.t()
+    field :barcode, String.t()
+
     field :name, String.t()
     field :label, String.t()
-
     field :print_name, String.t()
     field :unit_of_measure, String.t()
     field :specification, String.t()
@@ -37,32 +44,13 @@ defmodule FCGoods.Stockable do
     field :caption, String.t()
     field :description, String.t()
     field :custom_data, map()
-    field :translations, map()
   end
 
-  def translatable_fields do
-    [
-      :name,
-      :print_name,
-      :unit_of_measure,
-      :specification,
-      :weight_unit,
-      :storage_description,
-      :dimension_unit,
-      :caption,
-      :description,
-      :custom_data
-    ]
-  end
+  @valid_statuses ["draft", "active", "disabled", "deleted"]
 
-  def apply(%{} = state, %StockableAdded{} = event) do
-    %{state | id: event.stockable_id}
-    |> merge(event)
-  end
+  validates :stockable_id, presence: true
 
-  def apply(state, %StockableUpdated{} = event) do
-    state
-    |> cast(event)
-    |> apply_changes()
-  end
+  validates :status, presence: true, inclusion: @valid_statuses
+  validates :name, presence: true
+  validates :unit_of_measure, presence: true
 end
