@@ -37,12 +37,12 @@ defmodule FCIdentity.User do
     field :password_reset_token, String.t()
     field :password_reset_token_expires_at, DateTime.t()
 
-    field :email_verified, boolean, default: false
+    field :email_verified, boolean
     field :email_verification_token, String.t()
     field :email_verification_token_expires_at, DateTime.t()
 
-    field :custom_data, map, default: %{}
-    field :translations, map, default: %{}
+    field :custom_data, map
+    field :translations, map
   end
 
   def translatable_fields do

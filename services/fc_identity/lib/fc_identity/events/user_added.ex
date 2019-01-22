@@ -20,12 +20,15 @@ defmodule FCIdentity.UserAdded do
     field :username, String.t()
     field :password_hash, String.t()
     field :email, String.t()
-    field :email_verified, boolean()
+    field :email_verified, boolean(), default: false
 
     field :first_name, String.t()
     field :last_name, String.t()
     field :name, String.t()
 
     field :role, String.t()
+
+    field :custom_data, map(), default: %{}
+    field :translations, map(), default: %{}
   end
 end
