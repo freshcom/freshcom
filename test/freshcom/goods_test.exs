@@ -3,6 +3,7 @@ defmodule Freshcom.GoodsTest do
 
   import Freshcom.Fixture.Goods
 
+  alias Faker.Commerce
   alias Freshcom.Goods
 
   describe "add_stockable/1" do
@@ -15,7 +16,7 @@ defmodule Freshcom.GoodsTest do
       req = %Request{
         account_id: uuid4(),
         data: %{
-          "name" => Faker.Commerce.product_name()
+          "name" => Commerce.product_name()
         }
       }
 
@@ -107,6 +108,47 @@ defmodule Freshcom.GoodsTest do
 
       assert {:ok, %{data: data}} = Goods.list_stockable(req)
       assert length(data) == 2
+    end
+  end
+
+  describe "update_stockable/1" do
+    test "given no identifier" do
+      assert {:error, %{errors: errors}} = Goods.update_stockable(%Request{})
+      assert length(errors) > 0
+    end
+
+    test "given invalid identifier" do
+      req = %Request{identifier: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Goods.update_stockable(req)
+    end
+
+    test "given unauthorize requester" do
+      %{default_account_id: account_id} = standard_user()
+      stockable = stockable(account_id)
+
+      req = %Request{identifier: %{"id" => stockable.id}}
+      assert {:error, :access_denied} = Goods.update_stockable(req)
+    end
+
+    @tag :focus
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+      stockable = stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        requester_id: requester.id,
+        account_id: account_id,
+        identifier: %{"id" => stockable.id},
+        data: %{
+          "name" => Commerce.product_name()
+        }
+      }
+
+      assert {:ok, %{data: data}} = Goods.update_stockable(req)
+      assert data.name == req.data["name"]
     end
   end
 end

@@ -1,10 +1,11 @@
 defmodule Freshcom.Goods do
   use Freshcom, :api_module
 
+  import FCSupport.Normalization, only: [atomize_keys: 2]
   import Freshcom.GoodsPolicy
 
-  alias FCGoods.{AddStockable}
-  alias FCGoods.{StockableAdded}
+  alias FCGoods.{AddStockable, UpdateStockable}
+  alias FCGoods.{StockableAdded, StockableUpdated}
   alias Freshcom.{StockableProjector}
   alias Freshcom.{Stockable}
 
@@ -18,6 +19,7 @@ defmodule Freshcom.Goods do
     |> to_response()
   end
 
+  @spec list_stockable(Request.t()) :: APIModule.resp()
   def list_stockable(%Request{} = req) do
     req = expand(req)
 
@@ -47,11 +49,26 @@ defmodule Freshcom.Goods do
     |> to_response()
   end
 
+  @spec update_stockable(Request.t()) :: APIModule.resp()
+  def update_stockable(%Request{} = req) do
+    identifier = atomize_keys(req.identifier, ["id"])
+    req = expand(req)
+
+    req
+    |> to_command(%UpdateStockable{})
+    |> Map.put(:stockable_id, identifier[:id])
+    |> dispatch_and_wait(StockableUpdated)
+    ~> Map.get(:stockable)
+    ~> preload(req)
+    ~> translate(req.locale, req._default_locale_)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
 
-  defp wait(%et{stockable_id: stockable_id}) when et in [StockableAdded] do
+  defp wait(%et{stockable_id: stockable_id}) when et in [StockableAdded, StockableUpdated] do
     Projector.wait([
       {:stockable, StockableProjector, &(&1.id == stockable_id)}
     ])

@@ -15,7 +15,7 @@ defmodule FCIdentity.AppAdded do
     field :account_id, String.t()
 
     field :app_id, String.t()
-    field :status, String.t()
+    field :status, String.t(), default: "active"
     field :type, String.t()
     field :name, String.t()
   end

@@ -5,9 +5,9 @@ defmodule Freshcom.StockableProjector do
   use Commanded.Projections.Ecto, name: "projector:ade1e158-ccbe-4263-8195-649c4f0dfdf8"
 
   alias Freshcom.Stockable
-
   alias FCGoods.{
-    StockableAdded
+    StockableAdded,
+    StockableUpdated
   }
 
   project(%StockableAdded{} = event, _metadata) do
@@ -15,14 +15,14 @@ defmodule Freshcom.StockableProjector do
     Multi.insert(multi, :stockable, stockable)
   end
 
-  # project(%StockableUpdated{} = event, _) do
-  #   changeset =
-  #     Stockable
-  #     |> Repo.get(event.app_id)
-  #     |> Projection.changeset(event)
+  project(%StockableUpdated{} = event, _) do
+    changeset =
+      Stockable
+      |> Repo.get(event.stockable_id)
+      |> Projection.changeset(event)
 
-  #   Multi.update(multi, :app, changeset)
-  # end
+    Multi.update(multi, :stockable, changeset)
+  end
 
   # project(%StockableDeleted{} = event, _) do
   #   app = Repo.get(Stockable, event.app_id)

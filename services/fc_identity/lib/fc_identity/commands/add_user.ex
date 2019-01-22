@@ -14,7 +14,6 @@ defmodule FCIdentity.AddUser do
     field :account_id, String.t()
 
     field :user_id, String.t()
-    field :status, String.t(), default: "active"
     field :username, String.t()
     field :password, String.t()
     field :email, String.t()

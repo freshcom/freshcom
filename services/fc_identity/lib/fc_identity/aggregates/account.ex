@@ -48,7 +48,7 @@ defmodule FCIdentity.Account do
     |> merge(event)
   end
 
-  def apply(%{} = state, %AccountInfoUpdated{locale: locale} = event) do
+  def apply(%{} = state, %AccountInfoUpdated{} = event) do
     state
     |> cast(event)
     |> apply_changes()

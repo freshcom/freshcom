@@ -16,7 +16,7 @@ defmodule FCIdentity.UserAdded do
 
     field :user_id, String.t()
     field :type, String.t()
-    field :status, String.t()
+    field :status, String.t(), status: "active"
     field :username, String.t()
     field :password_hash, String.t()
     field :email, String.t()
