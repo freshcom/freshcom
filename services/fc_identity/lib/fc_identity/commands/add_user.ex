@@ -26,8 +26,6 @@ defmodule FCIdentity.AddUser do
     field :role, String.t()
   end
 
-  @valid_statuses ["pending", "active"]
-
   @valid_roles [
     "owner",
     "administrator",
@@ -42,7 +40,6 @@ defmodule FCIdentity.AddUser do
 
   validates :account_id, presence: true, uuid: true
 
-  validates :status, presence: true, inclusion: @valid_statuses
   validates :username, presence: true, by: &CommandValidator.username/2
   validates :password, presence: true, length: [min: 8]
   validates :email, by: &CommandValidator.email/2
