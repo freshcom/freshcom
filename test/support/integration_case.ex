@@ -4,9 +4,9 @@ defmodule Freshcom.IntegrationCase do
   using do
     quote do
       import UUID
-      import Freshcom.{Fixture, Shortcut}
+      import Freshcom.Fixture.Identity
+      import Freshcom.Shortcut
       import Freshcom.IntegrationCase
-
 
       alias Freshcom.Request
     end

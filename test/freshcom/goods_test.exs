@@ -1,6 +1,8 @@
 defmodule Freshcom.GoodsTest do
   use Freshcom.IntegrationCase
 
+  import Freshcom.Fixture.Goods
+
   alias Freshcom.Goods
 
   describe "add_stockable/1" do
@@ -20,7 +22,7 @@ defmodule Freshcom.GoodsTest do
       assert {:error, :access_denied} = Goods.add_stockable(req)
     end
 
-    test "given valid request by user" do
+    test "given valid request" do
       requester = standard_user()
       client = system_app()
 
@@ -79,6 +81,32 @@ defmodule Freshcom.GoodsTest do
       assert stockable.caption == req.data["caption"]
       assert stockable.description == req.data["description"]
       assert stockable.custom_data == req.data["custom_data"]
+    end
+  end
+
+  describe "list_stockable/1" do
+    test "given unauthorized requester" do
+      req = %Request{}
+
+      assert {:error, :access_denied} = Goods.list_stockable(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+
+      stockable(account_id)
+      stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        requester_id: requester.id,
+        account_id: account_id
+      }
+
+      assert {:ok, %{data: data}} = Goods.list_stockable(req)
+      assert length(data) == 2
     end
   end
 end

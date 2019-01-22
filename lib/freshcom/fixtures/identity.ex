@@ -1,4 +1,4 @@
-defmodule Freshcom.Fixture do
+defmodule Freshcom.Fixture.Identity do
   alias Faker.{Internet, Name}
   alias Freshcom.{Request, Identity}
 

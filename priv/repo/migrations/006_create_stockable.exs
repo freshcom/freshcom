@@ -43,7 +43,10 @@ defmodule Freshcom.Repo.Migrations.CreateStockable do
 
     create index(:stockables, :sid)
     create index(:stockables, [:account_id, :status])
+    create index(:stockables, [:account_id, :number], where: "number IS NOT NULL")
+    create index(:stockables, [:account_id, :barcode], where: "barcode IS NOT NULL")
     create index(:stockables, [:account_id, :name])
+    create index(:stockables, [:account_id, :print_name])
     create index(:stockables, [:account_id, :label], where: "label IS NOT NULL")
   end
 end
