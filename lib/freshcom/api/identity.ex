@@ -669,8 +669,9 @@ defmodule Freshcom.Identity do
   """
   @spec list_user(Request.t()) :: APIModule.resp()
   def list_user(%Request{} = req) do
+    req = expand(req)
+
     req
-    |> expand()
     |> Map.put(:_filterable_keys_, [
       "status",
       "username",
@@ -689,6 +690,7 @@ defmodule Freshcom.Identity do
     ~> to_query(User)
     ~> Repo.all()
     ~> preload(req)
+    ~> translate(req.locale, req._default_locale_)
     |> to_response()
   end
 
