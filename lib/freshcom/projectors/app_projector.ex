@@ -5,6 +5,7 @@ defmodule Freshcom.AppProjector do
   use Commanded.Projections.Ecto, name: "projector:85f6535c-ca64-4fb9-826d-fedf332472b2"
 
   alias Freshcom.App
+
   alias FCIdentity.{
     AppAdded,
     AppUpdated,

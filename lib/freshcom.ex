@@ -15,7 +15,13 @@ defmodule Freshcom do
       @dev_roles @admin_roles ++ ["developer"]
 
       @customer_management_roles @dev_roles ++ ["manager", "support_specialist"]
-      @goods_viewing_roles @dev_roles ++ ["manager", "goods_specialist", "support_specialist", "business_analyst"]
+      @goods_viewing_roles @dev_roles ++
+                             [
+                               "manager",
+                               "goods_specialist",
+                               "support_specialist",
+                               "business_analyst"
+                             ]
 
       @operator_roles @customer_management_roles ++ ["marketing_specialist", "goods_specialist"]
       @guest_roles @operator_roles ++ ["guest"]

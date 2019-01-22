@@ -6,6 +6,7 @@ defmodule Freshcom.UserProjector do
 
   alias Ecto.Changeset
   alias Freshcom.User
+
   alias FCIdentity.{
     UserRegistered,
     UserAdded,
