@@ -4,7 +4,7 @@ defmodule FCGoods.Stockable do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCGoods.{StockableAdded, StockableUpdated}
+  alias FCGoods.{StockableAdded, StockableUpdated, StockableDeleted}
 
   typedstruct do
     field :id, String.t()
@@ -64,5 +64,9 @@ defmodule FCGoods.Stockable do
     state
     |> cast(event)
     |> apply_changes()
+  end
+
+  def apply(state, %StockableDeleted{}) do
+    %{state | status: "deleted"}
   end
 end

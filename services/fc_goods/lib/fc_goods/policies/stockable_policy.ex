@@ -3,12 +3,15 @@ defmodule FCGoods.StockablePolicy do
 
   use FCBase, :policy
 
-  alias FCGoods.{AddStockable, UpdateStockable}
+  alias FCGoods.{AddStockable, UpdateStockable, DeleteStockable}
 
   def authorize(%AddStockable{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 
   def authorize(%UpdateStockable{requester_role: role} = cmd, _) when role in @goods_management_roles,
+    do: {:ok, cmd}
+
+  def authorize(%DeleteStockable{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 
   def authorize(_, _), do: {:error, :access_denied}
