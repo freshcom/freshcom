@@ -130,7 +130,6 @@ defmodule Freshcom.GoodsTest do
       assert {:error, :access_denied} = Goods.update_stockable(req)
     end
 
-    @tag :focus
     test "given valid request" do
       requester = standard_user()
       account_id = requester.default_account_id

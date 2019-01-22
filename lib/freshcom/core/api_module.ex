@@ -99,6 +99,13 @@ defmodule Freshcom.APIModule do
     |> put_client()
   end
 
+  def expand(req, only: :_default_locale_) do
+    req
+    |> Map.put(:account_id, Account.bare_id(req.account_id))
+    |> put_account()
+    |> put_default_locale()
+  end
+
   defp put_account(%{account_id: nil} = req), do: %{req | _account_: nil}
 
   defp put_account(%{account_id: id} = req),

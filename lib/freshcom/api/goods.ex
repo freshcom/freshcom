@@ -52,7 +52,7 @@ defmodule Freshcom.Goods do
   @spec update_stockable(Request.t()) :: APIModule.resp()
   def update_stockable(%Request{} = req) do
     identifier = atomize_keys(req.identifier, ["id"])
-    req = expand(req)
+    req = expand(req, only: :_default_locale_)
 
     req
     |> to_command(%UpdateStockable{})
