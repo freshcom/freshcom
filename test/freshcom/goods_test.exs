@@ -111,6 +111,26 @@ defmodule Freshcom.GoodsTest do
     end
   end
 
+  describe "count_stockable/1" do
+    @tag :focus
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+
+      stockable(account_id)
+      stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        requester_id: requester.id,
+        account_id: account_id
+      }
+
+      assert {:ok, %{data: 2}} = Goods.count_stockable(req)
+    end
+  end
+
   describe "update_stockable/1" do
     test "given no identifier" do
       assert {:error, %{errors: errors}} = Goods.update_stockable(%Request{})

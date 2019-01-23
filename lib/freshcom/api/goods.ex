@@ -49,6 +49,16 @@ defmodule Freshcom.Goods do
     |> to_response()
   end
 
+  def count_stockable(%Request{} = req) do
+    req
+    |> expand()
+    |> Map.put(:pagination, nil)
+    |> authorize(:list_stockable)
+    ~> to_query(Stockable)
+    ~> Repo.aggregate(:count, :id)
+    |> to_response()
+  end
+
   @spec update_stockable(Request.t()) :: APIModule.resp()
   def update_stockable(%Request{} = req) do
     identifier = atomize_keys(req.identifier, ["id"])
