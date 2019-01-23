@@ -112,7 +112,6 @@ defmodule Freshcom.GoodsTest do
   end
 
   describe "count_stockable/1" do
-    @tag :focus
     test "given valid request" do
       requester = standard_user()
       account_id = requester.default_account_id

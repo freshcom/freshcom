@@ -31,7 +31,7 @@ defmodule FCGoods.AddStockable do
     field :storage_type, String.t()
     field :storage_size, integer()
     field :storage_description, String.t()
-    field :stackable, boolean()
+    field :stackable, boolean(), default: false
 
     field :width, Decimal.t()
     field :length, Decimal.t()
