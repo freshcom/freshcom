@@ -28,6 +28,7 @@ defmodule Mix.Tasks.Freshcom.Demo do
       _role_: "system"
     }
 
-    {:ok, _} = Identity.add_app(req)
+    {:ok, %{data: app}} = Identity.add_app(req)
+    IO.puts "System App created: app-#{app.id}"
   end
 end
