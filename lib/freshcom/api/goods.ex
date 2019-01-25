@@ -25,19 +25,10 @@ defmodule Freshcom.Goods do
 
     req
     |> Map.put(:_filterable_keys_, [
-      "number",
-      "barcode",
+      "status",
       "label",
       "variable_weight",
-      "weight",
-      "weight_unit",
       "storage_type",
-      "storage_size",
-      "stackable",
-      "width",
-      "length",
-      "height",
-      "dimension_unit",
       "updated_at"
     ])
     |> Map.put(:_searchable_keys_, ["name", "number", "barcode", "print_name", "label"])

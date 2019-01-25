@@ -674,11 +674,6 @@ defmodule Freshcom.Identity do
     req
     |> Map.put(:_filterable_keys_, [
       "status",
-      "username",
-      "email",
-      "name",
-      "first_name",
-      "last_name",
       "role",
       "email_verified",
       "email_verified_at",
