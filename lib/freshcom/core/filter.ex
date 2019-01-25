@@ -4,13 +4,13 @@ defmodule Freshcom.Filter do
   [
     %{"$and" => [
       %{"$or" => [
-        %{"role" => "test1Test"},
-        %{"role" => "test2"}
+        %{"role" => %{"$in" => ["supportSpecialist"]}},
+        %{"role" => "supportSpecialist"}
       ]},
-      %{"role" => "lol"},
+      %{"role" => "supportSpecialist"},
       %{"$or" => [
-        %{"role" => "tt1"},
-        %{"role" => "tt2"}
+        %{"role" => %{"$eq" => "supportSpecialist"}},
+        %{"role" => "supportSpecialist"}
       ]}
     ]}
   ]
