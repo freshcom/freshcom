@@ -125,6 +125,10 @@ defmodule Freshcom.Filter do
     dynamic([q], not (field(q, ^attr) in ^value))
   end
 
+  defp compare_attr(attr, %{"$btwn" => [s, e]}) do
+    dynamic([q], field(q, ^attr) >= ^s and field(q, ^attr) <= ^e)
+  end
+
   defp is_field_permitted(_, :all), do: true
   defp is_field_permitted(field, permitted_fields), do: field in permitted_fields
 

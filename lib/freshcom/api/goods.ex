@@ -37,7 +37,8 @@ defmodule Freshcom.Goods do
       "width",
       "length",
       "height",
-      "dimension_unit"
+      "dimension_unit",
+      "updated_at"
     ])
     |> Map.put(:_searchable_keys_, ["name", "number", "barcode", "print_name", "label"])
     |> Map.put(:_sortable_keys_, ["status", "number", "barcode", "label"])
