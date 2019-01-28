@@ -33,8 +33,16 @@ defmodule Freshcom.APIModule do
     {:error, :not_found}
   end
 
+  def to_response({:error, :not_found}) do
+    {:error, :not_found}
+  end
+
   def to_response({:error, :access_denied}) do
     {:error, :access_denied}
+  end
+
+  def to_response({:error, :multiple_result}) do
+    {:error, :multiple_result}
   end
 
   def to_response(data) when is_list(data) or is_map(data) or is_integer(data) do
@@ -204,6 +212,10 @@ defmodule Freshcom.APIModule do
   def to_query(req, queryable) do
     to_query(req, Queryable.to_query(queryable))
   end
+
+  def ensure_one([]), do: {:error, :not_found}
+  def ensure_one([data]), do: {:ok, data}
+  def ensure_one(_), do: {:error, :multiple_result}
 
   @spec for_account(Query.t(), String.t() | nil) :: Query.t()
   def for_account(query, nil), do: query

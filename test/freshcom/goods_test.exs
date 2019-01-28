@@ -169,4 +169,58 @@ defmodule Freshcom.GoodsTest do
       assert data.name == req.data["name"]
     end
   end
+
+  describe "get_stockable/1" do
+    test "given unauthorize requester" do
+      assert {:error, :access_denied} = Goods.get_stockable(%Request{})
+    end
+
+    test "given no identifier" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+
+      stockable(account_id)
+      stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        account_id: account_id,
+        requester_id: requester.id
+      }
+
+      assert {:error, :multiple_result} = Goods.get_stockable(req)
+    end
+
+    test "given invalid identifier" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        account_id: account_id,
+        requester_id: requester.id,
+        identifier: %{"id" => uuid4()}
+      }
+
+      assert {:error, :not_found} = Goods.get_stockable(req)
+    end
+
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+      stockable = stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        requester_id: requester.id,
+        account_id: account_id,
+        identifier: %{"id" => stockable.id}      }
+
+      assert {:ok, %{data: data}} = Goods.get_stockable(req)
+      assert data.id
+    end
+  end
 end

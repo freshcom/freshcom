@@ -59,6 +59,17 @@ defmodule Freshcom.Goods do
     |> to_response()
   end
 
+  @spec get_stockable(Request.t()) :: APIModule.resp()
+  def get_stockable(%Request{} = req) do
+    req
+    |> expand()
+    |> authorize(:get_stockable)
+    ~> to_query(Stockable)
+    ~> Repo.all()
+    ~>> ensure_one()
+    |> to_response()
+  end
+
   @spec update_stockable(Request.t()) :: APIModule.resp()
   def update_stockable(%Request{} = req) do
     identifier = atomize_keys(req.identifier, ["id"])

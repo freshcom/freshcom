@@ -7,18 +7,9 @@ defmodule Freshcom.GoodsPolicy do
     {:ok, req}
   end
 
-  # def authorize(req, :get_user) do
-  #   cond do
-  #     req.requester_id && req.requester_id == req.identifier["id"] ->
-  #       {:ok, req}
-
-  #     req._role_ in @admin_roles ->
-  #       {:ok, req}
-
-  #     true ->
-  #       {:error, :access_denied}
-  #   end
-  # end
+  def authorize(%{_role_: role} = req, :get_stockable) when role in @goods_viewing_roles do
+    {:ok, req}
+  end
 
   # def authorize(
   #       %{_requester_: %{type: "standard"}, _client_: %{type: "system"}} = req,
