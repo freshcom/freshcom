@@ -714,6 +714,14 @@ defmodule Freshcom.Identity do
   def count_user(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:_filterable_keys_, [
+      "status",
+      "role",
+      "email_verified",
+      "email_verified_at",
+      "password_changed_at"
+    ])
+    |> Map.put(:_searchable_keys_, ["name", "username", "email"])
     |> Map.put(:pagination, nil)
     |> authorize(:list_user)
     ~> to_query(User)

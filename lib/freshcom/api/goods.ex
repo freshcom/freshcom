@@ -44,6 +44,14 @@ defmodule Freshcom.Goods do
   def count_stockable(%Request{} = req) do
     req
     |> expand()
+    |> Map.put(:_filterable_keys_, [
+      "status",
+      "label",
+      "variable_weight",
+      "storage_type",
+      "updated_at"
+    ])
+    |> Map.put(:_searchable_keys_, ["name", "number", "barcode", "print_name", "label"])
     |> Map.put(:pagination, nil)
     |> authorize(:list_stockable)
     ~> to_query(Stockable)
