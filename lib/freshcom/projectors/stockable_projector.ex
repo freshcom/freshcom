@@ -8,7 +8,8 @@ defmodule Freshcom.StockableProjector do
 
   alias FCGoods.{
     StockableAdded,
-    StockableUpdated
+    StockableUpdated,
+    StockableDeleted
   }
 
   project(%StockableAdded{} = event, _metadata) do
@@ -25,10 +26,10 @@ defmodule Freshcom.StockableProjector do
     Multi.update(multi, :stockable, changeset)
   end
 
-  # project(%StockableDeleted{} = event, _) do
-  #   app = Repo.get(Stockable, event.app_id)
-  #   Multi.delete(multi, :app, app)
-  # end
+  project(%StockableDeleted{} = event, _) do
+    stockable = Repo.get(Stockable, event.stockable_id)
+    Multi.delete(multi, :stockable, stockable)
+  end
 
   def after_update(_, _, changes) do
     PubSub.broadcast(PubSubServer, Projector.topic(), {:projected, __MODULE__, changes.stockable})

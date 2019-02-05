@@ -4,8 +4,8 @@ defmodule Freshcom.Goods do
   import FCSupport.Normalization, only: [atomize_keys: 2]
   import Freshcom.GoodsPolicy
 
-  alias FCGoods.{AddStockable, UpdateStockable}
-  alias FCGoods.{StockableAdded, StockableUpdated}
+  alias FCGoods.{AddStockable, UpdateStockable, DeleteStockable}
+  alias FCGoods.{StockableAdded, StockableUpdated, StockableDeleted}
   alias Freshcom.{StockableProjector}
   alias Freshcom.{Stockable}
 
@@ -85,11 +85,22 @@ defmodule Freshcom.Goods do
     |> to_response()
   end
 
+  def delete_stockable(%Request{} = req) do
+    identifier = atomize_keys(req.identifier, ["id"])
+
+    req
+    |> to_command(%DeleteStockable{})
+    |> Map.put(:stockable_id, identifier[:id])
+    |> dispatch_and_wait(StockableDeleted)
+    ~> Map.get(:stockable)
+    |> to_response()
+  end
+
   defp dispatch_and_wait(cmd, event) do
     dispatch_and_wait(cmd, event, &wait/1)
   end
 
-  defp wait(%et{stockable_id: stockable_id}) when et in [StockableAdded, StockableUpdated] do
+  defp wait(%et{stockable_id: stockable_id}) when et in [StockableAdded, StockableUpdated, StockableDeleted] do
     Projector.wait([
       {:stockable, StockableProjector, &(&1.id == stockable_id)}
     ])

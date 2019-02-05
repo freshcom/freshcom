@@ -223,4 +223,42 @@ defmodule Freshcom.GoodsTest do
       assert data.id
     end
   end
+
+  describe "delete_stockable/1" do
+    test "given no identifier" do
+      assert {:error, %{errors: errors}} = Goods.delete_stockable(%Request{})
+      assert length(errors) > 0
+    end
+
+    test "given invalid identifier" do
+      req = %Request{identifier: %{"id" => uuid4()}}
+      assert {:error, :not_found} = Goods.delete_stockable(req)
+    end
+
+    test "given unauthorize requester" do
+      %{default_account_id: account_id} = standard_user()
+      stockable = stockable(account_id)
+
+      req = %Request{identifier: %{"id" => stockable.id}}
+      assert {:error, :access_denied} = Goods.delete_stockable(req)
+    end
+
+    @tag :focus
+    test "given valid request" do
+      requester = standard_user()
+      account_id = requester.default_account_id
+      client = standard_app(account_id)
+      stockable = stockable(account_id)
+
+      req = %Request{
+        client_id: client.id,
+        requester_id: requester.id,
+        account_id: account_id,
+        identifier: %{"id" => stockable.id}
+      }
+
+      assert {:ok, %{data: data}} = Goods.delete_stockable(req)
+      assert data.id == stockable.id
+    end
+  end
 end
