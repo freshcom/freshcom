@@ -34,8 +34,6 @@ defmodule FCGoods.MixProject do
       {:commanded, "~> 0.17"},
       {:decimal, "~> 1.6"},
       {:hackney, "~> 1.9"},
-      {:comeonin, "~> 4.0"},
-      {:argon2_elixir, "~> 1.3"},
       {:faker, "~> 0.11", only: [:test, :dev]},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false}
