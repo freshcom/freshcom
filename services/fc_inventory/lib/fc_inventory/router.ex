@@ -7,7 +7,8 @@ defmodule FCInventory.Router do
     AddStorage,
     UpdateStorage,
     DeleteStorage,
-    AddBatch
+    AddBatch,
+    UpdateBatch
   }
 
   alias FCInventory.{Storage, Batch}
@@ -22,5 +23,5 @@ defmodule FCInventory.Router do
   identify(Batch, by: :batch_id, prefix: "batch-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
-  dispatch([AddBatch], to: BatchHandler, aggregate: Batch)
+  dispatch([AddBatch, UpdateBatch], to: BatchHandler, aggregate: Batch)
 end

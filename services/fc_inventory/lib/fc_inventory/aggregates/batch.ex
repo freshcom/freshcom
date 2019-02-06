@@ -37,11 +37,11 @@ defmodule FCInventory.Batch do
     |> merge(event)
   end
 
-  # def apply(state, %BatchUpdated{} = event) do
-  #   state
-  #   |> cast(event)
-  #   |> apply_changes()
-  # end
+  def apply(state, %BatchUpdated{} = event) do
+    state
+    |> cast(event)
+    |> apply_changes()
+  end
 
   # def apply(state, %BatchDeleted{}) do
   #   %{state | status: "deleted"}
