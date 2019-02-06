@@ -24,7 +24,8 @@ defmodule FCGoods.RouterTest do
   describe "dispatch AddStockable" do
     setup do
       cmd = %AddStockable{
-        name: Faker.String.base64(12)
+        name: Faker.String.base64(12),
+        custom_data: %{"fuel_type" => "animatter"}
       }
 
       %{cmd: cmd}
