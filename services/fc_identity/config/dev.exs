@@ -1,7 +1,7 @@
 use Mix.Config
 
 config :eventstore, EventStore.Storage,
-  serializer: Commanded.Serialization.JsonSerializer,
+  serializer: FCBase.EventSerializer,
   username: System.get_env("EVENTSTORE_DB_USERNAME"),
   password: System.get_env("EVENTSTORE_DB_PASSWORD"),
   database: "fc_identity_eventstore_dev",
