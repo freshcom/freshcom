@@ -23,8 +23,10 @@ defmodule FCBase.MixProject do
     [
       {:fc_support, path: "../fc_support"},
       {:fc_state_storage, path: "../fc_state_storage"},
+      {:commanded, "~> 0.18.0"},
       {:commanded_eventstore_adapter, "~> 0.5.0"},
       {:phoenix_pubsub, "~> 1.1"},
+      {:jason, "~> 1.1"},
       {:ok, "~> 2.0"}
     ]
   end

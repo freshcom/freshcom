@@ -60,7 +60,7 @@ defmodule FCSupport.Normalization do
 
   def atomize_keys(m, permitted \\ nil) do
     permitted_atom = permitted || Map.keys(m)
-    permitted_string = stringify_list(permitted)
+    permitted_string = stringify_list(permitted_atom)
 
     Enum.reduce(m, %{}, fn({k, v}, acc) ->
       cond do
