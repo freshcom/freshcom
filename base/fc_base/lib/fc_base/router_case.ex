@@ -15,6 +15,7 @@ defmodule FCBase.RouterCase do
 
     on_exit(fn ->
       :ok = Application.stop(:commanded)
+      :ok = Application.stop(:eventstore)
 
       FCBase.EventStore.reset!()
     end)
