@@ -3,7 +3,7 @@ defmodule FCInventory.MixProject do
 
   def project do
     [
-      app: :fc_inevntory,
+      app: :fc_inventory,
       name: "Freshcom Inventory",
       version: "0.1.0",
       elixir: "~> 1.7",
@@ -31,7 +31,6 @@ defmodule FCInventory.MixProject do
   defp deps do
     [
       {:fc_base, path: "../../base/fc_base"},
-      {:commanded, "~> 0.17"},
       {:hackney, "~> 1.9"},
       {:faker, "~> 0.11", only: [:test, :dev]},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
