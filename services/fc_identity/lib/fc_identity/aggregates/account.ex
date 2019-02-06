@@ -6,6 +6,8 @@ defmodule FCIdentity.Account do
 
   alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountSystemLabelChanged, AccountClosed}
 
+  @derive Jason.Encoder
+
   typedstruct do
     field :id, String.t()
 

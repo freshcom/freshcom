@@ -9,6 +9,8 @@ defmodule FCIdentity.TestAccountSync do
   alias FCIdentity.{AccountCreated, AccountInfoUpdated, AccountClosed}
   alias FCIdentity.{CreateAccount, UpdateAccountInfo, CloseAccount}
 
+  @derive Jason.Encoder
+
   defstruct []
 
   def interested?(%AccountCreated{test_account_id: account_id, mode: "live"}), do: {:start, account_id}

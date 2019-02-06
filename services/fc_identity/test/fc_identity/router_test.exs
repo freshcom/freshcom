@@ -1,5 +1,5 @@
 defmodule FCIdentity.RouterTest do
-  use FCBase.RouterCase, async: true
+  use FCBase.RouterCase
 
   import Comeonin.Argon2
 

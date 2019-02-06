@@ -32,8 +32,7 @@ defmodule FCIdentity.MixProject do
   defp deps do
     [
       {:fc_base, path: "../../base/fc_base"},
-      {:commanded, "~> 0.17"},
-      {:hackney, "~> 1.9"},
+      {:commanded, "~> 0.18.0"},
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.3"},
       {:faker, "~> 0.11", only: [:test, :dev]},

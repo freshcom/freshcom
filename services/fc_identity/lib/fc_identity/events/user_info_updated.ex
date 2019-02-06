@@ -1,6 +1,7 @@
 defmodule FCIdentity.UserInfoUpdated do
   use TypedStruct
 
+  @derive Jason.Encoder
   @version 1
 
   typedstruct do

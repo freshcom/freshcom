@@ -4,6 +4,8 @@ defmodule FCIdentity.User do
   use TypedStruct
   use FCBase, :aggregate
 
+  @derive Jason.Encoder
+
   alias FCIdentity.{
     UserAdded,
     UserRegistered,

@@ -7,6 +7,8 @@ defmodule FCIdentity.DefaultAccountSync do
   alias FCIdentity.{DefaultAccountChanged, AccountSystemLabelChanged}
   alias FCIdentity.ChangeAccountSystemLabel
 
+  @derive Jason.Encoder
+
   defstruct []
 
   def interested?(%DefaultAccountChanged{default_account_id: daid}), do: {:start, daid}

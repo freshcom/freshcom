@@ -7,6 +7,8 @@ defmodule FCIdentity.DefaultAccountSetup do
   alias FCIdentity.{UserRegistered, AccountCreated}
   alias FCIdentity.CreateAccount
 
+  @derive Jason.Encoder
+
   defstruct []
 
   def interested?(%UserRegistered{user_id: user_id}), do: {:start, user_id}

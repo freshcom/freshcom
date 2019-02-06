@@ -1,6 +1,7 @@
 defmodule FCIdentity.UserRoleChanged do
   use TypedStruct
 
+  @derive Jason.Encoder
   @version 1
 
   typedstruct do

@@ -7,6 +7,8 @@ defmodule FCIdentity.DefaultAppSetup do
   alias FCIdentity.{AccountCreated, AppAdded}
   alias FCIdentity.AddApp
 
+  @derive Jason.Encoder
+
   defstruct []
 
   def interested?(%AccountCreated{account_id: account_id}), do: {:start, account_id}
