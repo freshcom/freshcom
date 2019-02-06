@@ -7,8 +7,8 @@ defmodule FCInventory.StorageHandler do
 
   import FCInventory.StoragePolicy
 
-  alias FCInventory.{AddStorage}
-  alias FCInventory.{StorageAdded}
+  alias FCInventory.{AddStorage, UpdateStorage}
+  alias FCInventory.{StorageAdded, StorageUpdated}
   alias FCInventory.Storage
 
   def handle(%Storage{id: nil} = state, %AddStorage{} = cmd) do
@@ -22,20 +22,20 @@ defmodule FCInventory.StorageHandler do
     {:error, {:already_exist, :storage}}
   end
 
-  # def handle(%{id: nil}, _), do: {:error, {:not_found, :storage}}
-  # def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :storage}}
+  def handle(%{id: nil}, _), do: {:error, {:not_found, :storage}}
+  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :storage}}
 
-  # def handle(state, %UpdateStorage{} = cmd) do
-  #   default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)
-  #   translatable_fields = FCGoods.Storage.translatable_fields()
+  def handle(state, %UpdateStorage{} = cmd) do
+    default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)
+    translatable_fields = FCInventory.Storage.translatable_fields()
 
-  #   cmd
-  #   |> authorize(state)
-  #   ~> merge_to(%StorageUpdated{})
-  #   ~> put_translations(state, translatable_fields, default_locale)
-  #   ~> put_original_fields(state)
-  #   |> unwrap_ok()
-  # end
+    cmd
+    |> authorize(state)
+    ~> merge_to(%StorageUpdated{})
+    ~> put_translations(state, translatable_fields, default_locale)
+    ~> put_original_fields(state)
+    |> unwrap_ok()
+  end
 
   # def handle(state, %DeleteStorage{} = cmd) do
   #   cmd

@@ -2,17 +2,20 @@ defmodule FCInventory.RouterTest do
   use FCBase.RouterCase, async: true
 
   alias FCInventory.Router
+  alias Faker.Company
 
   alias FCInventory.{
-    AddStorage
+    AddStorage,
+    UpdateStorage
   }
 
   alias FCInventory.{
-    StorageAdded
+    StorageAdded,
+    StorageUpdated
   }
 
   setup do
-    Application.ensure_all_started(:fc_goods)
+    Application.ensure_all_started(:fc_inventory)
 
     :ok
   end
@@ -58,83 +61,80 @@ defmodule FCInventory.RouterTest do
     end
   end
 
-  # describe "dispatch UpdateStockable" do
-  #   setup do
-  #     cmd = %UpdateStockable{
-  #       stockable_id: uuid4(),
-  #       name: Faker.Commerce.product_name()
-  #     }
+  describe "dispatch UpdateStorage" do
+    setup do
+      cmd = %UpdateStorage{
+        storage_id: uuid4(),
+        name: Company.name()
+      }
 
-  #     %{cmd: cmd}
-  #   end
+      %{cmd: cmd}
+    end
 
-  #   test "given invalid command" do
-  #     assert {:error, {:validation_failed, errors}} = Router.dispatch(%UpdateStockable{})
-  #     assert length(errors) > 0
-  #   end
+    test "given invalid command" do
+      assert {:error, {:validation_failed, errors}} = Router.dispatch(%UpdateStorage{})
+      assert length(errors) > 0
+    end
 
-  #   test "given non existing stockable id", %{cmd: cmd} do
-  #     assert {:error, {:not_found, :stockable}} = Router.dispatch(cmd)
-  #   end
+    test "given non existing storage id", %{cmd: cmd} do
+      assert {:error, {:not_found, :storage}} = Router.dispatch(cmd)
+    end
 
-  #   test "given valid command with unauthorized role", %{cmd: cmd} do
-  #     to_streams("stockable", [
-  #       %StockableAdded{
-  #         client_id: uuid4(),
-  #         account_id: uuid4(),
-  #         requester_id: uuid4(),
-  #         stockable_id: cmd.stockable_id,
-  #         name: Faker.Commerce.product_name(),
-  #         unit_of_measure: "EA"
-  #       }
-  #     ])
+    test "given valid command with unauthorized role", %{cmd: cmd} do
+      to_streams("storage", [
+        %StorageAdded{
+          client_id: uuid4(),
+          account_id: uuid4(),
+          requester_id: uuid4(),
+          storage_id: cmd.storage_id,
+          name: Company.name()
+        }
+      ])
 
-  #     assert {:error, :access_denied} = Router.dispatch(cmd)
-  #   end
+      assert {:error, :access_denied} = Router.dispatch(cmd)
+    end
 
-  #   test "given valid command with authorized role", %{cmd: cmd} do
-  #     account_id = uuid4()
-  #     client_id = app_id("standard", account_id)
-  #     requester_id = user_id(account_id, "goods_specialist")
+    test "given valid command with authorized role", %{cmd: cmd} do
+      account_id = uuid4()
+      client_id = app_id("standard", account_id)
+      requester_id = user_id(account_id, "goods_specialist")
 
-  #     to_streams("stockable", [
-  #       %StockableAdded{
-  #         client_id: client_id,
-  #         account_id: account_id,
-  #         requester_id: requester_id,
-  #         stockable_id: cmd.stockable_id,
-  #         name: Faker.Commerce.product_name(),
-  #         unit_of_measure: "EA"
-  #       }
-  #     ])
+      to_streams("storage", [
+        %StorageAdded{
+          client_id: client_id,
+          account_id: account_id,
+          requester_id: requester_id,
+          storage_id: cmd.storage_id,
+          name: Company.name()
+        }
+      ])
 
-  #     cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
+      cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
 
-  #     assert :ok = Router.dispatch(cmd)
+      assert :ok = Router.dispatch(cmd)
 
-  #     assert_receive_event(StockableUpdated, fn event ->
-  #       assert event.name == cmd.name
-  #     end)
-  #   end
+      assert_receive_event(StorageUpdated, fn event ->
+        assert event.name == cmd.name
+      end)
+    end
 
-  #   test "given valid command with system role", %{cmd: cmd} do
-  #     to_streams("stockable", [
-  #       %StockableAdded{
-  #         stockable_id: cmd.stockable_id,
-  #         name: Faker.Commerce.product_name(),
-  #         unit_of_measure: "EA"
-  #       }
-  #     ])
+    test "given valid command with system role", %{cmd: cmd} do
+      to_streams("storage", [
+        %StorageAdded{
+          storage_id: cmd.storage_id,
+          name: Company.name()
+        }
+      ])
 
-  #     cmd = %{cmd | requester_role: "system"}
+      cmd = %{cmd | requester_role: "system"}
 
-  #     assert :ok = Router.dispatch(cmd)
+      assert :ok = Router.dispatch(cmd)
 
-  #     assert_receive_event(StockableUpdated, fn event ->
-  #       assert event.name == cmd.name
-  #     end)
-  #   end
-  # end
+      assert_receive_event(StorageUpdated, fn event ->
+        assert event.name == cmd.name
+      end)
+    end
+  end
 
   # describe "dispatch DeleteStockable" do
   #   setup do

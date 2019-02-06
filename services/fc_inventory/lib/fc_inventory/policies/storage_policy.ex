@@ -3,13 +3,13 @@ defmodule FCInventory.StoragePolicy do
 
   use FCBase, :policy
 
-  alias FCInventory.{AddStorage}
+  alias FCInventory.{AddStorage, UpdateStorage}
 
   def authorize(%AddStorage{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 
-  # def authorize(%UpdateStorage{requester_role: role} = cmd, _) when role in @goods_management_roles,
-  #   do: {:ok, cmd}
+  def authorize(%UpdateStorage{requester_role: role} = cmd, _) when role in @goods_management_roles,
+    do: {:ok, cmd}
 
   # def authorize(%DeleteStorage{requester_role: role} = cmd, _) when role in @goods_management_roles,
   #   do: {:ok, cmd}

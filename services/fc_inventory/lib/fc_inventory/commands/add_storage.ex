@@ -19,14 +19,13 @@ defmodule FCInventory.AddStorage do
 
     field :name, String.t()
     field :label, String.t()
+    field :size, integer()
 
     field :address_line_one, String.t()
     field :address_line_two, String.t()
     field :address_city, String.t()
     field :address_region_code, String.t()
     field :address_country_code, String.t()
-
-    field :size, integer()
 
     field :caption, String.t()
     field :description, String.t()

@@ -1,4 +1,4 @@
-defmodule FCInventory.StorageAdded do
+defmodule FCInventory.StorageUpdated do
   use TypedStruct
 
   @derive Jason.Encoder
@@ -14,6 +14,10 @@ defmodule FCInventory.StorageAdded do
     field :client_id, String.t()
     field :client_type, String.t()
     field :account_id, String.t()
+
+    field :effective_keys, [String.t()]
+    field :original_fields, map()
+    field :locale, String.t()
 
     field :storage_id, String.t()
 
@@ -33,7 +37,7 @@ defmodule FCInventory.StorageAdded do
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map(), default: %{}
-    field :translations, map(), default: %{}
+    field :custom_data, map()
+    field :translations, map()
   end
 end

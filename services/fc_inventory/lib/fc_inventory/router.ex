@@ -5,6 +5,7 @@ defmodule FCInventory.Router do
 
   alias FCInventory.{
     AddStorage,
+    UpdateStorage
   }
 
   alias FCInventory.{Storage}
@@ -17,5 +18,5 @@ defmodule FCInventory.Router do
 
   identify(Storage, by: :storage_id, prefix: "storage-")
 
-  dispatch([AddStorage], to: StorageHandler, aggregate: Storage)
+  dispatch([AddStorage, UpdateStorage], to: StorageHandler, aggregate: Storage)
 end

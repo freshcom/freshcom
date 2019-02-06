@@ -1,12 +1,8 @@
-defmodule FCInventory.StorageAdded do
+defmodule FCInventory.UpdateStorage do
   use TypedStruct
-
-  @derive Jason.Encoder
-  @version 1
+  use Vex.Struct
 
   typedstruct do
-    field :__version__, integer(), default: @version
-
     field :request_id, String.t()
     field :requester_id, String.t()
     field :requester_type, String.t()
@@ -14,6 +10,9 @@ defmodule FCInventory.StorageAdded do
     field :client_id, String.t()
     field :client_type, String.t()
     field :account_id, String.t()
+
+    field :effective_keys, [String.t()], default: []
+    field :locale, String.t()
 
     field :storage_id, String.t()
 
@@ -33,7 +32,13 @@ defmodule FCInventory.StorageAdded do
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map(), default: %{}
-    field :translations, map(), default: %{}
+    field :custom_data, map()
   end
+
+  @valid_statuses ["active", "disabled", "deleted"]
+
+  validates :storage_id, presence: true
+
+  validates :status, presence: true, inclusion: @valid_statuses
+  validates :name, presence: true
 end
