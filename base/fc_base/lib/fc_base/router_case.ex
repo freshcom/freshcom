@@ -34,7 +34,7 @@ defmodule FCBase.RouterCase do
         }
       end)
 
-    {:ok, _} = Commanded.EventStore.append_to_stream(stream_uuid, expected_version, event_data)
+    :ok = Commanded.EventStore.append_to_stream(stream_uuid, expected_version, event_data)
   end
 
   def to_streams(type, events) do
