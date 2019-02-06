@@ -185,7 +185,7 @@ defmodule Freshcom.APIModule do
 
   @spec to_query(Request.t(), Query.t() | map) :: Query.t()
   def to_query(req, %Query{} = query) do
-    {_, queryable} = query.from
+    %{source: {_, queryable}} = query.from
 
     translatable_fields =
       if Keyword.has_key?(queryable.__info__(:functions), :translatable_fields) do

@@ -22,7 +22,7 @@ defmodule Freshcom.IntegrationCase do
     end
 
     on_exit(fn ->
-      :ok = Application.stop(:commanded)
+      :ok = Application.stop(:freshcom)
 
       FCBase.EventStore.reset!()
     end)

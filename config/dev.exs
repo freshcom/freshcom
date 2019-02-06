@@ -3,7 +3,7 @@ use Mix.Config
 config :logger, level: :warn
 
 config :eventstore, EventStore.Storage,
-  serializer: Commanded.Serialization.JsonSerializer,
+  serializer: FCBase.EventSerializer,
   username: System.get_env("EVENTSTORE_DB_USERNAME"),
   password: System.get_env("EVENTSTORE_DB_PASSWORD"),
   database: "freshcom_eventstore_dev",

@@ -31,7 +31,7 @@ defmodule Freshcom.Filter do
   def attr_only(query, [], _), do: query
 
   def attr_only(%Ecto.Query{} = query, statements, :all) do
-    {_, queryable} = query.from
+    %{source: {_, queryable}} = query.from
     permitted_fields = stringify_list(queryable.__schema__(:fields))
 
     dynamic = do_attr_only("$and", statements, permitted_fields)
