@@ -4,7 +4,7 @@ defmodule FCInventory.Storage do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCInventory.{StorageAdded, StorageUpdated}
+  alias FCInventory.{StorageAdded, StorageUpdated, StorageDeleted}
 
   typedstruct do
     field :id, String.t()
@@ -50,7 +50,7 @@ defmodule FCInventory.Storage do
     |> apply_changes()
   end
 
-  # def apply(state, %StockableDeleted{}) do
-  #   %{state | status: "deleted"}
-  # end
+  def apply(state, %StorageDeleted{}) do
+    %{state | status: "deleted"}
+  end
 end

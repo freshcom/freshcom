@@ -7,8 +7,8 @@ defmodule FCInventory.StorageHandler do
 
   import FCInventory.StoragePolicy
 
-  alias FCInventory.{AddStorage, UpdateStorage}
-  alias FCInventory.{StorageAdded, StorageUpdated}
+  alias FCInventory.{AddStorage, UpdateStorage, DeleteStorage}
+  alias FCInventory.{StorageAdded, StorageUpdated, StorageDeleted}
   alias FCInventory.Storage
 
   def handle(%Storage{id: nil} = state, %AddStorage{} = cmd) do
@@ -37,10 +37,10 @@ defmodule FCInventory.StorageHandler do
     |> unwrap_ok()
   end
 
-  # def handle(state, %DeleteStorage{} = cmd) do
-  #   cmd
-  #   |> authorize(state)
-  #   ~> merge_to(%StorageDeleted{})
-  #   |> unwrap_ok()
-  # end
+  def handle(state, %DeleteStorage{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%StorageDeleted{})
+    |> unwrap_ok()
+  end
 end
