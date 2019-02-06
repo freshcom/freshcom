@@ -43,7 +43,7 @@ defmodule FCInventory.Batch do
     |> apply_changes()
   end
 
-  # def apply(state, %BatchDeleted{}) do
-  #   %{state | status: "deleted"}
-  # end
+  def apply(state, %BatchDeleted{}) do
+    %{state | status: "deleted"}
+  end
 end

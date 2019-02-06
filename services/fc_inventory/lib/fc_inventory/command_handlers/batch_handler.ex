@@ -7,8 +7,8 @@ defmodule FCInventory.BatchHandler do
 
   import FCInventory.BatchPolicy
 
-  alias FCInventory.{AddBatch, UpdateBatch}
-  alias FCInventory.{BatchAdded, BatchUpdated}
+  alias FCInventory.{AddBatch, UpdateBatch, DeleteBatch}
+  alias FCInventory.{BatchAdded, BatchUpdated, BatchDeleted}
   alias FCInventory.Batch
 
   def handle(%Batch{id: nil} = state, %AddBatch{} = cmd) do
@@ -37,10 +37,10 @@ defmodule FCInventory.BatchHandler do
     |> unwrap_ok()
   end
 
-  # def handle(state, %DeleteBatch{} = cmd) do
-  #   cmd
-  #   |> authorize(state)
-  #   ~> merge_to(%BatchDeleted{})
-  #   |> unwrap_ok()
-  # end
+  def handle(state, %DeleteBatch{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%BatchDeleted{})
+    |> unwrap_ok()
+  end
 end
