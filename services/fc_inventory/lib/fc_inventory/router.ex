@@ -6,11 +6,12 @@ defmodule FCInventory.Router do
   alias FCInventory.{
     AddStorage,
     UpdateStorage,
-    DeleteStorage
+    DeleteStorage,
+    AddBatch
   }
 
-  alias FCInventory.{Storage}
-  alias FCInventory.{StorageHandler}
+  alias FCInventory.{Storage, Batch}
+  alias FCInventory.{StorageHandler, BatchHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -18,6 +19,8 @@ defmodule FCInventory.Router do
   middleware(FCBase.IdentifierGeneration)
 
   identify(Storage, by: :storage_id, prefix: "storage-")
+  identify(Batch, by: :batch_id, prefix: "batch-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
+  dispatch([AddBatch], to: BatchHandler, aggregate: Batch)
 end
