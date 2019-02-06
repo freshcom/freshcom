@@ -31,7 +31,7 @@ defmodule FCGoods.MixProject do
   defp deps do
     [
       {:fc_base, path: "../../base/fc_base"},
-      {:commanded, "~> 0.17"},
+      {:commanded, "~> 0.18.0"},
       {:decimal, "~> 1.6"},
       {:hackney, "~> 1.9"},
       {:faker, "~> 0.11", only: [:test, :dev]},

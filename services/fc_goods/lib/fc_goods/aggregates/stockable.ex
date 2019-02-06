@@ -6,6 +6,8 @@ defmodule FCGoods.Stockable do
 
   alias FCGoods.{StockableAdded, StockableUpdated, StockableDeleted}
 
+  @derive Jason.Encoder
+
   typedstruct do
     field :id, String.t()
     field :account_id, String.t()
