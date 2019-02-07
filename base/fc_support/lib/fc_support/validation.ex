@@ -57,7 +57,7 @@ defmodule FCSupport.Validation do
   end
 
   defp normalize_error({:error, key, :length, _}, settings) do
-    info = Keyword.take(settings[key][:length], [:min, :max])
+    info = settings[key][:length]
     {:error, key, {:invalid_length, info}}
   end
 
@@ -77,12 +77,16 @@ defmodule FCSupport.Validation do
     {:error, key, :must_be_uuid}
   end
 
-  defp normalize_error({:error, key, :inclusion, _}, _) do
-    {:error, key, :invalid}
+  defp normalize_error({:error, key, :inclusion, _}, settings) do
+    {:error, key, {:invalid, settings[key][:inclusion]}}
   end
 
   defp normalize_error({:error, key, :by, error}, _) do
     {:error, key, error}
+  end
+
+  defp normalize_error({:error, key, :number, error}, settings) do
+    {:error, key, {:invalid_number, settings[key][:number]}}
   end
 
   defp normalize_error(tagged_error, _), do: tagged_error

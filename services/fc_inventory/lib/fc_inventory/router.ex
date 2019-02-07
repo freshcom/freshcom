@@ -9,11 +9,14 @@ defmodule FCInventory.Router do
     DeleteStorage,
     AddBatch,
     UpdateBatch,
-    DeleteBatch
+    DeleteBatch,
+    CreateTransaction,
+    UpdateTransaction,
+    DeleteTransaction
   }
 
-  alias FCInventory.{Storage, Batch}
-  alias FCInventory.{StorageHandler, BatchHandler}
+  alias FCInventory.{Storage, Batch, Transaction}
+  alias FCInventory.{StorageHandler, BatchHandler, TransactionHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -25,4 +28,5 @@ defmodule FCInventory.Router do
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
   dispatch([AddBatch, UpdateBatch, DeleteBatch], to: BatchHandler, aggregate: Batch)
+  dispatch([CreateTransaction], to: TransactionHandler, aggregate: Transaction)
 end
