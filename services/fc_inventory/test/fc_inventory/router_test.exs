@@ -223,7 +223,8 @@ defmodule FCInventory.RouterTest do
       cmd = %AddBatch{
         stockable_id: uuid4(),
         storage_id: uuid4(),
-        number: Lorem.characters(12)
+        number: Lorem.characters(12),
+        quantity_on_hand: 42
       }
 
       %{cmd: cmd}
@@ -249,6 +250,7 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(BatchAdded, fn event ->
         assert event.number == cmd.number
+        assert event.quantity_available == cmd.quantity_on_hand
       end)
     end
 
@@ -257,6 +259,7 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(BatchAdded, fn event ->
         assert event.number == cmd.number
+        assert event.quantity_available == cmd.quantity_on_hand
       end)
     end
   end
