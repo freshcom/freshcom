@@ -17,8 +17,10 @@ defmodule FCInventory.TransactionCreated do
 
     field :transaction_id, String.t()
 
+    field :source_stockable_id, String.t()
     field :source_id, String.t()
     field :source_type, String.t()
+    field :destination_stockable_id, String.t()
     field :destination_id, String.t()
     field :destination_type, String.t()
 
@@ -26,7 +28,8 @@ defmodule FCInventory.TransactionCreated do
     field :number, String.t()
     field :label, String.t()
     field :quantity, Decimal.t()
-    field :expected_commit_date, DateTime.t()
+    field :quantity_processed, Decimal.t()
+    field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()

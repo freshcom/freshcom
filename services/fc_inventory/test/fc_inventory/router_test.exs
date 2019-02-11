@@ -412,7 +412,7 @@ defmodule FCInventory.RouterTest do
   describe "dispatch CreateTransaction" do
     setup do
       cmd = %CreateTransaction{
-        stockable_id: uuid4(),
+        source_stockable_id: uuid4(),
         destination_id: uuid4(),
         destination_type: 'FCInventory.Batch',
         quantity: 1

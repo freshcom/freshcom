@@ -11,15 +11,18 @@ defmodule FCInventory.CreateTransaction do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stockable_id, String.t()
+    field :source_stockable_id, String.t()
     field :source_id, String.t()
     field :source_type, String.t()
+    field :destination_stockable_id, String.t()
     field :destination_id, String.t()
     field :destination_type, String.t()
 
     field :status, String.t(), default: "pending"
     field :number, String.t()
     field :quantity, Decimal.t()
+    field :quantity_processed, Decimal.t(), default: 0
+    field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
@@ -30,6 +33,6 @@ defmodule FCInventory.CreateTransaction do
 
   validates :status, presence: true, inclusion: @valid_statuses
   validates :quantity, presence: true, number: [greater_than: 0]
-  validates :stockable_id, presence: true, uuid: true
+  validates :destination_stockable_id, presence: [unless: [:source_stockable_id]]
   validates :destination_type, presence: [unless: [:source_type]]
 end

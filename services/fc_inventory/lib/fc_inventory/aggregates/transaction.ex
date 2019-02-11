@@ -11,14 +11,18 @@ defmodule FCInventory.Transaction do
     field :account_id, String.t()
     field :transaction_id, String.t()
 
+    field :source_stockable_id, String.t()
     field :source_id, String.t()
     field :source_type, String.t()
+    field :destination_stockable_id, String.t()
     field :destination_id, String.t()
     field :destination_type, String.t()
 
     field :status, String.t()
     field :number, String.t()
     field :quantity, Decimal.t()
+    field :quantity_processed, Decimal.t()
+    field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
