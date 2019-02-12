@@ -11,7 +11,8 @@ defmodule FCInventory.RouterTest do
     AddBatch,
     UpdateBatch,
     DeleteBatch,
-    CreateTransaction
+    CreateTransaction,
+    CreateMovement
   }
 
   alias FCInventory.{
@@ -21,7 +22,8 @@ defmodule FCInventory.RouterTest do
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
-    TransactionCreated
+    TransactionCreated,
+    MovementCreated
   }
 
   setup do
@@ -91,7 +93,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with unauthorized role", %{cmd: cmd} do
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           client_id: uuid4(),
           account_id: uuid4(),
@@ -109,7 +111,7 @@ defmodule FCInventory.RouterTest do
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
 
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           client_id: client_id,
           account_id: account_id,
@@ -129,7 +131,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with system role", %{cmd: cmd} do
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           storage_id: cmd.storage_id,
           name: Company.name()
@@ -165,7 +167,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with unauthorized role", %{cmd: cmd} do
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           client_id: uuid4(),
           account_id: uuid4(),
@@ -178,12 +180,13 @@ defmodule FCInventory.RouterTest do
       assert {:error, :access_denied} = Router.dispatch(cmd)
     end
 
+    @tag :focus
     test "given valid command with authorized role", %{cmd: cmd} do
       account_id = uuid4()
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
 
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           client_id: client_id,
           account_id: account_id,
@@ -203,7 +206,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with system role", %{cmd: cmd} do
-      to_streams("storage", [
+      to_streams(:storage_id, "stock-storage-", [
         %StorageAdded{
           storage_id: cmd.storage_id,
           name: Company.name()
@@ -286,7 +289,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with unauthorized role", %{cmd: cmd} do
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           client_id: uuid4(),
           account_id: uuid4(),
@@ -303,7 +306,7 @@ defmodule FCInventory.RouterTest do
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
 
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           client_id: client_id,
           account_id: account_id,
@@ -322,7 +325,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with system role", %{cmd: cmd} do
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           batch_id: cmd.batch_id
         }
@@ -357,7 +360,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with unauthorized role", %{cmd: cmd} do
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           client_id: uuid4(),
           account_id: uuid4(),
@@ -374,7 +377,7 @@ defmodule FCInventory.RouterTest do
       client_id = app_id("standard", account_id)
       requester_id = user_id(account_id, "goods_specialist")
 
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           client_id: client_id,
           account_id: account_id,
@@ -393,7 +396,7 @@ defmodule FCInventory.RouterTest do
     end
 
     test "given valid command with system role", %{cmd: cmd} do
-      to_streams("batch", [
+      to_streams(:batch_id, "stock-batch-", [
         %BatchAdded{
           batch_id: cmd.batch_id
         }
@@ -449,6 +452,48 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(TransactionCreated, fn event ->
         assert event.quantity == cmd.quantity
+      end)
+    end
+  end
+
+  describe "dispatch CreateMovement" do
+    setup do
+      cmd = %CreateMovement{
+        source_id: uuid4(),
+        source_type: 'FCInventory.Storage'
+      }
+
+      %{cmd: cmd}
+    end
+
+    test "given invalid command" do
+      assert {:error, {:validation_failed, errors}} = Router.dispatch(%CreateMovement{})
+      assert length(errors) > 0
+    end
+
+    test "given valid command with unauthorized role", %{cmd: cmd} do
+      assert {:error, :access_denied} = Router.dispatch(cmd)
+    end
+
+    test "given valid command with authorized role", %{cmd: cmd} do
+      account_id = uuid4()
+      requester_id = user_id(account_id, "goods_specialist")
+      client_id = app_id("standard", account_id)
+
+      cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
+
+      assert :ok = Router.dispatch(cmd)
+
+      assert_receive_event(MovementCreated, fn event ->
+        assert event.source_type == cmd.source_type
+      end)
+    end
+
+    test "given valid command with system role", %{cmd: cmd} do
+      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+
+      assert_receive_event(MovementCreated, fn event ->
+        assert event.source_type == cmd.source_type
       end)
     end
   end
