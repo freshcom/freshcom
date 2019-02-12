@@ -12,7 +12,6 @@ defmodule FCInventory.CreateTransactionTest do
 
       assert has_error(errors, :destination_type, :required)
       assert has_error(errors, :quantity, :required)
-      assert has_error(errors, :quantity, :invalid_number)
     end
   end
 end

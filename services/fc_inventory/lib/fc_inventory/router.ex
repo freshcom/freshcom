@@ -13,11 +13,12 @@ defmodule FCInventory.Router do
     CreateTransaction,
     UpdateTransaction,
     DeleteTransaction,
-    CreateMovement
+    CreateMovement,
+    CreateLineItem
   }
 
-  alias FCInventory.{Storage, Batch, Transaction, Movement}
-  alias FCInventory.{StorageHandler, BatchHandler, TransactionHandler, MovementHandler}
+  alias FCInventory.{Storage, Batch, Transaction, Movement, LineItem}
+  alias FCInventory.{StorageHandler, BatchHandler, TransactionHandler, MovementHandler, LineItemHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -33,4 +34,5 @@ defmodule FCInventory.Router do
   dispatch([AddBatch, UpdateBatch, DeleteBatch], to: BatchHandler, aggregate: Batch)
   dispatch([CreateTransaction], to: TransactionHandler, aggregate: Transaction)
   dispatch([CreateMovement], to: MovementHandler, aggregate: Movement)
+  dispatch([CreateLineItem], to: LineItemHandler, aggregate: LineItem)
 end

@@ -21,7 +21,7 @@ defmodule FCInventory.CreateTransaction do
     field :status, String.t(), default: "pending"
     field :number, String.t()
     field :quantity, Decimal.t()
-    field :quantity_processed, Decimal.t(), default: 0
+    field :quantity_processed, Decimal.t(), default: Decimal.new(0)
     field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
@@ -32,7 +32,7 @@ defmodule FCInventory.CreateTransaction do
   @valid_statuses ["pending", "ready", "committed", "deleted"]
 
   validates :status, presence: true, inclusion: @valid_statuses
-  validates :quantity, presence: true, number: [greater_than: 0]
+  validates :quantity, presence: true
   validates :destination_stockable_id, presence: [unless: [:source_stockable_id]]
   validates :destination_type, presence: [unless: [:source_type]]
 end
