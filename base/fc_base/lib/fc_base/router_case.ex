@@ -41,10 +41,16 @@ defmodule FCBase.RouterCase do
 
   def to_streams(type, events) do
     id_key = String.to_existing_atom("#{type}_id")
+    stream_prefix = "#{type}-"
+
+    to_streams(id_key, stream_prefix, events)
+  end
+
+  def to_streams(id_key, stream_prefix, events) do
     groups = Enum.group_by(events, &Map.get(&1, id_key))
 
     Enum.each(groups, fn {id, events} ->
-      append_to_stream("#{type}-" <> id, events)
+      append_to_stream("#{stream_prefix}" <> id, events)
     end)
   end
 end
