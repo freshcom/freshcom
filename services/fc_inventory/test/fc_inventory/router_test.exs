@@ -504,6 +504,7 @@ defmodule FCInventory.RouterTest do
     setup do
       cmd = %CreateLineItem{
         movement_id: uuid4(),
+        stockable_id: uuid4(),
         quantity: Decimal.new(1)
       }
 

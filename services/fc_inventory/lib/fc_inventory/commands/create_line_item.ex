@@ -12,6 +12,7 @@ defmodule FCInventory.CreateLineItem do
     field :account_id, String.t()
 
     field :movement_id, String.t()
+    field :stockable_id, String.t()
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :quantity, Decimal.t()
@@ -30,6 +31,7 @@ defmodule FCInventory.CreateLineItem do
   @valid_statuses ["pending"]
 
   validates :movement_id, presence: true, uuid: true
+  validates :stockable_id, presence: true, uuid: true
   validates :status, presence: true, inclusion: @valid_statuses
   validates :quantity, presence: true
 end

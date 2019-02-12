@@ -12,6 +12,7 @@ defmodule FCInventory.LineItem do
     field :line_item_id, String.t()
 
     field :movement_id, String.t()
+    field :stockable_id, String.t()
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :quantity, Decimal.t()
