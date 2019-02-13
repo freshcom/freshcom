@@ -16,7 +16,6 @@ defmodule FCInventory.CreateLineItem do
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :quantity, Decimal.t()
-    field :quantity_processed, Decimal.t(), default: Decimal.new(0)
 
     field :name, String.t()
     field :status, String.t(), default: "pending"

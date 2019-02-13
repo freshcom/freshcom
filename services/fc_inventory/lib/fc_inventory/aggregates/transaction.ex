@@ -11,6 +11,7 @@ defmodule FCInventory.Transaction do
     field :account_id, String.t()
     field :transaction_id, String.t()
 
+    field :line_item_id, String.t()
     field :source_stockable_id, String.t()
     field :source_id, String.t()
     field :source_type, String.t()

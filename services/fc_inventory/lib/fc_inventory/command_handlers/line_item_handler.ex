@@ -7,8 +7,8 @@ defmodule FCInventory.LineItemHandler do
 
   import FCInventory.LineItemPolicy
 
-  alias FCInventory.{CreateLineItem}
-  alias FCInventory.{LineItemCreated}
+  alias FCInventory.{CreateLineItem, MarkLineItem}
+  alias FCInventory.{LineItemCreated, LineItemMarked}
   alias FCInventory.LineItem
 
   def handle(%LineItem{id: nil} = state, %CreateLineItem{} = cmd) do
@@ -24,6 +24,13 @@ defmodule FCInventory.LineItemHandler do
 
   def handle(%{id: nil}, _), do: {:error, {:not_found, :line_item}}
   def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :line_item}}
+
+  def handle(state, %MarkLineItem{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%LineItemMarked{original_status: state.status})
+    |> unwrap_ok()
+  end
 
   # def handle(state, %UpdateLineItem{} = cmd) do
   #   default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)

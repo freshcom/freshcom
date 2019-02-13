@@ -14,7 +14,8 @@ defmodule FCInventory.Router do
     UpdateTransaction,
     DeleteTransaction,
     CreateMovement,
-    CreateLineItem
+    CreateLineItem,
+    MarkLineItem
   }
 
   alias FCInventory.{Storage, Batch, Transaction, Movement, LineItem}
@@ -29,10 +30,11 @@ defmodule FCInventory.Router do
   identify(Batch, by: :batch_id, prefix: "stock-batch-")
   identify(Movement, by: :movement_id, prefix: "stock-movement-")
   identify(Transaction, by: :transaction_id, prefix: "stock-transaction-")
+  identify(LineItem, by: :line_item_id, prefix: "stock-line-item-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
   dispatch([AddBatch, UpdateBatch, DeleteBatch], to: BatchHandler, aggregate: Batch)
   dispatch([CreateTransaction], to: TransactionHandler, aggregate: Transaction)
   dispatch([CreateMovement], to: MovementHandler, aggregate: Movement)
-  dispatch([CreateLineItem], to: LineItemHandler, aggregate: LineItem)
+  dispatch([CreateLineItem, MarkLineItem], to: LineItemHandler, aggregate: LineItem)
 end

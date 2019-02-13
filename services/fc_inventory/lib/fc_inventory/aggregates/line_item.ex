@@ -4,7 +4,7 @@ defmodule FCInventory.LineItem do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCInventory.{LineItemCreated}
+  alias FCInventory.{LineItemCreated, LineItemMarked}
 
   typedstruct do
     field :id, String.t()
@@ -41,6 +41,10 @@ defmodule FCInventory.LineItem do
   def apply(%{} = state, %LineItemCreated{} = event) do
     %{state | id: event.line_item_id}
     |> merge(event)
+  end
+
+  def apply(state, %LineItemMarked{} = event) do
+    %{state | status: event.status}
   end
 
   # def apply(state, %LineItemUpdated{} = event) do
