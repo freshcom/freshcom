@@ -184,7 +184,6 @@ defmodule FCInventory.RouterTest do
       assert {:error, :access_denied} = Router.dispatch(cmd)
     end
 
-    @tag :focus
     test "given valid command with authorized role", %{cmd: cmd} do
       account_id = uuid4()
       client_id = app_id("standard", account_id)
@@ -533,6 +532,10 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(LineItemCreated, fn event ->
         assert event.movement_id == cmd.movement_id
+      end)
+
+      assert_receive_event(LineItemMarked, fn event ->
+        assert event.status == "drafted"
       end)
     end
 
