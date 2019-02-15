@@ -9,7 +9,13 @@ defmodule FCStateStorage.MemoryAdapter do
 
   def get(key, _ \\ []) do
     Agent.get(__MODULE__, fn(table) ->
-      table[key]
+      json = table[key]
+
+      if json do
+        Jason.decode!(json, keys: :atoms!)
+      else
+        nil
+      end
     end)
   end
 
@@ -20,7 +26,7 @@ defmodule FCStateStorage.MemoryAdapter do
       {:error, :key_already_exist}
     else
       Agent.update(__MODULE__, fn(table) ->
-        Map.put(table, key, record)
+        Map.put(table, key, Jason.encode!(record))
       end)
 
       {:ok, record}
@@ -29,7 +35,7 @@ defmodule FCStateStorage.MemoryAdapter do
 
   def put(key, record, _) do
     Agent.update(__MODULE__, fn(table) ->
-      Map.put(table, key, record)
+      Map.put(table, key, Jason.encode!(record))
     end)
 
     {:ok, record}
