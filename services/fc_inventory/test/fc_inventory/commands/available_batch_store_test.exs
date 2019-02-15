@@ -8,10 +8,14 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "given new stockable" do
       account_id = uuid4()
       stockable_id = uuid4()
-      batch_id = uuid4()
+      batch = %{
+        id: uuid4(),
+        quantity_available: D.new(5),
+        expires_at: Timex.now()
+      }
 
-      AvailableBatchStore.put(account_id, stockable_id, batch_id, D.new(5))
-      batches = %{batch_id => %{available_quantity: D.new(5)}}
+      AvailableBatchStore.put(account_id, stockable_id, batch)
+      batches = [batch]
 
       assert AvailableBatchStore.get(account_id, stockable_id) == batches
     end
@@ -19,16 +23,21 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "given existing stockable and new batch" do
       account_id = uuid4()
       stockable_id = uuid4()
-      batch1_id = uuid4()
-      batch2_id = uuid4()
-
-      AvailableBatchStore.put(account_id, stockable_id, batch1_id, D.new(5))
-      AvailableBatchStore.put(account_id, stockable_id, batch2_id, D.new(10))
-
-      batches = %{
-        batch1_id => %{available_quantity: D.new(5)},
-        batch2_id => %{available_quantity: D.new(10)}
+      batch1 = %{
+        id: uuid4(),
+        quantity_available: D.new(5),
+        expires_at: Timex.shift(Timex.now(), hours: 2)
       }
+      batch2 = %{
+        id: uuid4(),
+        quantity_available: D.new(10),
+        expires_at: Timex.shift(Timex.now(), hours: 24)
+      }
+
+      AvailableBatchStore.put(account_id, stockable_id, batch2)
+      AvailableBatchStore.put(account_id, stockable_id, batch1)
+
+      batches = [batch1, batch2]
 
       assert AvailableBatchStore.get(account_id, stockable_id) == batches
     end
@@ -37,13 +46,21 @@ defmodule FCInventory.AvailableBatchStoreTest do
       account_id = uuid4()
       stockable_id = uuid4()
       batch_id = uuid4()
-
-      AvailableBatchStore.put(account_id, stockable_id, batch_id, D.new(5))
-      AvailableBatchStore.put(account_id, stockable_id, batch_id, D.new(10))
-
-      batches = %{
-        batch_id => %{available_quantity: D.new(10)}
+      existing_batch = %{
+        id: batch_id,
+        quantity_available: D.new(5),
+        expires_at: Timex.shift(Timex.now(), hours: 2)
       }
+      new_batch = %{
+        id: batch_id,
+        quantity_available: D.new(10),
+        expires_at: Timex.shift(Timex.now(), hours: 2)
+      }
+
+      AvailableBatchStore.put(account_id, stockable_id, existing_batch)
+      AvailableBatchStore.put(account_id, stockable_id, new_batch)
+
+      batches = [new_batch]
 
       assert AvailableBatchStore.get(account_id, stockable_id) == batches
     end
@@ -56,31 +73,38 @@ defmodule FCInventory.AvailableBatchStoreTest do
       batch_id = uuid4()
 
       assert AvailableBatchStore.delete(account_id, stockable_id, batch_id) == :ok
-      assert AvailableBatchStore.get(account_id, stockable_id) == %{}
+      assert AvailableBatchStore.get(account_id, stockable_id) == []
     end
 
     test "non existing batch_id" do
       account_id = uuid4()
       stockable_id = uuid4()
-      batch1_id = uuid4()
-      batch2_id = uuid4()
+      batch1 = %{
+        id: uuid4(),
+        quantity_available: D.new(5),
+        expires_at: Timex.shift(Timex.now(), hours: 2)
+      }
 
-      AvailableBatchStore.put(account_id, stockable_id, batch1_id, D.new(5))
-      batches = %{batch1_id => %{available_quantity: D.new(5)}}
+      AvailableBatchStore.put(account_id, stockable_id, batch1)
+      batches = [batch1]
 
-      assert AvailableBatchStore.delete(account_id, stockable_id, batch2_id) == :ok
+      assert AvailableBatchStore.delete(account_id, stockable_id, uuid4()) == :ok
       assert AvailableBatchStore.get(account_id, stockable_id) == batches
     end
 
     test "existing batch_id" do
       account_id = uuid4()
       stockable_id = uuid4()
-      batch_id = uuid4()
+      batch = %{
+        id: uuid4(),
+        quantity_available: D.new(5),
+        expires_at: Timex.shift(Timex.now(), hours: 2)
+      }
 
-      AvailableBatchStore.put(account_id, stockable_id, batch_id, D.new(5))
+      AvailableBatchStore.put(account_id, stockable_id, batch)
 
-      assert AvailableBatchStore.delete(account_id, stockable_id, batch_id) == :ok
-      assert AvailableBatchStore.get(account_id, stockable_id) == %{}
+      assert AvailableBatchStore.delete(account_id, stockable_id, batch.id) == :ok
+      assert AvailableBatchStore.get(account_id, stockable_id) == []
     end
   end
 end
