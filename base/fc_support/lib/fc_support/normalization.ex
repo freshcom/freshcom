@@ -5,6 +5,12 @@ defmodule FCSupport.Normalization do
     |> DateTime.to_iso8601()
   end
 
+  def from_utc_iso8601(nil), do: nil
+
+  def from_utc_iso8601(iso8601) do
+    Timex.parse!(iso8601, "{ISO:Extended}")
+  end
+
   def normalize_by(map, root_key, key, test_func, normalize_func) do
     value =
       map
