@@ -8,7 +8,13 @@ defmodule FCInventory.Supervisor do
   end
 
   def init(_) do
-    children = []
+    children = [
+      # Keeper
+      {FCInventory.Keeper, [start_from: :current]},
+
+      # Process Manager
+      {FCInventory.DraftLineItem, [start_from: :current]}
+    ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end

@@ -14,7 +14,7 @@ defmodule FCInventory.BatchHandler do
   def handle(%Batch{id: nil} = state, %AddBatch{} = cmd) do
     cmd
     |> authorize(state)
-    ~> merge_to(%BatchAdded{quantity_available: quantity_available(cmd)})
+    ~> merge_to(%BatchAdded{})
     |> unwrap_ok()
   end
 
@@ -42,15 +42,5 @@ defmodule FCInventory.BatchHandler do
     |> authorize(state)
     ~> merge_to(%BatchDeleted{})
     |> unwrap_ok()
-  end
-
-  defp quantity_available(%{quantity_on_hand: qoh, expires_at: nil}), do: qoh
-
-  defp quantity_available(%{quantity_on_hand: qoh, expires_at: expires_at}) do
-    if Timex.before?(Timex.now(), expires_at) do
-      qoh
-    else
-      0
-    end
   end
 end

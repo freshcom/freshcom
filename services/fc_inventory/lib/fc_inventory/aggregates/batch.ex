@@ -16,7 +16,7 @@ defmodule FCInventory.Batch do
     field :number, String.t()
     field :label, String.t()
     field :quantity_on_hand, Decimal.t()
-    field :quantity_available, Decimal.t()
+    field :quantity_reserved, Decimal.t(), default: Decimal.new(0)
     field :expires_at, DateTime.t()
 
     field :caption, String.t()

@@ -1,22 +1,31 @@
 defmodule FCInventory.AvailableBatchStore do
   import FCSupport.Normalization
+  alias Decimal, as: D
 
   @spec put(String.t(), String.t(), map()) :: :ok
   def put(account_id, stockable_id, batch) do
-    key = generate_key(account_id, stockable_id)
-    batch = Map.put(batch, :stored_at, Timex.now())
+    if is_available(batch) do
+      key = generate_key(account_id, stockable_id)
+      batch = Map.put(batch, :stored_at, Timex.now())
 
-    :ok = delete(account_id, stockable_id, batch.id)
-    batches = _get(account_id, stockable_id)
-    FCStateStorage.put(key, batches ++ [batch])
+      :ok = delete(account_id, stockable_id, batch.id)
+      batches = _get(account_id, stockable_id)
+      FCStateStorage.put(key, batches ++ [batch])
+    end
 
     {:ok, batch}
+  end
+
+  defp is_available(%{quantity_on_hand: qoh, quantity_reserved: qr, expires_at: nil}), do: qoh > qr
+
+  defp is_available(%{quantity_on_hand: qoh, quantity_reserved: qr, expires_at: expires_at}) do
+    (D.cmp(qoh, qr) == :gt) && Timex.before?(Timex.now(), expires_at)
   end
 
   @spec get(String.t(), String.t()) :: map()
   def get(account_id, stockable_id) do
     _get(account_id, stockable_id)
-    |> clean()
+    |> normalize()
   end
 
   defp _get(account_id, stockable_id) do
@@ -29,6 +38,7 @@ defmodule FCInventory.AvailableBatchStore do
       batches ->
         batches
         |> deserialize()
+        |> compact!(key)
         |> sort()
     end
   end
@@ -36,10 +46,18 @@ defmodule FCInventory.AvailableBatchStore do
   defp deserialize(batches) do
     Enum.map(batches, fn(batch) ->
       batch
-      |> Map.put(:quantity_available, Decimal.new(batch.quantity_available))
+      |> Map.put(:quantity_on_hand, Decimal.new(batch.quantity_on_hand))
+      |> Map.put(:quantity_reserved, Decimal.new(batch.quantity_reserved))
       |> Map.put(:expires_at, from_utc_iso8601(batch.expires_at))
       |> Map.put(:stored_at, from_utc_iso8601(batch.stored_at))
     end)
+  end
+
+  defp compact!(batches, key) do
+    compacted = Enum.filter(batches, &is_available/1)
+    FCStateStorage.put(key, batches)
+
+    compacted
   end
 
   defp sort(batches) do
@@ -62,8 +80,12 @@ defmodule FCInventory.AvailableBatchStore do
     end)
   end
 
-  defp clean(batches) do
-    Enum.map(batches, fn(batch) -> Map.drop(batch, [:stored_at]) end)
+  defp normalize(batches) do
+    Enum.map(batches, fn(batch) ->
+      batch
+      |> Map.drop([:stored_at])
+      |> Map.put(:quantity_available, D.sub(batch.quantity_on_hand, batch.quantity_reserved))
+    end)
   end
 
   @spec delete(String.t(), String.t(), String.t()) :: :ok

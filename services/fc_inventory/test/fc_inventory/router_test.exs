@@ -1,6 +1,7 @@
 defmodule FCInventory.RouterTest do
   use FCBase.RouterCase, async: true
 
+  alias Decimal, as: D
   alias FCInventory.Router
   alias Faker.{Company, Lorem}
 
@@ -258,7 +259,6 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(BatchAdded, fn event ->
         assert event.number == cmd.number
-        assert event.quantity_available == cmd.quantity_on_hand
       end)
     end
 
@@ -267,7 +267,6 @@ defmodule FCInventory.RouterTest do
 
       assert_receive_event(BatchAdded, fn event ->
         assert event.number == cmd.number
-        assert event.quantity_available == cmd.quantity_on_hand
       end)
     end
   end
@@ -506,7 +505,7 @@ defmodule FCInventory.RouterTest do
       cmd = %CreateLineItem{
         movement_id: uuid4(),
         stockable_id: uuid4(),
-        quantity: Decimal.new(1)
+        quantity: D.new(5)
       }
 
       %{cmd: cmd}
@@ -521,10 +520,27 @@ defmodule FCInventory.RouterTest do
       assert {:error, :access_denied} = Router.dispatch(cmd)
     end
 
+    @tag :focus
     test "given valid command with authorized role", %{cmd: cmd} do
       account_id = uuid4()
       requester_id = user_id(account_id, "goods_specialist")
       client_id = app_id("standard", account_id)
+
+      batch1 = %{
+        id: uuid4(),
+        quantity_on_hand: D.new(3),
+        quantity_reserved: D.new(0),
+        expires_at: nil
+      }
+      batch2 = %{
+        id: uuid4(),
+        quantity_on_hand: D.new(3),
+        quantity_reserved: D.new(0),
+        expires_at: nil
+      }
+
+      FCInventory.AvailableBatchStore.put(account_id, cmd.stockable_id, batch1)
+      FCInventory.AvailableBatchStore.put(account_id, cmd.stockable_id, batch2)
 
       cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
 

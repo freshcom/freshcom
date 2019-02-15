@@ -10,8 +10,10 @@ defmodule FCInventory.AvailableBatchStoreTest do
       stockable_id = uuid4()
       batch = %{
         id: uuid4(),
-        quantity_available: D.new(5),
-        expires_at: Timex.now()
+        quantity_on_hand: D.new(5),
+        quantity_reserved: D.new(3),
+        quantity_available: D.new(2),
+        expires_at: Timex.shift(Timex.now(), hours: 1)
       }
 
       AvailableBatchStore.put(account_id, stockable_id, batch)
@@ -25,12 +27,16 @@ defmodule FCInventory.AvailableBatchStoreTest do
       stockable_id = uuid4()
       batch1 = %{
         id: uuid4(),
-        quantity_available: D.new(5),
+        quantity_on_hand: D.new(5),
+        quantity_reserved: D.new(2),
+        quantity_available: D.new(3),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
       batch2 = %{
         id: uuid4(),
-        quantity_available: D.new(10),
+        quantity_on_hand: D.new(10),
+        quantity_reserved: D.new(3),
+        quantity_available: D.new(7),
         expires_at: Timex.shift(Timex.now(), hours: 24)
       }
 
@@ -48,12 +54,16 @@ defmodule FCInventory.AvailableBatchStoreTest do
       batch_id = uuid4()
       existing_batch = %{
         id: batch_id,
-        quantity_available: D.new(5),
+        quantity_on_hand: D.new(5),
+        quantity_reserved: D.new(2),
+        quantity_available: D.new(3),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
       new_batch = %{
         id: batch_id,
-        quantity_available: D.new(10),
+        quantity_on_hand: D.new(10),
+        quantity_reserved: D.new(2),
+        quantity_available: D.new(8),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
 
@@ -81,7 +91,9 @@ defmodule FCInventory.AvailableBatchStoreTest do
       stockable_id = uuid4()
       batch1 = %{
         id: uuid4(),
-        quantity_available: D.new(5),
+        quantity_on_hand: D.new(5),
+        quantity_reserved: D.new(2),
+        quantity_available: D.new(3),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
 
@@ -97,7 +109,8 @@ defmodule FCInventory.AvailableBatchStoreTest do
       stockable_id = uuid4()
       batch = %{
         id: uuid4(),
-        quantity_available: D.new(5),
+        quantity_on_hand: D.new(5),
+        quantity_reserved: D.new(2),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
 
