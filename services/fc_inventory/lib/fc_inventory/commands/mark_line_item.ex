@@ -15,7 +15,7 @@ defmodule FCInventory.MarkLineItem do
     field :status, String.t()
   end
 
-  @valid_statuses ["drafted"]
+  @valid_statuses ["partially_drafted", "drafted"]
 
   validates :line_item_id, presence: true, uuid: true
   validates :status, presence: true, inclusion: @valid_statuses

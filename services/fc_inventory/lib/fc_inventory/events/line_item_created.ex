@@ -1,5 +1,6 @@
 defmodule FCInventory.LineItemCreated do
   use TypedStruct
+  alias Decimal, as: D
 
   @derive Jason.Encoder
   @version 1
@@ -22,7 +23,6 @@ defmodule FCInventory.LineItemCreated do
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :quantity, Decimal.t()
-    field :quantity_processed, Decimal.t()
 
     field :name, String.t()
     field :status, String.t()
@@ -33,5 +33,10 @@ defmodule FCInventory.LineItemCreated do
     field :description, String.t()
     field :custom_data, map(), default: %{}
     field :translations, map(), default: %{}
+  end
+
+  def deserialize(event) do
+    event
+    |> Map.put(:quantity, D.new(event.quantity))
   end
 end

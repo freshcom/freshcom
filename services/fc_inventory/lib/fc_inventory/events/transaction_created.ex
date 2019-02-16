@@ -1,5 +1,6 @@
 defmodule FCInventory.TransactionCreated do
   use TypedStruct
+  alias Decimal, as: D
 
   @derive Jason.Encoder
   @version 1
@@ -29,12 +30,16 @@ defmodule FCInventory.TransactionCreated do
     field :number, String.t()
     field :label, String.t()
     field :quantity, Decimal.t()
-    field :quantity_processed, Decimal.t()
     field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
     field :custom_data, map(), default: %{}
     field :translations, map(), default: %{}
+  end
+
+  def deserialize(event) do
+    event
+    |> Map.put(:quantity, D.new(event.quantity))
   end
 end
