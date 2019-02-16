@@ -11,6 +11,7 @@ defmodule FCInventory.CreateLineItem do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :line_item_id, String.t()
     field :movement_id, String.t()
     field :stockable_id, String.t()
     field :cause_id, String.t()
