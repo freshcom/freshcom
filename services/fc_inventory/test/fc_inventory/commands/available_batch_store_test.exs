@@ -8,6 +8,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "given new stockable" do
       account_id = uuid4()
       stockable_id = uuid4()
+
       batch = %{
         id: uuid4(),
         quantity_on_hand: D.new(5),
@@ -25,6 +26,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "given existing stockable and new batch" do
       account_id = uuid4()
       stockable_id = uuid4()
+
       batch1 = %{
         id: uuid4(),
         quantity_on_hand: D.new(5),
@@ -32,6 +34,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
         quantity_available: D.new(3),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
+
       batch2 = %{
         id: uuid4(),
         quantity_on_hand: D.new(10),
@@ -52,6 +55,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
       account_id = uuid4()
       stockable_id = uuid4()
       batch_id = uuid4()
+
       existing_batch = %{
         id: batch_id,
         quantity_on_hand: D.new(5),
@@ -59,6 +63,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
         quantity_available: D.new(3),
         expires_at: Timex.shift(Timex.now(), hours: 2)
       }
+
       new_batch = %{
         id: batch_id,
         quantity_on_hand: D.new(10),
@@ -89,6 +94,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "non existing batch_id" do
       account_id = uuid4()
       stockable_id = uuid4()
+
       batch1 = %{
         id: uuid4(),
         quantity_on_hand: D.new(5),
@@ -107,6 +113,7 @@ defmodule FCInventory.AvailableBatchStoreTest do
     test "existing batch_id" do
       account_id = uuid4()
       stockable_id = uuid4()
+
       batch = %{
         id: uuid4(),
         quantity_on_hand: D.new(5),

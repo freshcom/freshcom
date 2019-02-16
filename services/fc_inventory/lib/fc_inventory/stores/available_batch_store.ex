@@ -19,7 +19,7 @@ defmodule FCInventory.AvailableBatchStore do
   defp is_available(%{quantity_on_hand: qoh, quantity_reserved: qr, expires_at: nil}), do: qoh > qr
 
   defp is_available(%{quantity_on_hand: qoh, quantity_reserved: qr, expires_at: expires_at}) do
-    (D.cmp(qoh, qr) == :gt) && Timex.before?(Timex.now(), expires_at)
+    D.cmp(qoh, qr) == :gt && Timex.before?(Timex.now(), expires_at)
   end
 
   @spec get(String.t(), String.t()) :: map()
@@ -44,7 +44,7 @@ defmodule FCInventory.AvailableBatchStore do
   end
 
   defp deserialize(batches) do
-    Enum.map(batches, fn(batch) ->
+    Enum.map(batches, fn batch ->
       batch
       |> Map.put(:quantity_on_hand, Decimal.new(batch.quantity_on_hand))
       |> Map.put(:quantity_reserved, Decimal.new(batch.quantity_reserved))
@@ -61,7 +61,7 @@ defmodule FCInventory.AvailableBatchStore do
   end
 
   defp sort(batches) do
-    Enum.sort(batches, fn(batch1, batch2) ->
+    Enum.sort(batches, fn batch1, batch2 ->
       cond do
         is_nil(batch1.expires_at) && is_nil(batch2.expires_at) ->
           cmp_result = DateTime.compare(batch1.stored_at, batch2.stored_at)
@@ -81,7 +81,7 @@ defmodule FCInventory.AvailableBatchStore do
   end
 
   defp normalize(batches) do
-    Enum.map(batches, fn(batch) ->
+    Enum.map(batches, fn batch ->
       batch
       |> Map.drop([:stored_at])
       |> Map.put(:quantity_available, D.sub(batch.quantity_on_hand, batch.quantity_reserved))

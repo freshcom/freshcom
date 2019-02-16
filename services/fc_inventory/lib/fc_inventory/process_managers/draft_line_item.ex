@@ -1,6 +1,7 @@
 defmodule FCInventory.DraftLineItem do
   @moduledoc false
   use TypedStruct
+
   use Commanded.ProcessManagers.ProcessManager,
     name: "process-manager:9403aad7-38f0-4fbd-a223-d024f212bdae",
     router: FCInventory.Router
@@ -73,9 +74,9 @@ defmodule FCInventory.DraftLineItem do
     event = TransactionCreated.deserialize(event)
 
     %{
-      state |
-      quantity_pending: D.sub(qp, event.quantity),
-      quantity_drafted: D.add(qd, event.quantity)
+      state
+      | quantity_pending: D.sub(qp, event.quantity),
+        quantity_drafted: D.add(qd, event.quantity)
     }
   end
 
@@ -85,16 +86,19 @@ defmodule FCInventory.DraftLineItem do
 
   defp create_transactions(line_item, [], quantity, cmds) do
     if D.cmp(quantity, D.new(0)) == :gt do
-      cmds ++ [%CreateTransaction{
-        requester_role: "system",
-        account_id: line_item.account_id,
-        line_item_id: line_item.id,
-        status: "pending",
-        quantity: quantity,
-        source_stockable_id: line_item.stockable_id,
-        destination_type: line_item.cause_type,
-        destination_id: line_item.cause_id
-      }]
+      cmds ++
+        [
+          %CreateTransaction{
+            requester_role: "system",
+            account_id: line_item.account_id,
+            line_item_id: line_item.id,
+            status: "pending",
+            quantity: quantity,
+            source_stockable_id: line_item.stockable_id,
+            destination_type: line_item.cause_type,
+            destination_id: line_item.cause_id
+          }
+        ]
     else
       cmds
     end

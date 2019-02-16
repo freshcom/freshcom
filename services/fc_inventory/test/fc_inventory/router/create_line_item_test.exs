@@ -4,6 +4,7 @@ defmodule FCInventory.Router.CreateLineItemTest do
   alias Decimal, as: D
   alias FCInventory.Router
   alias FCInventory.{CreateMovement, CreateLineItem}
+
   alias FCInventory.{
     TransactionCreated,
     LineItemCreated,
@@ -44,6 +45,7 @@ defmodule FCInventory.Router.CreateLineItemTest do
       quantity_reserved: D.new(0),
       expires_at: nil
     }
+
     batch2 = %{
       id: uuid4(),
       quantity_on_hand: D.new(1),
@@ -62,7 +64,8 @@ defmodule FCInventory.Router.CreateLineItemTest do
       assert event.movement_id == cmd.movement_id
     end)
 
-    assert_receive_event(TransactionCreated,
+    assert_receive_event(
+      TransactionCreated,
       fn event -> event.source_id == batch1.id end,
       fn event ->
         assert event.source_type == "FCInventory.Batch"
@@ -71,7 +74,8 @@ defmodule FCInventory.Router.CreateLineItemTest do
       end
     )
 
-    assert_receive_event(TransactionCreated,
+    assert_receive_event(
+      TransactionCreated,
       fn event -> event.source_id == batch2.id end,
       fn event ->
         assert event.source_type == "FCInventory.Batch"
@@ -80,7 +84,8 @@ defmodule FCInventory.Router.CreateLineItemTest do
       end
     )
 
-    assert_receive_event(TransactionCreated,
+    assert_receive_event(
+      TransactionCreated,
       fn event -> is_nil(event.source_id) end,
       fn event ->
         assert event.status == "pending"
