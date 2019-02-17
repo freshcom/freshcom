@@ -11,6 +11,7 @@ defmodule FCBase do
       def authorize(%{requester_role: "sysdev"} = cmd, _), do: {:ok, cmd}
       def authorize(%{requester_role: "system"} = cmd, _), do: {:ok, cmd}
       def authorize(%{requester_role: "appdev"} = cmd, _), do: {:ok, cmd}
+      def authorize(%{account_id: c_aid} = cmd, %{account_id: s_aid}) when (not is_nil(c_aid)) and (not is_nil(s_aid)) and (c_aid != s_aid), do: {:error, :access_denied}
       def authorize(%{client_type: "unkown"}, _), do: {:error, :access_denied}
     end
   end
