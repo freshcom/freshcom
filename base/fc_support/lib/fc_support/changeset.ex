@@ -16,7 +16,7 @@ defmodule FCSupport.Changeset do
     fields = Map.from_struct(event)
 
     Enum.reduce(fields, %__MODULE__{data: data}, fn({k, v}, acc) ->
-      if Enum.member?(effective_keys, Atom.to_string(k)) do
+      if Enum.member?(effective_keys, k) do
         put_change(acc, k, v)
       else
         acc
