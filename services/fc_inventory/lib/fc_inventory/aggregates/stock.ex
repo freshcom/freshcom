@@ -52,13 +52,13 @@ defmodule FCInventory.Stock do
   def apply(state, %et{} = event) when et in [StockReserved, StockPartiallyReserved] do
     batches =
       Enum.reduce(event.transactions, state.batches, fn {_, txn}, batches ->
-        batch = state.batches[txn.batch_id]
+        batch = state.batches[txn.source_batch_id]
         batch = %{
           batch
           | quantity_reserved: D.add(batch.quantity_reserved, txn.quantity),
         }
 
-        Map.put(batches, txn.batch_id, batch)
+        Map.put(batches, txn.source_batch_id, batch)
       end)
 
     %{state | batches: batches}

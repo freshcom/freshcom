@@ -110,7 +110,7 @@ defmodule FCInventory.StockHandler do
   end
 
   defp reserve_batch(batch_id, quantity) do
-    %Transaction{status: "reserved", batch_id: batch_id, quantity: quantity}
+    %Transaction{status: "reserved", source_batch_id: batch_id, quantity: quantity}
   end
 
   defp ensure_batch_exist(_, nil), do: {:error, {:not_found, :batch}}
