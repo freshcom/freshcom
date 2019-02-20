@@ -10,11 +10,11 @@ defmodule FCBase.CommandValidation do
     validate(pipeline)
   end
 
-  def validate(%{command: %{effective_keys: e_keys} = cmd, identity: identity} = pipeline) do
-    e_keys = e_keys ++ [identity]
+  def validate(%{command: %{effective_keys: ekeys} = cmd, identity: identity} = pipeline) do
+    ekeys = ekeys ++ [identity]
 
     cmd
-    |> Validation.validate(effective_keys: atomize_list(e_keys))
+    |> Validation.validate(effective_keys: ekeys)
     |> put_validation_result(pipeline)
   end
 
