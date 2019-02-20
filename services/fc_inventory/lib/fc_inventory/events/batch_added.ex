@@ -19,11 +19,12 @@ defmodule FCInventory.BatchAdded do
     field :stockable_id, String.t()
     field :storage_id, String.t()
 
+    field :quantity_on_hand, Decimal.t()
+    field :expires_at, DateTime.t()
+
     field :status, String.t()
     field :number, String.t()
     field :label, String.t()
-    field :quantity_on_hand, Decimal.t()
-    field :expires_at, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()

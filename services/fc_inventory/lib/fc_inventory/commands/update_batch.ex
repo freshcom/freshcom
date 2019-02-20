@@ -18,10 +18,11 @@ defmodule FCInventory.UpdateBatch do
     field :locale, String.t()
 
     field :status, String.t()
-    field :number, String.t()
-    field :label, String.t()
     field :quantity_on_hand, Decimal.t()
     field :expires_at, DateTime.t()
+
+    field :number, String.t()
+    field :label, String.t()
 
     field :caption, String.t()
     field :description, String.t()

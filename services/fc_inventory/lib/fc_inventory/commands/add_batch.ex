@@ -15,10 +15,11 @@ defmodule FCInventory.AddBatch do
     field :storage_id, String.t()
 
     field :status, String.t(), default: "active"
-    field :number, String.t()
-    field :label, String.t()
     field :quantity_on_hand, Decimal.t(), default: Decimal.new(0)
     field :expires_at, DateTime.t()
+
+    field :number, String.t()
+    field :label, String.t()
 
     field :caption, String.t()
     field :description, String.t()
