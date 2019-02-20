@@ -25,11 +25,13 @@ defmodule FCBase.EventSerializer do
 
     binary
     |> Jason.decode!(opts)
-    |> FCSupport.Normalization.atomize_keys()
     |> to_struct(type)
     |> JsonDecoder.decode()
   end
 
   defp to_struct(data, nil), do: data
-  defp to_struct(data, struct), do: struct(struct, data)
+  defp to_struct(data, struct) do
+    data = FCSupport.Normalization.atomize_keys(data)
+    struct(struct, data)
+  end
 end

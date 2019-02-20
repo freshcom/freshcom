@@ -3,7 +3,7 @@ defmodule FCBase.CommandHandler do
   def put_translations(%{locale: nil} = event, _, _, _), do: event
 
   def put_translations(%{locale: locale} = event, %{translations: translations}, translatable_fields, _) do
-    effective_keys = Enum.map(event.effective_keys, &String.to_existing_atom/1)
+    effective_keys = event.effective_keys
 
     locale_struct = Map.get(translations, locale, %{})
     new_locale_struct =
@@ -13,7 +13,7 @@ defmodule FCBase.CommandHandler do
 
     merged_locale_struct = Map.merge(locale_struct, new_locale_struct)
     new_translations = Map.merge(translations, %{locale => merged_locale_struct})
-    new_effective_keys = (effective_keys -- translatable_fields) ++ ["translations"]
+    new_effective_keys = (effective_keys -- translatable_fields) ++ [:translations]
 
     %{event | effective_keys: new_effective_keys, translations: new_translations}
   end
@@ -23,10 +23,8 @@ defmodule FCBase.CommandHandler do
 
     original_fields =
       Enum.reduce(fields, %{}, fn {k, v}, acc ->
-        str_key = Atom.to_string(k)
-
-        if Enum.member?(effective_keys, str_key) do
-          Map.put(acc, str_key, v)
+        if Enum.member?(effective_keys, k) do
+          Map.put(acc, k, v)
         else
           acc
         end
