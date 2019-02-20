@@ -15,6 +15,7 @@ defmodule FCInventory.BatchDeleted do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :stockable_id, String.t()
     field :batch_id, String.t()
   end
 end

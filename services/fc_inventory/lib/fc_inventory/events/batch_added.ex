@@ -27,7 +27,7 @@ defmodule FCInventory.BatchAdded do
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map(), default: %{}
+    field :custom_data, map()
     field :translations, map(), default: %{}
   end
 end

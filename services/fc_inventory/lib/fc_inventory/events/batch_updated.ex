@@ -19,6 +19,7 @@ defmodule FCInventory.BatchUpdated do
     field :original_fields, map()
     field :locale, String.t()
 
+    field :stockable_id, String.t()
     field :batch_id, String.t()
 
     field :status, String.t()
@@ -31,5 +32,26 @@ defmodule FCInventory.BatchUpdated do
     field :description, String.t()
     field :custom_data, map()
     field :translations, map()
+  end
+end
+
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.BatchUpdated do
+  import FCSupport.Normalization
+
+  alias FCInventory.Transaction
+  alias Decimal, as: D
+
+  def decode(event) do
+    %{
+      event
+      | quantity_on_hand: D.new(event.quantity_on_hand),
+        effective_keys: atomize_list(event.effective_keys),
+        original_fields: decode_ofields(event.original_fields)
+    }
+  end
+
+  def decode_ofields(%{"quantity_on_hand" => _} = ofields) do
+    ofields = atomize_keys(ofields)
+    %{ofields | quantity_on_hand: D.new(ofields.quantity_on_hand)}
   end
 end

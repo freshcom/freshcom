@@ -11,24 +11,23 @@ defmodule FCInventory.AddBatch do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :batch_id, String.t()
     field :stockable_id, String.t()
     field :storage_id, String.t()
 
     field :status, String.t(), default: "active"
     field :number, String.t()
     field :label, String.t()
-    field :quantity_on_hand, Decimal.t(), default: 0
+    field :quantity_on_hand, Decimal.t(), default: Decimal.new(0)
     field :expires_at, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map()
+    field :custom_data, map(), default: %{}
   end
 
-  @valid_statuses ["active", "disabled", "deleted"]
+  @valid_statuses ["active"]
 
-  validates :status, presence: true, inclusion: @valid_statuses
   validates :stockable_id, presence: true, uuid: true
   validates :storage_id, presence: true, uuid: true
+  validates :status, presence: true, inclusion: @valid_statuses
 end

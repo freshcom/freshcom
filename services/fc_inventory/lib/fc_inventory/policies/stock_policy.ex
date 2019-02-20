@@ -1,4 +1,4 @@
-defmodule FCInventory.BatchPolicy do
+defmodule FCInventory.StockPolicy do
   @moduledoc false
 
   use FCBase, :policy

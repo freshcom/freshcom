@@ -11,16 +11,16 @@ defmodule FCInventory.UpdateBatch do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :effective_keys, [String.t()], default: []
-    field :locale, String.t()
-
+    field :stockable_id, String.t()
     field :batch_id, String.t()
+
+    field :effective_keys, [atom()], default: []
+    field :locale, String.t()
 
     field :status, String.t()
     field :number, String.t()
-    field :name, String.t()
     field :label, String.t()
-    field :quantity_on_hand, Decimal.t(), default: 0
+    field :quantity_on_hand, Decimal.t()
     field :expires_at, DateTime.t()
 
     field :caption, String.t()
@@ -28,8 +28,9 @@ defmodule FCInventory.UpdateBatch do
     field :custom_data, map()
   end
 
-  @valid_statuses ["active", "disabled", "deleted"]
+  @valid_statuses ["active"]
 
+  validates :stockable_id, presence: true, uuid: true
   validates :batch_id, presence: true, uuid: true
   validates :status, presence: true, inclusion: @valid_statuses
 end

@@ -11,8 +11,10 @@ defmodule FCInventory.DeleteBatch do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :stockable_id, String.t()
     field :batch_id, String.t()
   end
 
+  validates :stockable_id, presence: true, uuid: true
   validates :batch_id, presence: true, uuid: true
 end
