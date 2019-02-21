@@ -85,7 +85,7 @@ defmodule FCSupport.Validation do
     {:error, key, error}
   end
 
-  defp normalize_error({:error, key, :number, error}, settings) do
+  defp normalize_error({:error, key, :number, _}, settings) do
     {:error, key, {:invalid_number, settings[key][:number]}}
   end
 
