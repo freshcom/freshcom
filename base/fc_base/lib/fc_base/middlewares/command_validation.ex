@@ -1,8 +1,6 @@
 defmodule FCBase.CommandValidation do
   @behaviour Commanded.Middleware
 
-  import FCSupport.Normalization, only: [atomize_list: 1]
-
   alias Commanded.Middleware.Pipeline
   alias FCSupport.Validation
 
