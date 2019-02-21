@@ -15,14 +15,6 @@ defmodule FCInventory.Router.AddLineItemTest do
     StockReservationFailed
   }
 
-  defp assert_event(event, fun) do
-    assert_receive_event(event, fun, &(&1))
-  end
-
-  defp assert_event(event) do
-    assert_receive_event(event, &(&1), &(&1))
-  end
-
   setup do
     Application.ensure_all_started(:fc_inventory)
 
