@@ -1,4 +1,4 @@
-defmodule FCInventory.MarkLineItem do
+defmodule FCInventory.AddTransaction do
   use TypedStruct
   use Vex.Struct
 
@@ -13,13 +13,17 @@ defmodule FCInventory.MarkLineItem do
 
     field :movement_id, String.t()
     field :line_item_id, String.t()
-    field :status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
-  end
+    field :batch_id, String.t()
+    field :transaction_id, String.t()
 
-  @valid_statuses ["processing", "processed", "partially_reserved", "reserved", "none_reserved"]
+    field :status, String.t()
+    field :quantity, Decimal.t()
+  end
 
   validates :movement_id, presence: true, uuid: true
   validates :line_item_id, presence: true, uuid: true
-  validates :status, presence: true, inclusion: @valid_statuses
+  validates :batch_id, presence: true, uuid: true
+  validates :transaction_id, presence: true, uuid: true
+  validates :quantity, presence: true
+  validates :status, presence: true
 end

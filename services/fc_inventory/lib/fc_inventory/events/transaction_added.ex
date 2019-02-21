@@ -1,5 +1,6 @@
-defmodule FCInventory.LineItemMarked do
+defmodule FCInventory.TransactionAdded do
   use TypedStruct
+  alias Decimal, as: D
 
   @derive Jason.Encoder
   @version 1
@@ -17,9 +18,18 @@ defmodule FCInventory.LineItemMarked do
 
     field :movement_id, String.t()
     field :line_item_id, String.t()
+    field :transaction_id, String.t()
+    field :batch_id, String.t()
 
     field :status, String.t()
-    field :original_status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
+    field :quantity, Decimal.t()
+  end
+end
+
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionAdded do
+  alias FCInventory.Transaction
+
+  def decode(event) do
+    %{event | quantity: Decimal.new(event.quantity)}
   end
 end

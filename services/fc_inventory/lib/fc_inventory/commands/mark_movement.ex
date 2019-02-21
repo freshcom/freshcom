@@ -1,12 +1,8 @@
-defmodule FCInventory.LineItemMarked do
+defmodule FCInventory.MarkMovement do
   use TypedStruct
-
-  @derive Jason.Encoder
-  @version 1
+  use Vex.Struct
 
   typedstruct do
-    field :__version__, integer(), default: @version
-
     field :request_id, String.t()
     field :requester_id, String.t()
     field :requester_type, String.t()
@@ -16,10 +12,10 @@ defmodule FCInventory.LineItemMarked do
     field :account_id, String.t()
 
     field :movement_id, String.t()
-    field :line_item_id, String.t()
-
     field :status, String.t()
-    field :original_status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
   end
+
+  @valid_statuses ["processing"]
+
+  validates :status, presence: true, inclusion: @valid_statuses
 end

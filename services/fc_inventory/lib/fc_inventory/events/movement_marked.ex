@@ -1,4 +1,4 @@
-defmodule FCInventory.LineItemMarked do
+defmodule FCInventory.MovementMarked do
   use TypedStruct
 
   @derive Jason.Encoder
@@ -16,10 +16,7 @@ defmodule FCInventory.LineItemMarked do
     field :account_id, String.t()
 
     field :movement_id, String.t()
-    field :line_item_id, String.t()
-
-    field :status, String.t()
     field :original_status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
+    field :status, String.t()
   end
 end

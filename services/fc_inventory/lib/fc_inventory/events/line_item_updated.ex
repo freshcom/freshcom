@@ -1,5 +1,7 @@
-defmodule FCInventory.LineItemMarked do
+defmodule FCInventory.LineItemUpdated do
   use TypedStruct
+
+  alias Decimal, as: D
 
   @derive Jason.Encoder
   @version 1
@@ -15,11 +17,21 @@ defmodule FCInventory.LineItemMarked do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :effective_keys, [String.t()], default: []
+    field :original_fields, map()
+    field :locale, String.t()
+
     field :movement_id, String.t()
     field :line_item_id, String.t()
+    field :quantity, Decimal.t()
 
-    field :status, String.t()
-    field :original_status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
+    field :name, String.t()
+    field :number, String.t()
+    field :label, String.t()
+
+    field :caption, String.t()
+    field :description, String.t()
+    field :custom_data, map()
+    field :translations, map()
   end
 end

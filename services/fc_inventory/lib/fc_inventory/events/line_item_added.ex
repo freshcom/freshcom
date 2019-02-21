@@ -1,4 +1,4 @@
-defmodule FCInventory.TransactionCreated do
+defmodule FCInventory.LineItemAdded do
   use TypedStruct
   alias Decimal, as: D
 
@@ -16,21 +16,18 @@ defmodule FCInventory.TransactionCreated do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :transaction_id, String.t()
-
+    field :movement_id, String.t()
     field :line_item_id, String.t()
-    field :source_stockable_id, String.t()
-    field :source_id, String.t()
-    field :source_type, String.t()
-    field :destination_stockable_id, String.t()
-    field :destination_id, String.t()
-    field :destination_type, String.t()
+    field :stockable_id, String.t()
+    field :cause_id, String.t()
+    field :cause_type, String.t()
 
+    field :quantity, Decimal.t()
     field :status, String.t()
+
+    field :name, String.t()
     field :number, String.t()
     field :label, String.t()
-    field :quantity, Decimal.t()
-    field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
@@ -41,5 +38,11 @@ defmodule FCInventory.TransactionCreated do
   def deserialize(event) do
     event
     |> Map.put(:quantity, D.new(event.quantity))
+  end
+end
+
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.LineItemAdded do
+  def decode(event) do
+    %{event | quantity: Decimal.new(event.quantity)}
   end
 end

@@ -10,16 +10,16 @@ defmodule FCInventory.Router do
     AddBatch,
     UpdateBatch,
     DeleteBatch,
-    CreateTransaction,
-    UpdateTransaction,
-    DeleteTransaction,
+    ReserveStock,
     CreateMovement,
-    CreateLineItem,
+    MarkMovement,
+    AddTransaction,
+    AddLineItem,
     MarkLineItem
   }
 
-  alias FCInventory.{Storage, Batch, Transaction, Movement, LineItem}
-  alias FCInventory.{StorageHandler, BatchHandler, TransactionHandler, MovementHandler, LineItemHandler}
+  alias FCInventory.{Storage, Stock, Movement}
+  alias FCInventory.{StockHandler, StorageHandler, MovementHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -27,14 +27,20 @@ defmodule FCInventory.Router do
   middleware(FCBase.IdentifierGeneration)
 
   identify(Storage, by: :storage_id, prefix: "stock-storage-")
-  identify(Batch, by: :batch_id, prefix: "stock-batch-")
+  identify(Stock, by: :stockable_id, prefix: "stock-")
   identify(Movement, by: :movement_id, prefix: "stock-movement-")
-  identify(Transaction, by: :transaction_id, prefix: "stock-transaction-")
-  identify(LineItem, by: :line_item_id, prefix: "stock-line-item-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
-  dispatch([AddBatch, UpdateBatch, DeleteBatch], to: BatchHandler, aggregate: Batch)
-  dispatch([CreateTransaction], to: TransactionHandler, aggregate: Transaction)
-  dispatch([CreateMovement], to: MovementHandler, aggregate: Movement)
-  dispatch([CreateLineItem, MarkLineItem], to: LineItemHandler, aggregate: LineItem)
+  dispatch([AddBatch, UpdateBatch, DeleteBatch, ReserveStock], to: StockHandler, aggregate: Stock)
+  dispatch(
+    [
+      CreateMovement,
+      MarkMovement,
+      MarkLineItem,
+      AddTransaction,
+      AddLineItem
+    ],
+    to: MovementHandler,
+    aggregate: Movement
+  )
 end

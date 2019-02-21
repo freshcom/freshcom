@@ -1,4 +1,4 @@
-defmodule FCInventory.CreateLineItem do
+defmodule FCInventory.AddLineItem do
   use TypedStruct
   use Vex.Struct
 
@@ -11,15 +11,15 @@ defmodule FCInventory.CreateLineItem do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :line_item_id, String.t()
     field :movement_id, String.t()
     field :stockable_id, String.t()
     field :cause_id, String.t()
     field :cause_type, String.t()
+
+    field :status, String.t(), default: "pending"
     field :quantity, Decimal.t()
 
     field :name, String.t()
-    field :status, String.t(), default: "pending"
     field :number, String.t()
     field :label, String.t()
 

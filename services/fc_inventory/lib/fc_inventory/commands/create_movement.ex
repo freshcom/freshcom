@@ -11,6 +11,7 @@ defmodule FCInventory.CreateMovement do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :movement_id, String.t()
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :source_id, String.t()
@@ -19,13 +20,15 @@ defmodule FCInventory.CreateMovement do
     field :destination_type, String.t()
 
     field :status, String.t(), default: "pending"
+    field :line_items, map(), default: %{}
+    field :expected_completion_date, DateTime.t()
+
     field :number, String.t()
     field :label, String.t()
-    field :expected_completion_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map()
+    field :custom_data, map(), default: %{}
   end
 
   @valid_statuses ["pending"]
