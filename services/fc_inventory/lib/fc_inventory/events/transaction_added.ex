@@ -19,7 +19,7 @@ defmodule FCInventory.TransactionAdded do
     field :movement_id, String.t()
     field :line_item_id, String.t()
     field :transaction_id, String.t()
-    field :batch_id, String.t()
+    field :source_batch_id, String.t()
 
     field :status, String.t()
     field :quantity, Decimal.t()

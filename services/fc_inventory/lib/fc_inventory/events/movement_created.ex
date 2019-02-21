@@ -24,13 +24,12 @@ defmodule FCInventory.MovementCreated do
     field :destination_id, String.t()
     field :destination_type, String.t()
 
-    field :status, String.t(), default: "pending"
+    field :status, String.t()
     field :line_items, map(), default: %{}
     field :expected_completion_date, DateTime.t()
 
     field :number, String.t()
     field :label, String.t()
-
 
     field :caption, String.t()
     field :description, String.t()

@@ -7,6 +7,7 @@ defmodule FCInventory.Router.DeleteBatchTest do
 
   setup do
     cmd = %DeleteBatch{
+      stockable_id: uuid4(),
       batch_id: uuid4()
     }
 
@@ -18,16 +19,14 @@ defmodule FCInventory.Router.DeleteBatchTest do
     assert length(errors) > 0
   end
 
-  test "given non existing batch id", %{cmd: cmd} do
-    assert {:error, {:not_found, :batch}} = Router.dispatch(cmd)
+  test "given non existing stock id", %{cmd: cmd} do
+    assert {:error, {:not_found, :stock}} = Router.dispatch(cmd)
   end
 
   test "given valid command with unauthorized role", %{cmd: cmd} do
-    to_streams(:batch_id, "stock-batch-", [
+    to_streams(:stockable_id, "stock-", [
       %BatchAdded{
-        client_id: uuid4(),
-        account_id: uuid4(),
-        requester_id: uuid4(),
+        stockable_id: cmd.stockable_id,
         batch_id: cmd.batch_id
       }
     ])
@@ -40,11 +39,9 @@ defmodule FCInventory.Router.DeleteBatchTest do
     client_id = app_id("standard", account_id)
     requester_id = user_id(account_id, "goods_specialist")
 
-    to_streams(:batch_id, "stock-batch-", [
+    to_streams(:stockable_id, "stock-", [
       %BatchAdded{
-        client_id: client_id,
-        account_id: account_id,
-        requester_id: requester_id,
+        stockable_id: cmd.stockable_id,
         batch_id: cmd.batch_id
       }
     ])
@@ -59,8 +56,9 @@ defmodule FCInventory.Router.DeleteBatchTest do
   end
 
   test "given valid command with system role", %{cmd: cmd} do
-    to_streams(:batch_id, "stock-batch-", [
+    to_streams(:stockable_id, "stock-", [
       %BatchAdded{
+        stockable_id: cmd.stockable_id,
         batch_id: cmd.batch_id
       }
     ])

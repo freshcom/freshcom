@@ -39,7 +39,6 @@ end
 defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.BatchUpdated do
   import FCSupport.Normalization
 
-  alias FCInventory.Transaction
   alias Decimal, as: D
 
   def decode(event) do
@@ -54,5 +53,9 @@ defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.BatchUpdated do
   def decode_ofields(%{"quantity_on_hand" => _} = ofields) do
     ofields = atomize_keys(ofields)
     %{ofields | quantity_on_hand: D.new(ofields.quantity_on_hand)}
+  end
+
+  def decode_ofields(ofields) do
+    atomize_keys(ofields)
   end
 end

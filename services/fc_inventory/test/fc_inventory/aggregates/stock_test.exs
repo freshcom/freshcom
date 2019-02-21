@@ -73,8 +73,8 @@ defmodule FCInventory.StockTest do
 
     event = %StockReserved{
       transactions: %{
-        uuid4() => %Transaction{batch_id: batch1_id, quantity: D.new(3)},
-        uuid4() => %Transaction{batch_id: batch2_id, quantity: D.new(2)}
+        uuid4() => %Transaction{source_batch_id: batch1_id, quantity: D.new(3)},
+        uuid4() => %Transaction{source_batch_id: batch2_id, quantity: D.new(2)}
       }
     }
 

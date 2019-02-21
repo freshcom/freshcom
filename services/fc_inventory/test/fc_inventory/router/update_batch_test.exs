@@ -1,15 +1,17 @@
 defmodule FCInventory.Router.UpdateBatchTest do
   use FCBase.RouterCase
 
-  alias Faker.Lorem
+  alias Decimal, as: D
   alias FCInventory.Router
   alias FCInventory.UpdateBatch
   alias FCInventory.{BatchAdded, BatchUpdated}
 
   setup do
     cmd = %UpdateBatch{
+      stockable_id: uuid4(),
       batch_id: uuid4(),
-      number: Lorem.characters(12)
+      effective_keys: [:quantity_on_hand],
+      quantity_on_hand: D.new(5)
     }
 
     %{cmd: cmd}
@@ -20,34 +22,16 @@ defmodule FCInventory.Router.UpdateBatchTest do
     assert length(errors) > 0
   end
 
-  test "given non existing batch id", %{cmd: cmd} do
-    assert {:error, {:not_found, :batch}} = Router.dispatch(cmd)
-  end
-
-  test "given valid command with unauthorized role", %{cmd: cmd} do
-    to_streams(:batch_id, "stock-batch-", [
-      %BatchAdded{
-        client_id: uuid4(),
-        account_id: uuid4(),
-        requester_id: uuid4(),
-        batch_id: cmd.batch_id
-      }
-    ])
-
-    assert {:error, :access_denied} = Router.dispatch(cmd)
-  end
-
   test "given valid command with authorized role", %{cmd: cmd} do
     account_id = uuid4()
     client_id = app_id("standard", account_id)
     requester_id = user_id(account_id, "goods_specialist")
 
-    to_streams(:batch_id, "stock-batch-", [
+    to_streams(:stockable_id, "stock-", [
       %BatchAdded{
-        client_id: client_id,
-        account_id: account_id,
-        requester_id: requester_id,
-        batch_id: cmd.batch_id
+        stockable_id: cmd.stockable_id,
+        batch_id: cmd.batch_id,
+        quantity_on_hand: D.new(1)
       }
     ])
 
@@ -56,23 +40,7 @@ defmodule FCInventory.Router.UpdateBatchTest do
     assert :ok = Router.dispatch(cmd)
 
     assert_receive_event(BatchUpdated, fn event ->
-      assert event.number == cmd.number
-    end)
-  end
-
-  test "given valid command with system role", %{cmd: cmd} do
-    to_streams(:batch_id, "stock-batch-", [
-      %BatchAdded{
-        batch_id: cmd.batch_id
-      }
-    ])
-
-    cmd = %{cmd | requester_role: "system"}
-
-    assert :ok = Router.dispatch(cmd)
-
-    assert_receive_event(BatchUpdated, fn event ->
-      assert event.number == cmd.number
+      assert D.cmp(event.quantity_on_hand, cmd.quantity_on_hand)
     end)
   end
 end

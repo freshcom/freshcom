@@ -37,7 +37,7 @@ defmodule FCInventory.Router.AddBatchTest do
     assert :ok = Router.dispatch(cmd)
 
     assert_receive_event(BatchAdded, fn event ->
-      assert event.number == cmd.number
+      assert event.batch_id
     end)
   end
 
