@@ -1,6 +1,7 @@
 defmodule FCBase.RouterCase do
   use ExUnit.CaseTemplate
   import UUID
+  import Commanded.Assertions.EventAssertions
 
   using do
     quote do
@@ -52,5 +53,13 @@ defmodule FCBase.RouterCase do
     Enum.each(groups, fn {id, events} ->
       append_to_stream("#{stream_prefix}" <> id, events)
     end)
+  end
+
+  def assert_event(event, fun) do
+    assert_receive_event(event, fun, &(&1))
+  end
+
+  def assert_event(event) do
+    assert_receive_event(event, &(&1), &(&1))
   end
 end
