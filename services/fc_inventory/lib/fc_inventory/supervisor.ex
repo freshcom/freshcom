@@ -13,7 +13,7 @@ defmodule FCInventory.Supervisor do
       {FCInventory.Keeper, [start_from: :current]},
 
       # Process Manager
-      {FCInventory.DraftLineItem, [start_from: :current]}
+      {FCInventory.MovementReservation, [start_from: :current]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
