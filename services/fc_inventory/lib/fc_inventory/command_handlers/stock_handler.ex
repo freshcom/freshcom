@@ -49,7 +49,7 @@ defmodule FCInventory.StockHandler do
 
     cmd
     |> authorize(state)
-    ~>> ensure_batch_exist(batch)
+    ~>> ensure_batch_exist(state)
     ~> merge_to(%BatchUpdated{})
     ~> put_translations(batch, translatable_fields, default_locale)
     ~> put_original_fields(batch)
@@ -57,11 +57,9 @@ defmodule FCInventory.StockHandler do
   end
 
   def handle(state, %DeleteBatch{} = cmd) do
-    batch = state.batches[cmd.batch_id]
-
     cmd
     |> authorize(state)
-    ~>> ensure_batch_exist(batch)
+    ~>> ensure_batch_exist(state)
     ~> merge_to(%BatchDeleted{})
     |> unwrap_ok()
   end
@@ -113,6 +111,11 @@ defmodule FCInventory.StockHandler do
     %Transaction{status: "reserved", source_batch_id: batch_id, quantity: quantity}
   end
 
-  defp ensure_batch_exist(_, nil), do: {:error, {:not_found, :batch}}
-  defp ensure_batch_exist(cmd, _), do: {:ok, cmd}
+  defp ensure_batch_exist(%{batch_id: batch_id} = cmd, state) do
+    if state.batches[batch_id] do
+      {:ok, cmd}
+    else
+      {:error, {:not_found, :batch}}
+    end
+  end
 end
