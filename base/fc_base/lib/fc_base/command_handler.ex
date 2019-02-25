@@ -32,4 +32,7 @@ defmodule FCBase.CommandHandler do
 
     Map.put(event, :original_fields, original_fields)
   end
+
+  def unwrap_event([event]), do: event
+  def unwrap_event(events), do: events
 end
