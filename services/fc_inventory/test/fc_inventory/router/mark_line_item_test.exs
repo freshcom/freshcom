@@ -6,14 +6,14 @@ defmodule FCInventory.Router.MarkLineItemTest do
   alias FCInventory.MarkLineItem
   alias FCInventory.{
     MovementCreated,
-    LineItemAdded,
     LineItemMarked
   }
+  alias FCInventory.LineItem
 
   setup do
     cmd = %MarkLineItem{
       movement_id: uuid4(),
-      line_item_id: uuid4(),
+      stockable_id: uuid4(),
       status: "reserved"
     }
 
@@ -27,13 +27,10 @@ defmodule FCInventory.Router.MarkLineItemTest do
 
     to_streams(:movement_id, "stock-movement-", [
       %MovementCreated{
-        movement_id: cmd.movement_id
-      },
-      %LineItemAdded{
         movement_id: cmd.movement_id,
-        line_item_id: cmd.line_item_id,
-        status: "processing",
-        quantity: D.new(5)
+        line_items: %{
+          cmd.stockable_id => %LineItem{status: "reserving", quantity: D.new(5)}
+        }
       }
     ])
 
@@ -43,7 +40,7 @@ defmodule FCInventory.Router.MarkLineItemTest do
 
     assert_receive_event(LineItemMarked, fn event ->
       assert event.status == cmd.status
-      assert event.original_status == "processing"
+      assert event.original_status == "reserving"
     end)
   end
 end

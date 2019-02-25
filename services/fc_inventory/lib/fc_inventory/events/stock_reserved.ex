@@ -20,23 +20,11 @@ defmodule FCInventory.StockReserved do
     field :movement_id, String.t()
 
     field :quantity, Decimal.t()
-    field :transactions, map()
   end
 end
 
 defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.StockReserved do
-  alias FCInventory.Transaction
-
   def decode(event) do
-    transactions =
-      Enum.reduce(event.transactions, %{}, fn({id, data}, transactions) ->
-        Map.put(transactions, id, Transaction.deserialize(data))
-      end)
-
-    %{
-      event
-      | quantity: Decimal.new(event.quantity),
-        transactions: transactions
-    }
+    %{event | quantity: Decimal.new(event.quantity)}
   end
 end

@@ -20,11 +20,12 @@ defmodule FCInventory.StockHandler do
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
+    TransactionAdded,
     StockReserved,
     StockPartiallyReserved,
     StockReservationFailed
   }
-  alias FCInventory.{Transaction, Batch}
+  alias FCInventory.{Batch}
 
   def handle(state, %AddBatch{} = cmd) do
     cmd
@@ -65,50 +66,64 @@ defmodule FCInventory.StockHandler do
   end
 
   defp reserve(cmd, state) do
-    available_batches = Enum.into(state.batches, [])
-    transactions = reserve_batches(available_batches, cmd.quantity, %{})
-    quantity_reserved = Enum.reduce(transactions, D.new(0), fn {_, txn}, acc -> D.add(acc, txn.quantity) end)
+    available_batches =
+      state
+      |> available_batches()
+      |> Enum.into([])
 
-    cond do
-      D.cmp(quantity_reserved, D.new(0)) == :eq ->
-        merge(%StockReservationFailed{}, cmd)
+    txn_events = reserve_batches(cmd, available_batches, cmd.quantity, [])
+    # IO.inspect available_batches
+    # IO.inspect txn_events
+    quantity_reserved = Enum.reduce(txn_events, D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
 
-      D.cmp(quantity_reserved, cmd.quantity) == :lt ->
-        %StockPartiallyReserved{}
-        |> Map.put(:quantity_target, cmd.quantity)
-        |> Map.put(:quantity_reserved, quantity_reserved)
-        |> Map.put(:transactions, transactions)
-        |> merge(cmd)
+    event =
+      cond do
+        D.cmp(quantity_reserved, D.new(0)) == :eq ->
+          merge(%StockReservationFailed{}, cmd)
 
-      D.cmp(quantity_reserved, cmd.quantity) == :eq ->
-        merge(%StockReserved{transactions: transactions}, cmd)
-    end
+        D.cmp(quantity_reserved, cmd.quantity) == :lt ->
+          %StockPartiallyReserved{}
+          |> Map.put(:quantity_requested, cmd.quantity)
+          |> Map.put(:quantity_reserved, quantity_reserved)
+          |> merge(cmd)
+
+        D.cmp(quantity_reserved, cmd.quantity) == :eq ->
+          merge(%StockReserved{}, cmd)
+      end
+
+    unwrap_event(txn_events ++ [event])
   end
 
-  defp reserve_batches([], _, transactions) do
-    transactions
+  defp reserve_batches(_, [], _, events) do
+    events
   end
 
-  defp reserve_batches([{id, batch} | batches], quantity, transactions) do
+  defp reserve_batches(cmd, [{id, batch} | batches], quantity, events) do
     quantity_available = D.sub(batch.quantity_on_hand, batch.quantity_reserved)
 
     cond do
       D.cmp(quantity, D.new(0)) == :eq ->
-        transactions
+        events
 
       D.cmp(quantity_available, quantity) == :lt ->
-        transaction = reserve_batch(id, quantity_available)
-        transactions = Map.put(transactions, uuid4(), transaction)
-        reserve_batches(batches, D.sub(quantity, transaction.quantity), transactions)
+        txn_added = reserve_batch(cmd, id, quantity_available)
+        events = events ++ [txn_added]
+        reserve_batches(cmd, batches, D.sub(quantity, txn_added.quantity), events)
 
       true ->
-        transaction = reserve_batch(id, quantity)
-        Map.put(transactions, uuid4(), transaction)
+        events ++ [reserve_batch(cmd, id, quantity)]
     end
   end
 
-  defp reserve_batch(batch_id, quantity) do
-    %Transaction{status: "reserved", source_batch_id: batch_id, quantity: quantity}
+  defp reserve_batch(cmd, batch_id, quantity) do
+    %TransactionAdded{
+      requester_role: "system",
+      stockable_id: cmd.stockable_id,
+      movement_id: cmd.movement_id,
+      batch_id: batch_id,
+      status: "reserved",
+      quantity: quantity
+    }
   end
 
   defp ensure_batch_exist(%{batch_id: batch_id} = cmd, state) do
@@ -117,5 +132,15 @@ defmodule FCInventory.StockHandler do
     else
       {:error, {:not_found, :batch}}
     end
+  end
+
+  defp available_batches(%{batches: batches}) do
+    Enum.reduce(batches, %{}, fn {id, batch}, a_batches ->
+      if Batch.is_available(batch) do
+        Map.put(a_batches, id, batch)
+      else
+        a_batches
+      end
+    end)
   end
 end

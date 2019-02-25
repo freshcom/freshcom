@@ -16,10 +16,9 @@ defmodule FCInventory.TransactionAdded do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :stockable_id, String.t()
     field :movement_id, String.t()
-    field :line_item_id, String.t()
-    field :transaction_id, String.t()
-    field :source_batch_id, String.t()
+    field :batch_id, String.t()
 
     field :status, String.t()
     field :quantity, Decimal.t()
@@ -27,8 +26,6 @@ defmodule FCInventory.TransactionAdded do
 end
 
 defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionAdded do
-  alias FCInventory.Transaction
-
   def decode(event) do
     %{event | quantity: Decimal.new(event.quantity)}
   end

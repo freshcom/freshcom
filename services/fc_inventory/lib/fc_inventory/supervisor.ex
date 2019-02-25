@@ -9,6 +9,7 @@ defmodule FCInventory.Supervisor do
 
   def init(_) do
     children = [
+      {FCInventory.Keeper, [start_from: :current]},
       # Process Manager
       {FCInventory.MovementReservation, [start_from: :current]}
     ]

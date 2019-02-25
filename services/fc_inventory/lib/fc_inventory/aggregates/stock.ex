@@ -5,14 +5,15 @@ defmodule FCInventory.Stock do
   use FCBase, :aggregate
 
   alias Decimal, as: D
-  alias FCInventory.Batch
+  alias FCInventory.{Batch, Transaction}
   alias FCInventory.{
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
     StockReserved,
     StockPartiallyReserved,
-    StockReservationFailed
+    StockReservationFailed,
+    TransactionAdded
   }
 
   typedstruct do
@@ -49,20 +50,28 @@ defmodule FCInventory.Stock do
     %{state | batches: batches}
   end
 
-  def apply(state, %et{} = event) when et in [StockReserved, StockPartiallyReserved] do
-    batches =
-      Enum.reduce(event.transactions, state.batches, fn {_, txn}, batches ->
-        batch = state.batches[txn.source_batch_id]
-        batch = %{
-          batch
-          | quantity_reserved: D.add(batch.quantity_reserved, txn.quantity),
-        }
-
-        Map.put(batches, txn.source_batch_id, batch)
-      end)
+  def apply(%{batches: batches} = state, %TransactionAdded{} = event) do
+    txn = merge(%Transaction{}, event)
+    batch = Batch.add_transaction(batches[event.batch_id], txn)
+    batches = Map.put(batches, event.batch_id, batch)
 
     %{state | batches: batches}
   end
 
-  def apply(state, %StockReservationFailed{}), do: state
+  # def apply(state, %et{} = event) when et in [StockReserved, StockPartiallyReserved] do
+  #   batches =
+  #     Enum.reduce(event.transactions, state.batches, fn {_, txn}, batches ->
+  #       batch = state.batches[txn.source_batch_id]
+  #       batch = %{
+  #         batch
+  #         | quantity_reserved: D.add(batch.quantity_reserved, txn.quantity),
+  #       }
+
+  #       Map.put(batches, txn.source_batch_id, batch)
+  #     end)
+
+  #   %{state | batches: batches}
+  # end
+
+  def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed], do: state
 end

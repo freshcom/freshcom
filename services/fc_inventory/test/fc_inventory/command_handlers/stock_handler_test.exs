@@ -12,6 +12,7 @@ defmodule FCInventory.StockHandlerTest do
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
+    TransactionAdded,
     StockReservationFailed,
     StockPartiallyReserved,
     StockReserved
@@ -34,9 +35,10 @@ defmodule FCInventory.StockHandlerTest do
 
     test "when valid command" do
       cmd = %AddBatch{
-        requester_role: "sysdev",
+        requester_role: "system",
         account_id: uuid4(),
         stockable_id: uuid4(),
+        status: "active",
         quantity_on_hand: D.new(8)
       }
       state = %Stock{}
@@ -54,7 +56,7 @@ defmodule FCInventory.StockHandlerTest do
   describe "handle UpdateBatch" do
     setup do
       cmd = %UpdateBatch{
-        requester_role: "sysdev",
+        requester_role: "system",
         account_id: uuid4(),
         stockable_id: uuid4(),
         batch_id: uuid4(),
@@ -104,7 +106,7 @@ defmodule FCInventory.StockHandlerTest do
   describe "handle DeleteBatch" do
     setup do
       cmd = %DeleteBatch{
-        requester_role: "sysdev",
+        requester_role: "system",
         account_id: uuid4(),
         stockable_id: uuid4(),
         batch_id: uuid4()
@@ -149,7 +151,6 @@ defmodule FCInventory.StockHandlerTest do
         account_id: uuid4(),
         movement_id: uuid4(),
         stockable_id: uuid4(),
-        line_item_id: uuid4(),
         quantity: D.new(5)
       }
 
@@ -168,7 +169,6 @@ defmodule FCInventory.StockHandlerTest do
       assert event.account_id == cmd.account_id
       assert event.stockable_id == cmd.stockable_id
       assert event.movement_id == cmd.movement_id
-      assert event.line_item_id == cmd.line_item_id
       assert event.quantity == cmd.quantity
     end
 
@@ -181,15 +181,15 @@ defmodule FCInventory.StockHandlerTest do
         }
       }
 
-      assert event = StockHandler.handle(state, cmd)
-      assert %StockPartiallyReserved{transactions: transactions} = event
-      assert D.cmp(event.quantity_target, cmd.quantity) == :eq
-      assert D.cmp(event.quantity_reserved, D.new(4)) == :eq
-      assert event.account_id == cmd.account_id
-      assert event.stockable_id == cmd.stockable_id
-      assert event.movement_id == cmd.movement_id
-      assert event.line_item_id == cmd.line_item_id
-      assert map_size(transactions) == 2
+      assert events = StockHandler.handle(state, cmd)
+      assert [%TransactionAdded{} = txn1_added | events] = events
+      assert [%TransactionAdded{} = txn2_added | events] = events
+      assert [%StockPartiallyReserved{} = reserved] = events
+      assert D.cmp(reserved.quantity_requested, cmd.quantity) == :eq
+      assert D.cmp(reserved.quantity_reserved, D.new(4)) == :eq
+      assert reserved.account_id == cmd.account_id
+      assert reserved.stockable_id == cmd.stockable_id
+      assert reserved.movement_id == cmd.movement_id
     end
 
     test "when state have batches enough for the reservation", %{cmd: cmd, state: state} do
@@ -201,14 +201,14 @@ defmodule FCInventory.StockHandlerTest do
         }
       }
 
-      assert event = StockHandler.handle(state, cmd)
-      assert %StockReserved{transactions: transactions} = event
-      assert D.cmp(event.quantity, cmd.quantity) == :eq
-      assert event.account_id == cmd.account_id
-      assert event.stockable_id == cmd.stockable_id
-      assert event.movement_id == cmd.movement_id
-      assert event.line_item_id == cmd.line_item_id
-      assert map_size(transactions) == 2
+      assert events = StockHandler.handle(state, cmd)
+      assert [%TransactionAdded{} = txn1_added | events] = events
+      assert [%TransactionAdded{} = txn2_added | events] = events
+      assert [%StockReserved{} = reserved] = events
+      assert D.cmp(reserved.quantity, cmd.quantity) == :eq
+      assert reserved.account_id == cmd.account_id
+      assert reserved.stockable_id == cmd.stockable_id
+      assert reserved.movement_id == cmd.movement_id
     end
   end
 end

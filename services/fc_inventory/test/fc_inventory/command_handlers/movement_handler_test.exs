@@ -7,16 +7,14 @@ defmodule FCInventory.MovementHandlerTest do
     MarkMovement,
     AddLineItem,
     MarkLineItem,
-    UpdateLineItem,
-    AddTransaction
+    UpdateLineItem
   }
   alias FCInventory.{
     MovementCreated,
     MovementMarked,
     LineItemMarked,
     LineItemAdded,
-    LineItemUpdated,
-    TransactionAdded
+    LineItemUpdated
   }
   alias FCInventory.MovementHandler
   alias FCInventory.{Movement, LineItem}
@@ -64,7 +62,7 @@ defmodule FCInventory.MovementHandlerTest do
         requester_role: "system",
         account_id: uuid4(),
         movement_id: uuid4(),
-        status: "processing"
+        status: "reserving"
       }
       state = %Movement{
         id: cmd.movement_id,
@@ -166,7 +164,7 @@ defmodule FCInventory.MovementHandlerTest do
     test "when line item does not exist in state" do
       cmd = %UpdateLineItem{
         requester_role: "system",
-        line_item_id: uuid4()
+        stockable_id: uuid4()
       }
       state = %Movement{id: uuid4()}
 
@@ -176,7 +174,7 @@ defmodule FCInventory.MovementHandlerTest do
     test "when command is valid" do
       cmd = %UpdateLineItem{
         requester_role: "system",
-        line_item_id: uuid4(),
+        stockable_id: uuid4(),
         locale: "zh-CN",
         effective_keys: [:quantity, :description],
         quantity: D.new(5),
@@ -185,7 +183,7 @@ defmodule FCInventory.MovementHandlerTest do
       state = %Movement{
         id: uuid4(),
         line_items: %{
-          cmd.line_item_id => %LineItem{quantity: D.new(2)}
+          cmd.stockable_id => %LineItem{quantity: D.new(2)}
         }
       }
 
@@ -194,7 +192,7 @@ defmodule FCInventory.MovementHandlerTest do
       assert event.translations["zh-CN"]["description"] == cmd.description
       assert event.quantity == cmd.quantity
       assert event.effective_keys == [:quantity, :translations]
-      assert event.original_fields[:quantity] == state.line_items[cmd.line_item_id].quantity
+      assert event.original_fields[:quantity] == state.line_items[cmd.stockable_id].quantity
     end
   end
 
@@ -216,7 +214,7 @@ defmodule FCInventory.MovementHandlerTest do
     test "when line item does not exist in state" do
       cmd = %MarkLineItem{
         requester_role: "system",
-        line_item_id: uuid4()
+        stockable_id: uuid4()
       }
       state = %Movement{id: uuid4()}
 
@@ -226,137 +224,45 @@ defmodule FCInventory.MovementHandlerTest do
     test "when command is valid" do
       cmd = %MarkLineItem{
         requester_role: "system",
-        line_item_id: uuid4(),
-        status: "processing"
+        stockable_id: uuid4(),
+        status: "reserving"
       }
       state = %Movement{
         id: uuid4(),
-        status: "processing",
+        status: "reserving",
         line_items: %{
-          cmd.line_item_id => %LineItem{quantity: D.new(2)}
+          cmd.stockable_id => %LineItem{quantity: D.new(2)}
         }
       }
 
       assert event = MovementHandler.handle(state, cmd)
       assert %LineItemMarked{} = event
-      assert event.line_item_id == cmd.line_item_id
-      assert event.status == "processing"
+      assert event.stockable_id == cmd.stockable_id
+      assert event.status == "reserving"
       assert event.original_status == "pending"
     end
 
     test "when command also changes movement status" do
       cmd = %MarkLineItem{
         requester_role: "system",
-        line_item_id: uuid4(),
-        status: "processing"
+        stockable_id: uuid4(),
+        status: "reserving"
       }
       state = %Movement{
         id: uuid4(),
         line_items: %{
-          cmd.line_item_id => %LineItem{quantity: D.new(2)}
+          cmd.stockable_id => %LineItem{quantity: D.new(2)}
         }
       }
 
       assert events = MovementHandler.handle(state, cmd)
       assert [%LineItemMarked{} = li_marked | events] = events
       assert [%MovementMarked{} = m_marked] = events
-      assert li_marked.line_item_id == cmd.line_item_id
-      assert li_marked.status == "processing"
+      assert li_marked.stockable_id == cmd.stockable_id
+      assert li_marked.status == "reserving"
       assert li_marked.original_status == "pending"
-      assert m_marked.status == "processing"
+      assert m_marked.status == "reserving"
       assert m_marked.original_status == "pending"
-    end
-
-    test "when command is to set status to processed" do
-      cmd = %MarkLineItem{
-        requester_role: "system",
-        line_item_id: uuid4(),
-        status: "processed"
-      }
-      state = %Movement{
-        id: uuid4(),
-        line_items: %{
-          cmd.line_item_id => %LineItem{quantity: D.new(2)}
-        }
-      }
-
-      assert events = MovementHandler.handle(state, cmd)
-      assert [%LineItemMarked{} = li_marked | events] = events
-      assert [%MovementMarked{} = m_marked] = events
-      assert li_marked.line_item_id == cmd.line_item_id
-      assert li_marked.status == "none_reserved"
-      assert li_marked.original_status == "pending"
-      assert m_marked.status == "none_reserved"
-      assert m_marked.original_status == "pending"
-    end
-  end
-
-  describe "handle AddTransaction" do
-    test "when movement id is nil" do
-      cmd = %AddTransaction{}
-      state = %Movement{}
-
-      assert {:error, {:not_found, :movement}} = MovementHandler.handle(state, cmd)
-    end
-
-    test "when command is not authorized" do
-      cmd = %AddTransaction{}
-      state = %Movement{id: uuid4()}
-
-      assert {:error, :access_denied} = MovementHandler.handle(state, cmd)
-    end
-
-    test "when line item does not exist" do
-      cmd = %AddTransaction{
-        requester_role: "system",
-        line_item_id: uuid4()
-      }
-      state = %Movement{id: uuid4()}
-
-      assert {:error, {:not_found, :line_item}} = MovementHandler.handle(state, cmd)
-    end
-
-    test "when comand is valid" do
-      cmd = %AddTransaction{
-        requester_role: "system",
-        line_item_id: uuid4(),
-        status: "reserved",
-        quantity: D.new(5)
-      }
-      state = %Movement{
-        id: uuid4(),
-        status: "processing",
-        line_items: %{
-          cmd.line_item_id => %LineItem{quantity: D.new(7)}
-        }
-      }
-
-      assert events = MovementHandler.handle(state, cmd)
-      assert %TransactionAdded{} = events
-    end
-
-    test "when command changes line item and movement status" do
-      cmd = %AddTransaction{
-        requester_role: "system",
-        line_item_id: uuid4(),
-        status: "reserved",
-        quantity: D.new(5)
-      }
-      state = %Movement{
-        id: uuid4(),
-        line_items: %{
-          cmd.line_item_id => %LineItem{status: "processing", quantity: D.new(5)}
-        }
-      }
-
-      assert events = MovementHandler.handle(state, cmd)
-      assert [%TransactionAdded{} = txn_added | events] = events
-      assert [%LineItemMarked{} = li_marked | events] = events
-      assert [%MovementMarked{} = m_marked | events] = events
-      assert txn_added.line_item_id == cmd.line_item_id
-      assert txn_added.quantity == cmd.quantity
-      assert li_marked.status == "reserved"
-      assert m_marked.status == "reserved"
     end
   end
 end

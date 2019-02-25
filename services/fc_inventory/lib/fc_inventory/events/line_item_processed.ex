@@ -1,4 +1,4 @@
-defmodule FCInventory.StockPartiallyReserved do
+defmodule FCInventory.LineItemProcessed do
   use TypedStruct
 
   @derive Jason.Encoder
@@ -15,23 +15,20 @@ defmodule FCInventory.StockPartiallyReserved do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stockable_id, String.t()
-    field :line_item_id, String.t()
     field :movement_id, String.t()
+    field :stockable_id, String.t()
 
-    field :quantity_requested, Decimal.t()
-    field :quantity_reserved, Decimal.t()
+    field :status, String.t()
+    field :quantity, Decimal.t()
   end
 end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.StockPartiallyReserved do
-  alias Decimal, as: D
-
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.LineItemProcessed do
   def decode(event) do
-    %{
+    if event.quantity do
+      %{event | quantity: Decimal.new(event.quantity)}
+    else
       event
-      | quantity_requested: D.new(event.quantity_requested),
-        quantity_reserved: D.new(event.quantity_reserved)
-    }
+    end
   end
 end

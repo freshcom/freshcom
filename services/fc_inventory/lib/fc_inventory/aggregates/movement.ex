@@ -4,11 +4,14 @@ defmodule FCInventory.Movement do
   use TypedStruct
   use FCBase, :aggregate
 
+  alias Decimal, as: D
+
   alias FCInventory.{
     MovementCreated,
     MovementMarked,
     TransactionAdded,
     LineItemAdded,
+    LineItemProcessed,
     LineItemMarked,
     LineItemUpdated
   }
@@ -52,61 +55,41 @@ defmodule FCInventory.Movement do
     |> merge(event)
   end
 
-  def apply(%{line_items: line_items} = state, %MovementMarked{status: "processing"}) do
-    line_items =
-      Enum.reduce(line_items, line_items, fn {id, line_item}, acc ->
-        Map.put(acc, id, %{line_item | status: "processing"})
-      end)
-
-    %{
-      state
-      | line_items: line_items,
-        status: "processing"
-    }
-  end
-
   def apply(state, %MovementMarked{} = event) do
     %{state | status: event.status}
   end
 
   def apply(state, %LineItemAdded{} = event) do
     line_item = merge(%LineItem{}, event)
-    put_line_item(state, event.line_item_id, line_item)
+    put_line_item(state, event.stockable_id, line_item)
   end
 
   def apply(state, %LineItemMarked{} = event) do
     line_item = %{
-      state.line_items[event.line_item_id]
+      state.line_items[event.stockable_id]
       | status: event.status
     }
 
-    put_line_item(state, event.line_item_id, line_item)
+    put_line_item(state, event.stockable_id, line_item)
+  end
+
+  def apply(state, %LineItemProcessed{stockable_id: stockable_id} = event) do
+    line_item = state.line_items[stockable_id]
+    new_line_item = LineItem.add_quantity_processed(line_item, event.quantity, event.status)
+    put_line_item(state, stockable_id, new_line_item)
   end
 
   def apply(state, %LineItemUpdated{} = event) do
     line_item =
-      state.line_items[event.line_item_id]
+      state.line_items[event.stockable_id]
       |> cast(event)
       |> apply_changes()
 
-    put_line_item(state, event.line_item_id, line_item)
+    put_line_item(state, event.stockable_id, line_item)
   end
 
-  def apply(state, %TransactionAdded{} = event) do
-    line_item = state.line_items[event.line_item_id]
-    transaction = merge(%Transaction{}, event)
-    transactions = Map.put(line_item.transactions, event.transaction_id, transaction)
-
-    line_item = %{
-      line_item
-      | transactions: transactions
-    }
-
-    put_line_item(state, event.line_item_id, line_item)
-  end
-
-  defp put_line_item(state, id, line_item) do
-    line_items = Map.put(state.line_items, id, line_item)
+  defp put_line_item(state, stockable_id, line_item) do
+    line_items = Map.put(state.line_items, stockable_id, line_item)
     %{state | line_items: line_items}
   end
 end

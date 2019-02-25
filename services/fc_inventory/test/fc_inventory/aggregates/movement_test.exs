@@ -7,8 +7,7 @@ defmodule FCInventory.MovementTest do
     MovementMarked,
     LineItemAdded,
     LineItemMarked,
-    LineItemUpdated,
-    TransactionAdded
+    LineItemUpdated
   }
   alias FCInventory.{Movement, LineItem}
 
@@ -23,43 +22,26 @@ defmodule FCInventory.MovementTest do
     assert state.id == event.movement_id
   end
 
-  describe "apply MovementMarked" do
-    test "when status is processing" do
-      line_item_id = uuid4()
-      state = %Movement{
-        line_items: %{line_item_id => %LineItem{}}
-      }
+  test "apply MovementMarked" do
+    stockable_id = uuid4()
+    state = %Movement{
+      line_items: %{stockable_id => %LineItem{}}
+    }
 
-      event = %MovementMarked{
-        status: "processing"
-      }
+    event = %MovementMarked{
+      status: "reserved"
+    }
 
-      assert state = Movement.apply(state, event)
-      assert state.status == "processing"
-      assert state.line_items[line_item_id].status == "processing"
-    end
-
-    test "when status is normal status" do
-      line_item_id = uuid4()
-      state = %Movement{
-        line_items: %{line_item_id => %LineItem{}}
-      }
-
-      event = %MovementMarked{
-        status: "reserved"
-      }
-
-      assert state = Movement.apply(state, event)
-      assert state.status == "reserved"
-      assert state.line_items[line_item_id].status == "pending"
-    end
+    assert state = Movement.apply(state, event)
+    assert state.status == "reserved"
+    assert state.line_items[stockable_id].status == "pending"
   end
 
   test "apply LineItemAdded" do
     state = %Movement{}
 
     event = %LineItemAdded{
-      line_item_id: uuid4()
+      stockable_id: uuid4()
     }
 
     assert state = Movement.apply(state, event)
@@ -68,21 +50,21 @@ defmodule FCInventory.MovementTest do
 
   test "apply LineItemMarked" do
     event = %LineItemMarked{
-      line_item_id: uuid4(),
+      stockable_id: uuid4(),
       status: "reserved"
     }
 
     state = %Movement{
-      line_items: %{event.line_item_id => %LineItem{}}
+      line_items: %{event.stockable_id => %LineItem{}}
     }
 
     assert state = Movement.apply(state, event)
-    assert state.line_items[event.line_item_id].status == "reserved"
+    assert state.line_items[event.stockable_id].status == "reserved"
   end
 
   test "apply LineItemUpdated" do
     event = %LineItemUpdated{
-      line_item_id: uuid4(),
+      stockable_id: uuid4(),
       effective_keys: [:quantity, :translations],
       description: "Nothing here",
       quantity: D.new(5),
@@ -90,29 +72,13 @@ defmodule FCInventory.MovementTest do
     }
 
     state = %Movement{
-      line_items: %{event.line_item_id => %LineItem{}}
+      line_items: %{event.stockable_id => %LineItem{}}
     }
 
     assert %{line_items: line_items} = Movement.apply(state, event)
-    assert line_item = line_items[event.line_item_id]
-    assert line_items[event.line_item_id].quantity == event.quantity
-    assert line_items[event.line_item_id].translations == event.translations
-    assert line_items[event.line_item_id].description == nil
-  end
-
-  test "apply TransactionAdded" do
-    event = %TransactionAdded{
-      line_item_id: uuid4(),
-      status: "reserved",
-      quantity: D.new(5)
-    }
-
-    state = %Movement{
-      line_items: %{event.line_item_id => %LineItem{}}
-    }
-
-    assert %{line_items: line_items} = Movement.apply(state, event)
-    assert line_item = line_items[event.line_item_id]
-    assert map_size(line_item.transactions) == 1
+    assert line_item = line_items[event.stockable_id]
+    assert line_items[event.stockable_id].quantity == event.quantity
+    assert line_items[event.stockable_id].translations == event.translations
+    assert line_items[event.stockable_id].description == nil
   end
 end

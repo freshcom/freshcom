@@ -1,6 +1,5 @@
-defmodule FCInventory.LineItemUpdated do
+defmodule FCInventory.TransactionUpdated do
   use TypedStruct
-
   alias Decimal, as: D
 
   @derive Jason.Encoder
@@ -17,21 +16,17 @@ defmodule FCInventory.LineItemUpdated do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :effective_keys, [String.t()], default: []
-    field :original_fields, map()
-    field :locale, String.t()
-
     field :movement_id, String.t()
-    field :stockable_id, String.t()
+    field :line_item_id, String.t()
+    field :transaction_id, String.t()
+
+    field :destination_batch_id, String.t()
     field :quantity, Decimal.t()
+  end
+end
 
-    field :name, String.t()
-    field :number, String.t()
-    field :label, String.t()
-
-    field :caption, String.t()
-    field :description, String.t()
-    field :custom_data, map()
-    field :translations, map()
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionUpdated do
+  def decode(event) do
+    %{event | quantity: Decimal.new(event.quantity)}
   end
 end

@@ -15,6 +15,7 @@ defmodule FCInventory.MovementReservation do
     MarkMovement,
     ReserveStock,
     MarkLineItem,
+    ProcessLineItem,
     AddTransaction
   }
 
@@ -25,7 +26,9 @@ defmodule FCInventory.MovementReservation do
     StockReservationFailed,
     MovementMarked,
     LineItemAdded,
-    LineItemMarked
+    LineItemMarked,
+    LineItemProcessed,
+    LineItemUpdated
   }
 
   @derive Jason.Encoder
@@ -35,12 +38,15 @@ defmodule FCInventory.MovementReservation do
   end
 
   def interested?(%MovementCreated{status: "pending", line_items: line_items} = event) when map_size(line_items) > 0, do: {:start!, event.movement_id}
-  def interested?(%MovementMarked{status: "processing"} = event), do: {:continue!, event.movement_id}
+  def interested?(%LineItemMarked{status: "reserving"} = event), do: {:continue!, event.movement_id}
 
   def interested?(%LineItemAdded{status: "pending"} = event), do: {:start!, event.movement_id}
-  def interested?(%LineItemMarked{status: "processing"} = event), do: {:continue!, event.movement_id}
-  # def interested?(%LineItemUpdated{} = event) do
-  #   # TODO: ...
+  # def interested?(%LineItemUpdated{effective_keys: ekeys} = event) do
+  #   if Enum.member?(ekeys, :quantity) do
+  #     {:start!, event.movement_id}
+  #   else
+  #     false
+  #   end
   # end
 
   def interested?(%StockReserved{} = event), do: {:continue!, event.movement_id}
@@ -51,66 +57,67 @@ defmodule FCInventory.MovementReservation do
 
   def interested?(_), do: false
 
-  def handle(_, %MovementCreated{} = event) do
-    %MarkMovement{
-      requester_role: "system",
-      movement_id: event.movement_id,
-      status: "processing"
-    }
+  def handle(_, %MovementCreated{line_items: line_items} = event) do
+    Enum.reduce(line_items, [], fn({stockable_id, line_item}, cmds) ->
+      if line_item.status == "pending" do
+        cmd = %MarkLineItem{
+          requester_role: "system",
+          movement_id: event.movement_id,
+          stockable_id: stockable_id,
+          status: "reserving"
+        }
+        cmds ++ [cmd]
+      else
+        cmds
+      end
+    end)
   end
 
-  def handle(%{line_items: line_items}, %MovementMarked{} = event) do
-    Enum.map(line_items, fn({id, line_item}) ->
-      %ReserveStock{
-        requester_role: "system",
-        movement_id: event.movement_id,
-        line_item_id: id,
-        stockable_id: line_item.stockable_id,
-        quantity: D.sub(line_item.quantity, line_item.quantity_processed)
-      }
-    end)
+  def handle(%{line_items: line_items}, %LineItemMarked{status: "reserving"} = event) do
+    line_item = line_items[event.stockable_id]
+
+    %ReserveStock{
+      requester_role: "system",
+      movement_id: event.movement_id,
+      stockable_id: event.stockable_id,
+      quantity: line_item.quantity
+    }
   end
 
   def handle(_, %LineItemAdded{status: "pending"} = event) do
     %MarkLineItem{
       requester_role: "system",
       movement_id: event.movement_id,
-      line_item_id: event.line_item_id,
-      status: "processing"
+      stockable_id: event.stockable_id,
+      status: "reserving"
     }
   end
 
-  def handle(_, %et{} = event) when et in [StockReserved, StockPartiallyReserved] do
-    txn_cmds =
-      Enum.map(event.transactions, fn {id, transaction} ->
-        %AddTransaction{
-          requester_role: "system",
-          account_id: event.account_id,
-          movement_id: event.movement_id,
-          line_item_id: event.line_item_id,
-          source_batch_id: transaction.source_batch_id,
-          transaction_id: id,
-          status: transaction.status,
-          quantity: transaction.quantity
-        }
-      end)
-
-    mark_cmd = %MarkLineItem{
+  def handle(_, %StockReserved{} = event) do
+    %ProcessLineItem{
       requester_role: "system",
-      account_id: event.account_id,
       movement_id: event.movement_id,
-      line_item_id: event.line_item_id,
-      status: "processed"
+      stockable_id: event.stockable_id,
+      status: "reserved",
+      quantity: event.quantity
     }
+  end
 
-    txn_cmds ++ [mark_cmd]
+  def handle(_, %StockPartiallyReserved{} = event) do
+    %ProcessLineItem{
+      requester_role: "system",
+      movement_id: event.movement_id,
+      stockable_id: event.stockable_id,
+      status: "reserved",
+      quantity: event.quantity_reserved
+    }
   end
 
   def handle(_, %StockReservationFailed{} = event) do
     %MarkLineItem{
       requester_role: "system",
       movement_id: event.movement_id,
-      line_item_id: event.line_item_id,
+      stockable_id: event.stockable_id,
       status: "none_reserved"
     }
   end
@@ -122,6 +129,19 @@ defmodule FCInventory.MovementReservation do
   def apply(state, %LineItemAdded{} = event) do
     line_item = merge(%LineItem{}, event)
 
-    %{state | line_items: %{event.line_item_id => line_item}}
+    %{state | line_items: %{event.stockable_id => line_item}}
   end
 end
+
+# defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.MovementReservation do
+#   alias FCInventory.LineItem
+
+#   def decode(state) do
+#     line_items =
+#       Enum.reduce(state.line_items, %{}, fn({stockable_id, line_item}, line_items) ->
+#         Map.put(line_items, stockable_id, LineItem.deserialize(line_item))
+#       end)
+
+#     %{state | line_items: line_items}
+#   end
+# end

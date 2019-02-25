@@ -8,8 +8,9 @@ defmodule FCInventory.Transaction do
   @derive Jason.Encoder
 
   typedstruct do
-    field :source_batch_id, String.t()
-    field :destination_batch_id, String.t()
+    field :account_id, String.t()
+    field :movement_id, String.t()
+    field :batch_id, String.t()
 
     field :status, String.t(), default: "reserved"
     field :quantity, Decimal.t()

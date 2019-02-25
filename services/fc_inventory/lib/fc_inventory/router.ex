@@ -15,7 +15,9 @@ defmodule FCInventory.Router do
     MarkMovement,
     AddTransaction,
     AddLineItem,
-    MarkLineItem
+    MarkLineItem,
+    ProcessLineItem,
+    UpdateLineItem
   }
 
   alias FCInventory.{Storage, Stock, Movement}
@@ -36,9 +38,11 @@ defmodule FCInventory.Router do
     [
       CreateMovement,
       MarkMovement,
+      ProcessLineItem,
       MarkLineItem,
       AddTransaction,
-      AddLineItem
+      AddLineItem,
+      UpdateLineItem
     ],
     to: MovementHandler,
     aggregate: Movement

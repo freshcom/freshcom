@@ -12,14 +12,13 @@ defmodule FCInventory.MarkLineItem do
     field :account_id, String.t()
 
     field :movement_id, String.t()
-    field :line_item_id, String.t()
+    field :stockable_id, String.t()
     field :status, String.t()
-    field :transactions, [FCInventory.Transaction.t()]
   end
 
-  @valid_statuses ["processing", "processed", "partially_reserved", "reserved", "none_reserved"]
+  @valid_statuses ["reserving", "partially_reserved", "reserved", "none_reserved"]
 
   validates :movement_id, presence: true, uuid: true
-  validates :line_item_id, presence: true, uuid: true
+  validates :stockable_id, presence: true, uuid: true
   validates :status, presence: true, inclusion: @valid_statuses
 end

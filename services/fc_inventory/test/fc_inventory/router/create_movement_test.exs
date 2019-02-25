@@ -6,8 +6,12 @@ defmodule FCInventory.Router.CreateMovementTest do
   alias FCInventory.CreateMovement
   alias FCInventory.{
     BatchAdded,
+    StockReservationFailed,
+    StockPartiallyReserved,
+    StockReserved,
     MovementCreated,
-    MovementMarked
+    MovementMarked,
+    LineItemMarked
   }
   alias FCInventory.LineItem
 
@@ -57,8 +61,6 @@ defmodule FCInventory.Router.CreateMovementTest do
     setup do
       s1_id = uuid4()
       s2_id = uuid4()
-      li1_id = uuid4()
-      li2_id = uuid4()
 
       cmd = %CreateMovement{
         requester_role: "system",
@@ -66,60 +68,46 @@ defmodule FCInventory.Router.CreateMovementTest do
         source_id: uuid4(),
         source_type: "FCInventory.Storage",
         line_items: %{
-          li1_id => %LineItem{stockable_id: s1_id, quantity: D.new(5)},
-          li2_id => %LineItem{stockable_id: s2_id, quantity: D.new(3)}
+          s1_id => %LineItem{quantity: D.new(5)},
+          s2_id => %LineItem{quantity: D.new(3)}
         }
       }
 
-      %{cmd: cmd, li1_id: li1_id, li2_id: li2_id, s1_id: s1_id, s2_id: s2_id}
+      %{cmd: cmd, s1_id: s1_id, s2_id: s2_id}
     end
 
     test "all of the line item targets stockable that have zero stock", context do
       assert :ok = Router.dispatch(context[:cmd])
 
-      assert_receive_event(MovementCreated, fn event ->
-        assert event.source_type == context[:cmd].source_type
+      assert_event(MovementCreated, fn event ->
+        event.source_type == context[:cmd].source_type
       end)
 
-      # assert_receive_event(
-      #   StockReservationFailed,
-      #   fn event -> event.line_item_id == context[:li1_id] end,
-      #   fn event ->
-      #     assert event.stockable_id == context[:s1_id]
-      #   end
-      # )
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s1_id] &&
+        event.status == "reserving"
+      end)
 
-      # assert_receive_event(
-      #   StockReservationFailed,
-      #   fn event -> event.line_item_id == context[:li2_id] end,
-      #   fn event ->
-      #     assert event.stockable_id == context[:s2_id]
-      #   end
-      # )
+      assert_event(MovementMarked, fn event ->
+        event.status == "reserving"
+      end)
 
-      # assert_receive_event(
-      #   LineItemMarked,
-      #   fn event -> event.line_item_id == context[:li1_id] end,
-      #   fn event ->
-      #     assert event.status == "none_reserved"
-      #   end
-      # )
+      assert_event(StockReservationFailed, fn event ->
+        event.stockable_id == context[:s1_id]
+      end)
 
-      # assert_receive_event(
-      #   LineItemMarked,
-      #   fn event -> event.line_item_id == context[:li2_id] end,
-      #   fn event ->
-      #     assert event.status == "none_reserved"
-      #   end
-      # )
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s2_id] &&
+        event.status == "reserving"
+      end)
 
-      assert_receive_event(
-        MovementMarked,
-        fn event -> event.status == "none_reserved" end,
-        fn event ->
-          assert event.movement_id
-        end
-      )
+      assert_event(StockReservationFailed, fn event ->
+        event.stockable_id == context[:s2_id]
+      end)
+
+      assert_event(MovementMarked, fn event ->
+        event.status == "none_reserved"
+      end)
     end
 
     test "some of the line item targets stockable that have zero stock", context do
@@ -127,28 +115,48 @@ defmodule FCInventory.Router.CreateMovementTest do
         %BatchAdded{
           stockable_id: context[:s1_id],
           batch_id: uuid4(),
+          status: "active",
           quantity_on_hand: D.new(2)
         },
         %BatchAdded{
           stockable_id: context[:s1_id],
           batch_id: uuid4(),
-          quantity_on_hand: D.new(3)
+          status: "active",
+          quantity_on_hand: D.new(2)
         }
       ])
 
       assert :ok = Router.dispatch(context[:cmd])
 
-      assert_receive_event(MovementCreated, fn event ->
-        assert event.source_type == context[:cmd].source_type
+      assert_event(MovementCreated, fn event ->
+        event.source_type == context[:cmd].source_type
       end)
 
-      assert_receive_event(
-        MovementMarked,
-        fn event -> event.status == "partially_reserved" end,
-        fn event ->
-          assert event.movement_id
-        end
-      )
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s1_id] &&
+        event.status == "reserving"
+      end)
+
+      assert_event(MovementMarked, fn event ->
+        event.status == "reserving"
+      end)
+
+      assert_event(StockPartiallyReserved, fn event ->
+        event.stockable_id == context[:s1_id]
+      end)
+
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s2_id] &&
+        event.status == "reserving"
+      end)
+
+      assert_event(StockReservationFailed, fn event ->
+        event.stockable_id == context[:s2_id]
+      end)
+
+      assert_event(MovementMarked, fn event ->
+        event.status == "partially_reserved"
+      end)
     end
 
     test "all of the line item targets stockable that have enough stock", context do
@@ -156,33 +164,54 @@ defmodule FCInventory.Router.CreateMovementTest do
         %BatchAdded{
           stockable_id: context[:s1_id],
           batch_id: uuid4(),
+          status: "active",
           quantity_on_hand: D.new(3)
         },
         %BatchAdded{
           stockable_id: context[:s1_id],
           batch_id: uuid4(),
+          status: "active",
           quantity_on_hand: D.new(2)
         },
         %BatchAdded{
           stockable_id: context[:s2_id],
           batch_id: uuid4(),
+          status: "active",
           quantity_on_hand: D.new(5)
         }
       ])
 
       assert :ok = Router.dispatch(context[:cmd])
 
-      assert_receive_event(MovementCreated, fn event ->
-        assert event.source_type == context[:cmd].source_type
+      assert_event(MovementCreated, fn event ->
+        event.source_type == context[:cmd].source_type
       end)
 
-      assert_receive_event(
-        MovementMarked,
-        fn event -> event.status == "reserved" end,
-        fn event ->
-          assert event.movement_id
-        end
-      )
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s1_id] &&
+        event.status == "reserving"
+      end)
+
+      assert_event(MovementMarked, fn event ->
+        event.status == "reserving"
+      end)
+
+      assert_event(StockReserved, fn event ->
+        event.stockable_id == context[:s1_id]
+      end)
+
+      assert_event(LineItemMarked, fn event ->
+        event.stockable_id == context[:s2_id] &&
+        event.status == "reserving"
+      end)
+
+      assert_event(StockReserved, fn event ->
+        event.stockable_id == context[:s2_id]
+      end)
+
+      assert_event(MovementMarked, fn event ->
+        event.status == "reserved"
+      end)
     end
   end
 end

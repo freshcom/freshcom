@@ -8,7 +8,7 @@ defmodule FCInventory.StockTest do
     BatchDeleted,
     StockReserved
   }
-  alias FCInventory.{Stock, Batch, Transaction}
+  alias FCInventory.{Stock, Batch}
 
   test "apply AddBatch" do
     state = %Stock{}
@@ -17,12 +17,15 @@ defmodule FCInventory.StockTest do
       account_id: uuid4(),
       stockable_id: uuid4(),
       batch_id: uuid4(),
+      status: "active",
       quantity_on_hand: D.new(5)
     }
 
     assert state = Stock.apply(state, event)
     assert map_size(state.batches) == 1
-    assert state.batches[event.batch_id]
+    assert batch = state.batches[event.batch_id]
+    assert batch.status == event.status
+    assert batch.quantity_on_hand == event.quantity_on_hand
     assert state.id == event.stockable_id
     assert state.account_id == event.account_id
   end
@@ -42,9 +45,10 @@ defmodule FCInventory.StockTest do
     }
 
     assert %{batches: batches} = Stock.apply(state, event)
-    assert batches[batch_id].description == nil
-    assert batches[batch_id].quantity_on_hand == event.quantity_on_hand
-    assert batches[batch_id].translations == event.translations
+    assert batch = batches[batch_id]
+    assert batch.description == nil
+    assert batch.quantity_on_hand == event.quantity_on_hand
+    assert batch.translations == event.translations
   end
 
   test "apply BatchDeleted" do
@@ -71,15 +75,8 @@ defmodule FCInventory.StockTest do
       }
     }
 
-    event = %StockReserved{
-      transactions: %{
-        uuid4() => %Transaction{source_batch_id: batch1_id, quantity: D.new(3)},
-        uuid4() => %Transaction{source_batch_id: batch2_id, quantity: D.new(2)}
-      }
-    }
+    event = %StockReserved{}
 
-    assert %{batches: batches} = Stock.apply(state, event)
-    assert D.cmp(batches[batch1_id].quantity_reserved, D.new(3)) == :eq
-    assert D.cmp(batches[batch2_id].quantity_reserved, D.new(3)) == :eq
+    assert Stock.apply(state, event) == state
   end
 end

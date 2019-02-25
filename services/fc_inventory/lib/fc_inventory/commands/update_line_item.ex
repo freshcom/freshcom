@@ -15,7 +15,7 @@ defmodule FCInventory.UpdateLineItem do
     field :locale, String.t()
 
     field :movement_id, String.t()
-    field :line_item_id, String.t()
+    field :stockable_id, String.t()
     field :quantity, Decimal.t()
 
     field :name, String.t()
@@ -28,6 +28,6 @@ defmodule FCInventory.UpdateLineItem do
   end
 
   validates :movement_id, presence: true, uuid: true
-  validates :line_item_id, presence: true, uuid: true
+  validates :stockable_id, presence: true, uuid: true
   validates :quantity, presence: true
 end

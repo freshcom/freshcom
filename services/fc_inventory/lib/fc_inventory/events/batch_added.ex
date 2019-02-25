@@ -32,3 +32,13 @@ defmodule FCInventory.BatchAdded do
     field :translations, map(), default: %{}
   end
 end
+
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.BatchAdded do
+  def decode(event) do
+    if event.quantity_on_hand do
+      %{event | quantity_on_hand: Decimal.new(event.quantity_on_hand)}
+    else
+      event
+    end
+  end
+end

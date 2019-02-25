@@ -15,7 +15,7 @@ defmodule FCInventory.MarkMovement do
     field :status, String.t()
   end
 
-  @valid_statuses ["processing"]
+  @valid_statuses ["reserving"]
 
   validates :status, presence: true, inclusion: @valid_statuses
 end
