@@ -16,7 +16,6 @@ defmodule FCInventory.StockPartiallyReserved do
     field :account_id, String.t()
 
     field :stockable_id, String.t()
-    field :line_item_id, String.t()
     field :movement_id, String.t()
 
     field :quantity_requested, Decimal.t()
