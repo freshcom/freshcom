@@ -1,7 +1,6 @@
 defmodule FCInventory.LineItemMarked do
-  use TypedStruct
+  use FCBase, :event
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do

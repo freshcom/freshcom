@@ -1,7 +1,6 @@
 defmodule FCInventory.MovementCreated do
-  use TypedStruct
+  use FCBase, :event
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do

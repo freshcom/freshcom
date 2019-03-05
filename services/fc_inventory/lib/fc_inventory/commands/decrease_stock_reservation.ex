@@ -1,4 +1,4 @@
-defmodule FCInventory.ProcessLineItem do
+defmodule FCInventory.DecreaseStockReservation do
   use TypedStruct
   use Vex.Struct
 
@@ -11,21 +11,13 @@ defmodule FCInventory.ProcessLineItem do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :movement_id, String.t()
     field :stockable_id, String.t()
-    field :status, String.t()
+    field :movement_id, String.t()
+
     field :quantity, Decimal.t()
   end
 
-  @valid_statuses [
-    "reserving",
-    "decreasing_reservation",
-    "partially_reserved",
-    "reserved",
-    "none_reserved"
-  ]
-
-  validates :movement_id, presence: true, uuid: true
   validates :stockable_id, presence: true, uuid: true
-  validates :status, presence: true, inclusion: @valid_statuses
+  validates :movement_id, presence: true, uuid: true
+  validates :quantity, presence: true
 end

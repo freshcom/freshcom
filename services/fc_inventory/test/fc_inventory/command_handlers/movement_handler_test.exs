@@ -182,8 +182,9 @@ defmodule FCInventory.MovementHandlerTest do
       }
       state = %Movement{
         id: uuid4(),
+        status: "none_reserved",
         line_items: %{
-          cmd.stockable_id => %LineItem{quantity: D.new(2)}
+          cmd.stockable_id => %LineItem{status: "none_reserved", quantity: D.new(2)}
         }
       }
 

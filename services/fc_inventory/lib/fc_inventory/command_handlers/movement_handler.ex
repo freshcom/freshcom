@@ -228,7 +228,7 @@ defmodule FCInventory.MovementHandler do
     end
   end
 
-  def line_item_status(%{quantity_processed: quantity, quantity: total}) do
+  def line_item_status(%{status: current_status, quantity_processed: quantity, quantity: total}) do
     cond do
       quantity["completed"] && D.cmp(quantity["completed"], total) == :eq ->
         "completed"
@@ -266,8 +266,11 @@ defmodule FCInventory.MovementHandler do
       quantity["reserved"] ->
         "partially_reserved"
 
-      true ->
+      current_status == "pending" ->
         "pending"
+
+      true ->
+        "none_reserved"
     end
   end
 

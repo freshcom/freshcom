@@ -11,9 +11,9 @@ defmodule FCInventory.Router do
     UpdateBatch,
     DeleteBatch,
     ReserveStock,
+    DecreaseStockReservation,
     CreateMovement,
     MarkMovement,
-    AddTransaction,
     AddLineItem,
     MarkLineItem,
     ProcessLineItem,
@@ -33,14 +33,23 @@ defmodule FCInventory.Router do
   identify(Movement, by: :movement_id, prefix: "stock-movement-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
-  dispatch([AddBatch, UpdateBatch, DeleteBatch, ReserveStock], to: StockHandler, aggregate: Stock)
+  dispatch(
+    [
+      AddBatch,
+      UpdateBatch,
+      DeleteBatch,
+      ReserveStock,
+      DecreaseStockReservation
+    ],
+    to: StockHandler,
+    aggregate: Stock
+  )
   dispatch(
     [
       CreateMovement,
       MarkMovement,
       ProcessLineItem,
       MarkLineItem,
-      AddTransaction,
       AddLineItem,
       UpdateLineItem
     ],

@@ -1,9 +1,8 @@
 defmodule FCInventory.LineItemUpdated do
-  use TypedStruct
+  use FCBase, :event
 
   alias Decimal, as: D
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do
@@ -18,7 +17,7 @@ defmodule FCInventory.LineItemUpdated do
     field :account_id, String.t()
 
     field :effective_keys, [String.t()], default: []
-    field :original_fields, map()
+    field :original_fields, map(), default: %{}
     field :locale, String.t()
 
     field :movement_id, String.t()
@@ -35,3 +34,28 @@ defmodule FCInventory.LineItemUpdated do
     field :translations, map()
   end
 end
+
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.LineItemUpdated do
+  import FCSupport.Normalization
+
+  alias Decimal, as: D
+
+  def decode(event) do
+    %{
+      event
+      | quantity: D.new(event.quantity),
+        effective_keys: atomize_list(event.effective_keys),
+        original_fields: decode_ofields(event.original_fields)
+    }
+  end
+
+  def decode_ofields(%{"quantity" => _} = ofields) do
+    ofields = atomize_keys(ofields)
+    %{ofields | quantity: D.new(ofields.quantity)}
+  end
+
+  def decode_ofields(ofields) do
+    atomize_keys(ofields)
+  end
+end
+

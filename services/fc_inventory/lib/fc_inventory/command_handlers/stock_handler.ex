@@ -14,16 +14,22 @@ defmodule FCInventory.StockHandler do
     AddBatch,
     UpdateBatch,
     DeleteBatch,
-    ReserveStock
+    ReserveStock,
+    CancelReservation,
+    DecreaseStockReservation
   }
   alias FCInventory.{
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
-    TransactionAdded,
+    BatchReserved,
     StockReserved,
     StockPartiallyReserved,
-    StockReservationFailed
+    StockReservationFailed,
+    StockReservationDecreased,
+    StockReservationCancelled,
+    BatchReservationDecreased,
+    BatchReservationCancelled
   }
   alias FCInventory.{Batch}
 
@@ -42,6 +48,20 @@ defmodule FCInventory.StockHandler do
   end
 
   def handle(%{id: nil}, _), do: {:error, {:not_found, :stock}}
+
+  def handle(state, %CancelReservation{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> merge_to(%StockReservationCancelled{})
+    |> unwrap_ok()
+  end
+
+  def handle(state, %DecreaseStockReservation{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> decrease_reservation(state)
+    |> unwrap_ok()
+  end
 
   def handle(state, %UpdateBatch{} = cmd) do
     default_locale = DefaultLocaleStore.get(state.account_id)
@@ -72,8 +92,6 @@ defmodule FCInventory.StockHandler do
       |> Enum.into([])
 
     txn_events = reserve_batches(cmd, available_batches, cmd.quantity, [])
-    # IO.inspect available_batches
-    # IO.inspect txn_events
     quantity_reserved = Enum.reduce(txn_events, D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
 
     event =
@@ -106,23 +124,77 @@ defmodule FCInventory.StockHandler do
         events
 
       D.cmp(quantity_available, quantity) == :lt ->
-        txn_added = reserve_batch(cmd, id, quantity_available)
-        events = events ++ [txn_added]
-        reserve_batches(cmd, batches, D.sub(quantity, txn_added.quantity), events)
+        rsv_confirmed = reservation_confirmed(cmd, id, quantity_available)
+        events = events ++ [rsv_confirmed]
+        reserve_batches(cmd, batches, D.sub(quantity, quantity_available), events)
 
       true ->
-        events ++ [reserve_batch(cmd, id, quantity)]
+        events ++ [reservation_confirmed(cmd, id, quantity)]
     end
   end
 
-  defp reserve_batch(cmd, batch_id, quantity) do
-    %TransactionAdded{
+  defp reservation_confirmed(cmd, batch_id, quantity) do
+    %BatchReserved{
       requester_role: "system",
       stockable_id: cmd.stockable_id,
       movement_id: cmd.movement_id,
       batch_id: batch_id,
       status: "reserved",
       quantity: quantity
+    }
+  end
+
+  defp decrease_reservation(cmd, state) do
+    reservations =
+      state
+      |> reservations(cmd.movement_id)
+      |> Enum.into([])
+
+    events = decrease_reservation(cmd, reservations, cmd.quantity, [])
+    reservation_decreased = merge(%StockReservationDecreased{}, cmd)
+    events ++ [reservation_decreased]
+  end
+
+  defp decrease_reservation(_, [], _, events) do
+    events
+  end
+
+  defp decrease_reservation(cmd, [{id, rsv} | reservations], quantity, events) do
+    quantity_reserved = D.sub(rsv.quantity, rsv.quantity_fulfilled)
+
+    cond do
+      D.cmp(quantity, D.new(0)) == :eq ->
+        events
+
+      D.cmp(quantity_reserved, quantity) == :lt ->
+        rsv_cancelled = batch_reservation_cancelled(cmd, rsv.batch_id, id)
+        events = events ++ [rsv_cancelled]
+        decrease_reservation(cmd, reservations, D.sub(quantity, quantity_reserved), events)
+
+      D.cmp(quantity_reserved, quantity) == :eq ->
+        events ++ [batch_reservation_cancelled(cmd, rsv.batch_id, id)]
+
+      true ->
+        events ++ [decrease_batch_reservation(cmd, rsv.batch_id, id, quantity)]
+    end
+  end
+
+  defp decrease_batch_reservation(cmd, batch_id, rsv_id, quantity) do
+    %BatchReservationDecreased{
+      requester_role: "system",
+      stockable_id: cmd.stockable_id,
+      batch_id: batch_id,
+      reservation_id: rsv_id,
+      quantity: quantity
+    }
+  end
+
+  defp batch_reservation_cancelled(cmd, batch_id, rsv_id) do
+    %BatchReservationCancelled{
+      requester_role: "system",
+      stockable_id: cmd.stockable_id,
+      batch_id: batch_id,
+      reservation_id: rsv_id
     }
   end
 
@@ -141,6 +213,12 @@ defmodule FCInventory.StockHandler do
       else
         a_batches
       end
+    end)
+  end
+
+  defp reservations(%{batches: batches}, movement_id) do
+    Enum.reduce(batches, %{}, fn {_, batch}, reservations ->
+      Map.merge(reservations, Batch.reservations(batch, movement_id))
     end)
   end
 end

@@ -1,7 +1,6 @@
 defmodule FCInventory.BatchAdded do
-  use TypedStruct
+  use FCBase, :event
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do
@@ -28,7 +27,7 @@ defmodule FCInventory.BatchAdded do
 
     field :caption, String.t()
     field :description, String.t()
-    field :custom_data, map()
+    field :custom_data, map(), default: %{}
     field :translations, map(), default: %{}
   end
 end

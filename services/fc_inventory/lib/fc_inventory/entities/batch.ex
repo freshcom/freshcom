@@ -5,6 +5,7 @@ defmodule FCInventory.Batch do
   import FCSupport.Normalization
 
   alias Decimal, as: D
+  alias FCInventory.BatchReservation
 
   typedstruct do
     field :storage_id, String.t()
@@ -13,7 +14,7 @@ defmodule FCInventory.Batch do
     field :quantity_on_hand, Decimal.t(), default: D.new(0)
     field :quantity_reserved, Decimal.t(), default: D.new(0)
     field :expires_at, DateTime.t()
-    field :transactions_inprogress, map(), default: %{}
+    field :reservations, map(), default: %{}
 
     field :number, String.t()
     field :label, String.t()
@@ -48,18 +49,38 @@ defmodule FCInventory.Batch do
 
   def is_available(_), do: false
 
-  def add_transaction(batch, %{status: "completed"}), do: batch
-
-  def add_transaction(%{transactions_inprogress: transactions} = batch, txn) do
-    transactions = Map.put(transactions, uuid4(), txn)
-    batch =
-      if txn.status == "reserved" do
-        quantity_reserved = D.add(batch.quantity_reserved, txn.quantity)
-        %{batch | quantity_reserved: quantity_reserved}
+  def reservations(%{reservations: all}, movement_id) do
+    Enum.reduce(all, %{}, fn {id, rsv}, reservations ->
+      if rsv.movement_id == movement_id do
+        Map.put(reservations, id, rsv)
       else
-        batch
+        reservations
       end
+    end)
+  end
 
-    %{batch | transactions_inprogress: transactions}
+  def add_reservation(batch, %{status: "fulfilled"}), do: batch
+
+  def add_reservation(%{reservations: reservations} = batch, rsv) do
+    reservations = Map.put(reservations, uuid4(), rsv)
+    quantity_reserved = D.add(batch.quantity_reserved, rsv.quantity)
+
+    %{
+      batch
+      | reservations: reservations,
+        quantity_reserved: quantity_reserved
+    }
+  end
+
+  def decrease_reservation(%{reservations: reservations} = batch, rsv_id, quantity) do
+    rsv = BatchReservation.decrease(reservations[rsv_id], quantity)
+    reservations = Map.put(reservations, rsv_id, rsv)
+    quantity_reserved = D.sub(batch.quantity_reserved, quantity)
+
+    %{
+      batch
+      | reservations: reservations,
+        quantity_reserved: quantity_reserved
+    }
   end
 end

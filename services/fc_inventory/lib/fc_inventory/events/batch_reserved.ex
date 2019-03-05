@@ -1,8 +1,6 @@
-defmodule FCInventory.TransactionAdded do
-  use TypedStruct
-  alias Decimal, as: D
+defmodule FCInventory.BatchReserved do
+  use FCBase, :event
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do
@@ -25,7 +23,7 @@ defmodule FCInventory.TransactionAdded do
   end
 end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionAdded do
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.BatchReserved do
   def decode(event) do
     %{event | quantity: Decimal.new(event.quantity)}
   end

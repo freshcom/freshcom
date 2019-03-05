@@ -1,4 +1,4 @@
-defmodule FCInventory.AddTransaction do
+defmodule FCInventory.CancelReservation do
   use TypedStruct
   use Vex.Struct
 
@@ -11,19 +11,13 @@ defmodule FCInventory.AddTransaction do
     field :client_type, String.t()
     field :account_id, String.t()
 
+    field :stockable_id, String.t()
     field :movement_id, String.t()
-    field :line_item_id, String.t()
-    field :source_batch_id, String.t()
-    field :transaction_id, String.t()
 
-    field :status, String.t()
     field :quantity, Decimal.t()
   end
 
+  validates :stockable_id, presence: true, uuid: true
   validates :movement_id, presence: true, uuid: true
-  validates :line_item_id, presence: true, uuid: true
-  validates :source_batch_id, presence: true, uuid: true
-  validates :transaction_id, presence: true, uuid: true
   validates :quantity, presence: true
-  validates :status, presence: true
 end

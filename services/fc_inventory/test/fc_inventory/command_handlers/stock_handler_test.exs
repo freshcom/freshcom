@@ -12,7 +12,7 @@ defmodule FCInventory.StockHandlerTest do
     BatchAdded,
     BatchUpdated,
     BatchDeleted,
-    TransactionAdded,
+    BatchReserved,
     StockReservationFailed,
     StockPartiallyReserved,
     StockReserved
@@ -182,8 +182,8 @@ defmodule FCInventory.StockHandlerTest do
       }
 
       assert events = StockHandler.handle(state, cmd)
-      assert [%TransactionAdded{} = txn1_added | events] = events
-      assert [%TransactionAdded{} = txn2_added | events] = events
+      assert [%BatchReserved{} = txn1_added | events] = events
+      assert [%BatchReserved{} = txn2_added | events] = events
       assert [%StockPartiallyReserved{} = reserved] = events
       assert D.cmp(reserved.quantity_requested, cmd.quantity) == :eq
       assert D.cmp(reserved.quantity_reserved, D.new(4)) == :eq
@@ -202,8 +202,8 @@ defmodule FCInventory.StockHandlerTest do
       }
 
       assert events = StockHandler.handle(state, cmd)
-      assert [%TransactionAdded{} = txn1_added | events] = events
-      assert [%TransactionAdded{} = txn2_added | events] = events
+      assert [%BatchReserved{} = txn1_added | events] = events
+      assert [%BatchReserved{} = txn2_added | events] = events
       assert [%StockReserved{} = reserved] = events
       assert D.cmp(reserved.quantity, cmd.quantity) == :eq
       assert reserved.account_id == cmd.account_id

@@ -1,7 +1,6 @@
 defmodule FCInventory.StockReserved do
-  use TypedStruct
+  use FCBase, :event
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do
@@ -16,7 +15,6 @@ defmodule FCInventory.StockReserved do
     field :account_id, String.t()
 
     field :stockable_id, String.t()
-    field :line_item_id, String.t()
     field :movement_id, String.t()
 
     field :quantity, Decimal.t()

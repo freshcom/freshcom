@@ -5,7 +5,7 @@ defmodule FCInventory.Stock do
   use FCBase, :aggregate
 
   alias Decimal, as: D
-  alias FCInventory.{Batch, Transaction}
+  alias FCInventory.{Batch, BatchReservation}
   alias FCInventory.{
     BatchAdded,
     BatchUpdated,
@@ -13,7 +13,9 @@ defmodule FCInventory.Stock do
     StockReserved,
     StockPartiallyReserved,
     StockReservationFailed,
-    TransactionAdded
+    StockReservationDecreased,
+    BatchReserved,
+    BatchReservationDecreased
   }
 
   typedstruct do
@@ -50,28 +52,21 @@ defmodule FCInventory.Stock do
     %{state | batches: batches}
   end
 
-  def apply(%{batches: batches} = state, %TransactionAdded{} = event) do
-    txn = merge(%Transaction{}, event)
-    batch = Batch.add_transaction(batches[event.batch_id], txn)
-    batches = Map.put(batches, event.batch_id, batch)
+  def apply(%{batches: batches} = state, %BatchReserved{} = event) do
+    rsv = merge(%BatchReservation{}, event)
+    batch = Batch.add_reservation(batches[event.batch_id], rsv)
 
-    %{state | batches: batches}
+    put_batch(state, event.batch_id, batch)
   end
 
-  # def apply(state, %et{} = event) when et in [StockReserved, StockPartiallyReserved] do
-  #   batches =
-  #     Enum.reduce(event.transactions, state.batches, fn {_, txn}, batches ->
-  #       batch = state.batches[txn.source_batch_id]
-  #       batch = %{
-  #         batch
-  #         | quantity_reserved: D.add(batch.quantity_reserved, txn.quantity),
-  #       }
+  def apply(%{batches: batches} = state, %BatchReservationDecreased{} = event) do
+    batch = Batch.decrease_reservation(batches[event.batch_id], event.reservation_id, event.quantity)
+    put_batch(state, event.batch_id, batch)
+  end
 
-  #       Map.put(batches, txn.source_batch_id, batch)
-  #     end)
+  def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, StockReservationDecreased], do: state
 
-  #   %{state | batches: batches}
-  # end
-
-  def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed], do: state
+  defp put_batch(%{batches: batches} = state, id, batch) do
+    %{state | batches: Map.put(batches, id, batch)}
+  end
 end

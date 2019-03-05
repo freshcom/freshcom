@@ -1,8 +1,8 @@
 defmodule FCInventory.TransactionUpdated do
-  use TypedStruct
+  use FCBase, :event
+
   alias Decimal, as: D
 
-  @derive Jason.Encoder
   @version 1
 
   typedstruct do

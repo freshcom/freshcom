@@ -1,4 +1,4 @@
-defmodule FCInventory.LineItemProcessed do
+defmodule FCInventory.StockReservationDecreased do
   use FCBase, :event
 
   @version 1
@@ -14,20 +14,17 @@ defmodule FCInventory.LineItemProcessed do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :movement_id, String.t()
     field :stockable_id, String.t()
+    field :movement_id, String.t()
 
-    field :status, String.t()
     field :quantity, Decimal.t()
   end
 end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.LineItemProcessed do
+defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.StockReservationDecreased do
+  alias Decimal, as: D
+
   def decode(event) do
-    if event.quantity do
-      %{event | quantity: Decimal.new(event.quantity)}
-    else
-      event
-    end
+    %{event | quantity: D.new(event.quantity)}
   end
 end

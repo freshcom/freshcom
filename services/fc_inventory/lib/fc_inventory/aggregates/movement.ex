@@ -9,7 +9,6 @@ defmodule FCInventory.Movement do
   alias FCInventory.{
     MovementCreated,
     MovementMarked,
-    TransactionAdded,
     LineItemAdded,
     LineItemProcessed,
     LineItemMarked,

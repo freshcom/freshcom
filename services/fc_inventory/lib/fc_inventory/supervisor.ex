@@ -11,7 +11,8 @@ defmodule FCInventory.Supervisor do
     children = [
       {FCInventory.Keeper, [start_from: :current]},
       # Process Manager
-      {FCInventory.MovementReservation, [start_from: :current]}
+      {FCInventory.MovementReservation, [start_from: :current]},
+      {FCInventory.StockReservationDecrease, [start_from: :current]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
