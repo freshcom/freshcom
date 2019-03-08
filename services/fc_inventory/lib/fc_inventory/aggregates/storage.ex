@@ -9,6 +9,8 @@ defmodule FCInventory.Storage do
   typedstruct do
     field :id, String.t()
     field :account_id, String.t()
+    field :root_location_id, String.t()
+    field :stock_location_id, String.t()
 
     field :status, String.t()
     field :type, String.t()

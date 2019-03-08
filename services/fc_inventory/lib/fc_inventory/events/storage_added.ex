@@ -15,6 +15,8 @@ defmodule FCInventory.StorageAdded do
     field :account_id, String.t()
 
     field :storage_id, String.t()
+    field :root_location_id, String.t()
+    field :stock_location_id, String.t()
 
     field :status, String.t()
     field :type, String.t()
