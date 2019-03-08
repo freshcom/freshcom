@@ -26,7 +26,6 @@ defmodule FCInventory.StorageUpdated do
 
     field :name, String.t()
     field :label, String.t()
-    field :size, integer()
 
     field :address_line_one, String.t()
     field :address_line_two, String.t()
