@@ -1,4 +1,4 @@
-defmodule FCInventory.MovementReservation do
+defmodule FCInventory.StockReservation do
   @moduledoc false
   use TypedStruct
 
@@ -215,7 +215,7 @@ defmodule FCInventory.MovementReservation do
   # end
 end
 
-# defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.MovementReservation do
+# defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.StockReservation do
 #   alias FCInventory.LineItem
 
 #   def decode(state) do
