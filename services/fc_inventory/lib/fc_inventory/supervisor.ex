@@ -11,6 +11,9 @@ defmodule FCInventory.Supervisor do
     children = [
       {FCInventory.Keeper, [start_from: :current]},
       # Process Manager
+      {FCInventory.DefaultLocationSetup, [start_from: :current]},
+      {FCInventory.RootLocationSetup, [start_from: :current]},
+
       {FCInventory.StockReservation, [start_from: :current]},
       {FCInventory.StockReservationDecrease, [start_from: :current]}
     ]

@@ -1,4 +1,4 @@
-defmodule FCInventory.AddStorage do
+defmodule FCInventory.AddLocation do
   use TypedStruct
   use Vex.Struct
 
@@ -11,21 +11,15 @@ defmodule FCInventory.AddStorage do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :storage_id, String.t()
+    field :location_id, String.t()
+    field :parent_id, String.t()
 
     field :status, String.t(), default: "active"
-    field :type, String.t()
+    field :type, String.t(), default: "internal"
     field :number, String.t()
 
     field :name, String.t()
-    field :short_name, String.t()
     field :label, String.t()
-
-    field :address_line_one, String.t()
-    field :address_line_two, String.t()
-    field :address_city, String.t()
-    field :address_region_code, String.t()
-    field :address_country_code, String.t()
 
     field :caption, String.t()
     field :description, String.t()

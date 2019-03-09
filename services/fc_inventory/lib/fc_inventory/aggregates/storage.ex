@@ -10,13 +10,14 @@ defmodule FCInventory.Storage do
     field :id, String.t()
     field :account_id, String.t()
     field :root_location_id, String.t()
-    field :stock_location_id, String.t()
+    field :default_location_id, String.t()
 
     field :status, String.t()
     field :type, String.t()
     field :number, String.t()
 
     field :name, String.t()
+    field :short_name, String.t()
     field :label, String.t()
 
     field :address_line_one, String.t()

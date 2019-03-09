@@ -5,6 +5,7 @@ defmodule FCInventory.StorageHandler do
 
   use FCBase, :command_handler
 
+  import UUID
   import FCInventory.StoragePolicy
 
   alias FCInventory.{AddStorage, UpdateStorage, DeleteStorage}
@@ -12,9 +13,14 @@ defmodule FCInventory.StorageHandler do
   alias FCInventory.Storage
 
   def handle(%Storage{id: nil} = state, %AddStorage{} = cmd) do
+    event = %StorageAdded{
+      root_location_id: uuid4(),
+      default_location_id: uuid4()
+    }
+
     cmd
     |> authorize(state)
-    ~> merge_to(%StorageAdded{})
+    ~> merge_to(event)
     |> unwrap_ok()
   end
 

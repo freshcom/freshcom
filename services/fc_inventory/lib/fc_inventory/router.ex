@@ -5,6 +5,7 @@ defmodule FCInventory.Router do
 
   alias FCInventory.{
     AddStorage,
+    AddLocation,
     UpdateStorage,
     DeleteStorage,
     AddBatch,
@@ -20,8 +21,8 @@ defmodule FCInventory.Router do
     UpdateLineItem
   }
 
-  alias FCInventory.{Storage, Stock, Movement}
-  alias FCInventory.{StockHandler, StorageHandler, MovementHandler}
+  alias FCInventory.{Storage, Location, Stock, Movement}
+  alias FCInventory.{StockHandler, StorageHandler, LocationHandler, MovementHandler}
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
@@ -33,6 +34,7 @@ defmodule FCInventory.Router do
   identify(Movement, by: :movement_id, prefix: "stock-movement-")
 
   dispatch([AddStorage, UpdateStorage, DeleteStorage], to: StorageHandler, aggregate: Storage)
+  dispatch([AddLocation], to: LocationHandler, aggregate: Location)
   dispatch(
     [
       AddBatch,
