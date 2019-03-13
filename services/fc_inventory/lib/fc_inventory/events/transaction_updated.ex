@@ -19,6 +19,7 @@ defmodule FCInventory.TransactionUpdated do
     field :locale, String.t()
 
     field :transaction_id, String.t()
+    field :movement_id, String.t()
     field :serial_number, String.t()
     field :quantity, String.t()
 

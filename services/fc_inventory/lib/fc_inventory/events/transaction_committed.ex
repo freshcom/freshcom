@@ -15,5 +15,6 @@ defmodule FCInventory.TransactionCommitted do
     field :account_id, String.t()
 
     field :transaction_id, String.t()
+    field :movement_id, String.t()
   end
 end

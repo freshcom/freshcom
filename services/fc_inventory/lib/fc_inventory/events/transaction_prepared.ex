@@ -15,6 +15,7 @@ defmodule FCInventory.TransactionPrepared do
     field :account_id, String.t()
 
     field :transaction_id, String.t()
+    field :movement_id, String.t()
     field :status, String.t()
     field :quantity, Decimal.t()
   end

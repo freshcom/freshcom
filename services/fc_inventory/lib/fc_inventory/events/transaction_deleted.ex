@@ -15,6 +15,7 @@ defmodule FCInventory.TransactionDeleted do
     field :account_id, String.t()
 
     field :transaction_id, String.t()
+    field :movement_id, String.t()
     field :stockable_id, String.t()
     field :source_id, String.t()
     field :destination_id, String.t()

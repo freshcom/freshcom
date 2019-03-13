@@ -98,9 +98,11 @@ defmodule FCInventory.TransactionHandler do
   end
 
   def handle(state, %CompleteTransactionCommit{} = cmd) do
+    event = merge(%TransactionCommitted{}, state)
+
     cmd
     |> authorize(state)
-    ~> merge_to(%TransactionCommitted{})
+    ~> merge_to(event)
     |> unwrap_ok()
   end
 
@@ -109,7 +111,7 @@ defmodule FCInventory.TransactionHandler do
   end
 
   def handle(state, %DeleteTransaction{} = cmd) do
-    event = merge_to(state, %TransactionDeleted{})
+    event = merge(%TransactionDeleted{}, state)
 
     cmd
     |> authorize(state)
@@ -120,7 +122,7 @@ defmodule FCInventory.TransactionHandler do
   defp validate_update(cmd, %{status: "draft"}), do: {:ok, cmd}
   defp validate_update(cmd, %{status: "zero_stock"}), do: {:ok, cmd}
 
-  defp validate_update(cmd, state) do
+  defp validate_update(cmd, _) do
     if Enum.member?(cmd.effective_keys, :serial_number) do
       {:error, {:validation_failed, [{:error, :serial_number, :cannot_be_updated}]}}
     else
@@ -128,39 +130,51 @@ defmodule FCInventory.TransactionHandler do
     end
   end
 
-  defp update(cmd, %{status: "draft"}) do
-    merge_to(cmd, %TransactionUpdated{})
+  defp update(cmd, %{status: "draft"} = txn) do
+    %TransactionUpdated{}
+    |> merge(txn)
+    |> merge(cmd)
   end
 
-  defp update(%{effective_keys: ekeys} = cmd, %{status: "ready"}) do
+  defp update(%{effective_keys: ekeys} = cmd, %{status: "ready"} = txn) do
+    event =
+      %TransactionUpdated{}
+      |> merge(txn)
+      |> merge(cmd)
+
     if Enum.member?(ekeys, :quantity) do
       [
-        merge_to(cmd, %TransactionUpdated{}),
+        event,
         %TransactionPrepared{
           requester_role: "system",
           account_id: cmd.account_id,
           transaction_id: cmd.transaction_id,
+          movement_id: txn.movement_id,
           status: "action_required",
           quantity: D.new(0)
         }
       ]
     else
-      merge_to(cmd, %TransactionUpdated{})
+      event
     end
   end
 
-  def complete_prep(%{quantity: quantity} = cmd, state) do
-    prepared = D.add(state.quantity_prepared, quantity)
+  def complete_prep(%{quantity: quantity} = cmd, txn) do
+    prepared = D.add(txn.quantity_prepared, quantity)
 
-    cond do
+    event = cond do
       D.cmp(prepared, D.new(0)) == :eq ->
-        merge_to(cmd, %TransactionPrepFailed{status: "zero_stock"})
+        %TransactionPrepFailed{status: "zero_stock"}
 
-      D.cmp(prepared, state.quantity) == :eq ->
-        merge_to(cmd, %TransactionPrepared{status: "ready"})
+      D.cmp(prepared, txn.quantity) == :eq ->
+        %TransactionPrepared{status: "ready"}
 
       true ->
-        merge_to(cmd, %TransactionPrepared{status: "action_required"})
+        %TransactionPrepared{status: "action_required"}
     end
+
+    event
+    |> merge(txn, except: [:status])
+    |> merge(cmd)
   end
  end
