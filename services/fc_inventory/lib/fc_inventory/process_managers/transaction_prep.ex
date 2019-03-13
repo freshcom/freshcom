@@ -11,7 +11,6 @@ defmodule FCInventory.TransactionPrep do
   alias Decimal, as: D
   alias FCInventory.Stock
   alias FCInventory.{
-    AddLocation,
     ReserveStock,
     DecreaseReservedStock,
     AddEntry,
@@ -49,7 +48,7 @@ defmodule FCInventory.TransactionPrep do
     end
   end
 
-  def interested?(%TransactionDeleted{status: "draft"} = event), do: false
+  def interested?(%TransactionDeleted{status: "draft"}), do: false
   def interested?(%TransactionDeleted{} = event), do: {:start, event.transaction_id}
 
   def interested?(%et{transaction_id: tid, quantity: quantity} = event)

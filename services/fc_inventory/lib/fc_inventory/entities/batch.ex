@@ -5,7 +5,6 @@ defmodule FCInventory.Batch do
 
   alias Decimal, as: D
   alias FCInventory.SerialNumberStore
-  alias FCInventory.BatchReservation
 
   typedstruct do
     field :account_id, String.t()
@@ -161,7 +160,7 @@ defmodule FCInventory.Batch do
   end
 
   def get_entries(batches, transaction_id) do
-    Enum.reduce(batches, %{}, fn {sn, batch}, acc ->
+    Enum.reduce(batches, %{}, fn {_, batch}, acc ->
       Map.merge(acc, (batch.entries[transaction_id] || %{}))
     end)
   end

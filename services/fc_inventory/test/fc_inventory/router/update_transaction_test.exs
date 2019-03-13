@@ -2,7 +2,6 @@ defmodule FCInventory.Router.UpdateTransactionTest do
   use FCBase.RouterCase
 
   alias Decimal, as: D
-  alias Faker.Company
   alias FCInventory.Router
   alias FCInventory.UpdateTransaction
   alias FCInventory.{
@@ -62,42 +61,4 @@ defmodule FCInventory.Router.UpdateTransactionTest do
       end)
     end
   end
-
-  # test "given valid command with authorized role", %{cmd: cmd} do
-  #   account_id = uuid4()
-  #   client_id = app_id("standard", account_id)
-  #   requester_id = user_id(account_id, "goods_specialist")
-
-  #   to_streams(:storage_id, "stock-storage-", [
-  #     %TransactionAdded{
-  #       storage_id: cmd.storage_id,
-  #       name: Company.name()
-  #     }
-  #   ])
-
-  #   cmd = %{cmd | client_id: client_id, account_id: account_id, requester_id: requester_id}
-
-  #   assert :ok = Router.dispatch(cmd)
-
-  #   assert_receive_event(TransactionUpdated, fn event ->
-  #     assert event.name == cmd.name
-  #   end)
-  # end
-
-  # test "given valid command with system role", %{cmd: cmd} do
-  #   to_streams(:storage_id, "stock-storage-", [
-  #     %TransactionAdded{
-  #       storage_id: cmd.storage_id,
-  #       name: Company.name()
-  #     }
-  #   ])
-
-  #   cmd = %{cmd | requester_role: "system"}
-
-  #   assert :ok = Router.dispatch(cmd)
-
-  #   assert_receive_event(TransactionUpdated, fn event ->
-  #     assert event.name == cmd.name
-  #   end)
-  # end
 end

@@ -5,7 +5,6 @@ defmodule FCInventory.Router.PrepareTransactionTest do
 
   alias Decimal, as: D
   alias FCInventory.Router
-  alias FCInventory.Stock
   alias FCInventory.PrepareTransaction
   alias FCInventory.{
     EntryAdded,

@@ -93,7 +93,7 @@ defmodule FCInventory.TransactionHandler do
     |> unwrap_ok()
   end
 
-  def handle(_, %CommitTransaction{} = cmd) do
+  def handle(_, %CommitTransaction{}) do
     {:error, {:validation_failed, [{:error, :status, :must_be_ready}]}}
   end
 
@@ -104,7 +104,7 @@ defmodule FCInventory.TransactionHandler do
     |> unwrap_ok()
   end
 
-  def handle(%{status: "committed"}, %DeleteTransaction{} = cmd) do
+  def handle(%{status: "committed"}, %DeleteTransaction{}) do
     {:error, {:validation_failed, [{:error, :status, :cannot_be_committed}]}}
   end
 

@@ -31,4 +31,5 @@ defmodule FCInventory.AddLocation do
 
   validates :status, presence: true, inclusion: @valid_statuses
   validates :name, presence: true
+  validates :type, presence: true, inclusion: ["view", "partner", "internal", "adjustment"]
 end

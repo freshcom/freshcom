@@ -4,7 +4,6 @@ defmodule FCInventory.SerialNumber do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias FCInventory.LocationStore
   alias FCInventory.{SerialNumberAdded}
 
   typedstruct do

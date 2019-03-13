@@ -6,8 +6,6 @@ defmodule FCInventory.TransactionCommit do
     name: "process-manager:e6a7ac3b-332c-4569-b3a6-c8734e2d72a7",
     router: FCInventory.Router
 
-  import FCSupport.Struct, only: [merge_to: 3]
-
   alias Decimal, as: D
   alias FCInventory.Stock
   alias FCInventory.{
@@ -30,10 +28,10 @@ defmodule FCInventory.TransactionCommit do
 
   def interested?(%TransactionCommitRequested{} = event), do: {:start, event.transaction_id}
 
-  def interested?(%EntryCommitted{transaction_id: tid, quantity: quantity} = event) do
-    case D.cmp(event.quantity, D.new(0)) do
+  def interested?(%EntryCommitted{transaction_id: tid, quantity: quantity}) do
+    case D.cmp(quantity, D.new(0)) do
       :lt ->
-        {:continue, event.transaction_id}
+        {:continue, tid}
 
       _ ->
         false

@@ -58,7 +58,7 @@ defmodule FCInventory.Transaction do
     |> merge(event)
   end
 
-  def apply(state, %TransactionPrepRequested{} = event) do
+  def apply(state, %TransactionPrepRequested{}) do
     %{state | status: "preparing"}
   end
 
@@ -74,11 +74,11 @@ defmodule FCInventory.Transaction do
     }
   end
 
-  def apply(state, %TransactionCommitRequested{} = event) do
+  def apply(state, %TransactionCommitRequested{}) do
     %{state | status: "committing"}
   end
 
-  def apply(state, %TransactionCommitted{} = event) do
+  def apply(state, %TransactionCommitted{}) do
     %{state | status: "committed"}
   end
 
@@ -88,7 +88,7 @@ defmodule FCInventory.Transaction do
     |> apply_changes()
   end
 
-  def apply(state, %TransactionDeleted{} = event) do
+  def apply(state, %TransactionDeleted{}) do
     %{state | status: "deleted"}
   end
 end
