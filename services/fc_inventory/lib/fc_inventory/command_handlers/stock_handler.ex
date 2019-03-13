@@ -9,7 +9,6 @@ defmodule FCInventory.StockHandler do
   import FCInventory.StockPolicy
 
   alias Decimal, as: D
-  alias FCStateStorage.GlobalStore.DefaultLocaleStore
   alias FCInventory.LocationStore
   alias FCInventory.{
     ReserveStock,
@@ -101,7 +100,7 @@ defmodule FCInventory.StockHandler do
     |> unwrap_ok()
   end
 
-  defp reserve(cmd, %{type: type} = location, _) when type in ["partner", "adjustment"] do
+  defp reserve(cmd, %{type: type}, _) when type in ["partner", "adjustment"] do
     [
       %EntryAdded{
         requester_role: "system",
@@ -167,12 +166,12 @@ defmodule FCInventory.StockHandler do
         events
 
       D.cmp(quantity_available, quantity) == :lt ->
-        entry_added = add_entry(cmd, {sn, batch}, quantity_available)
+        entry_added = add_entry(cmd, sn, quantity_available)
         events = events ++ [entry_added]
         reserve_batches(cmd, batches, D.sub(quantity, quantity_available), events)
 
       true ->
-        events ++ [add_entry(cmd, {sn, batch}, quantity)]
+        events ++ [add_entry(cmd, sn, quantity)]
     end
   end
 
@@ -200,7 +199,7 @@ defmodule FCInventory.StockHandler do
     }]
   end
 
-  defp add_entry(cmd, {sn, batch}, quantity) do
+  defp add_entry(cmd, sn, quantity) do
     %EntryAdded{
       requester_role: "system",
       stock_id: cmd.stock_id,
@@ -225,7 +224,7 @@ defmodule FCInventory.StockHandler do
     entries =
       batches
       |> Batch.sort(location.output_strategy)
-      |> Enum.reduce([], fn {sn, batch}, acc ->
+      |> Enum.reduce([], fn {_, batch}, acc ->
         Enum.into(batch.entries[cmd.transaction_id], []) ++ acc
       end)
 
