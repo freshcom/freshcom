@@ -16,6 +16,7 @@ defmodule FCInventory.AddLocation do
 
     field :status, String.t(), default: "active"
     field :type, String.t(), default: "internal"
+    field :output_strategy, String.t(), default: "fefo"
     field :number, String.t()
 
     field :name, String.t()

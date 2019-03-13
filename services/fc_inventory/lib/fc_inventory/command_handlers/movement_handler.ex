@@ -3,36 +3,18 @@ defmodule FCInventory.MovementHandler do
 
   @behaviour Commanded.Commands.Handler
 
-  # @status_processing [
-  #   "reserving",
-  #   "picking",
-  #   "packing",
-  #   "delivering",
-  #   "completing"
-  # ]
-
   use FCBase, :command_handler
 
-  import UUID
   import FCInventory.MovementPolicy
 
   alias Decimal, as: D
-  alias FCStateStorage.GlobalStore.DefaultLocaleStore
   alias FCInventory.{
     CreateMovement,
-    MarkMovement,
-    UpdateLineItem,
-    MarkLineItem,
-    AddLineItem,
-    ProcessLineItem
+    MarkMovement
   }
   alias FCInventory.{
     MovementCreated,
-    MovementMarked,
-    LineItemAdded,
-    LineItemProcessed,
-    LineItemMarked,
-    LineItemUpdated
+    MovementMarked
   }
   alias FCInventory.Movement
 
@@ -55,93 +37,6 @@ defmodule FCInventory.MovementHandler do
     |> authorize(state)
     ~> merge_to(%MovementMarked{original_status: state.status})
     |> unwrap_ok()
-  end
-
-  def handle(state, %MarkLineItem{} = cmd) do
-    line_item = state.line_items[cmd.stockable_id]
-
-    cmd
-    |> authorize(state)
-    ~>> ensure_line_item_exist(state)
-    ~> merge_to(%LineItemMarked{original_status: line_item.status})
-    ~> mark_movement(state)
-    |> unwrap_ok()
-  end
-
-  def handle(state, %ProcessLineItem{} = cmd) do
-    line_item = state.line_items[cmd.stockable_id]
-
-    cmd
-    |> authorize(state)
-    ~>> ensure_line_item_exist(state)
-    ~> merge_to(%LineItemProcessed{})
-    ~> mark_line_item(state)
-    |> unwrap_ok()
-  end
-
-  def handle(state, %AddLineItem{} = cmd) do
-    cmd
-    |> authorize(state)
-    ~> merge_to(%LineItemAdded{})
-    ~> mark_movement(state)
-    |> unwrap_ok()
-  end
-
-  def handle(state, %UpdateLineItem{} = cmd) do
-    default_locale = DefaultLocaleStore.get(state.account_id)
-    translatable_fields = FCInventory.LineItem.translatable_fields()
-    line_item = state.line_items[cmd.stockable_id]
-
-    cmd
-    |> authorize(state)
-    ~>> ensure_line_item_exist(state)
-    ~> merge_to(%LineItemUpdated{})
-    ~> put_translations(line_item, translatable_fields, default_locale)
-    ~> put_original_fields(line_item)
-    ~> mark_line_item(state)
-    |> unwrap_ok()
-  end
-
-  defp mark_line_item(event, state) do
-    line_item =
-      state
-      |> Movement.apply(event)
-      |> Map.get(:line_items)
-      |> Map.get(event.stockable_id)
-
-    new_status = line_item_status(line_item)
-
-    if line_item.status == new_status do
-      event
-    else
-      line_item_marked =
-        %LineItemMarked{}
-        |> merge(event)
-        |> Map.put(:status, new_status)
-        |> Map.put(:original_status, line_item.status)
-
-      mark_movement([event, line_item_marked], state)
-    end
-  end
-
-  defp mark_movement(%LineItemAdded{status: "pending"} = event, %{status: m_status}) when m_status != "pending" do
-    movement_marked =
-      %MovementMarked{}
-      |> merge(event)
-      |> Map.put(:status, "pending")
-      |> Map.put(:original_status, m_status)
-
-    [event, movement_marked]
-  end
-
-  defp mark_movement(%LineItemUpdated{} = event, %{status: m_status}) when m_status != "pending" do
-    movement_marked =
-      %MovementMarked{}
-      |> merge(event)
-      |> Map.put(:status, "pending")
-      |> Map.put(:original_status, m_status)
-
-    [event, movement_marked]
   end
 
   defp mark_movement(%{} = event, state) do
@@ -273,45 +168,4 @@ defmodule FCInventory.MovementHandler do
         "none_reserved"
     end
   end
-
-  defp ensure_line_item_exist(%{stockable_id: stockable_id} = cmd, state) do
-    if state.line_items[stockable_id] do
-      {:ok, cmd}
-    else
-      {:error, {:not_found, :line_item}}
-    end
-  end
-
-  # defp balance_transaction(%LineItemUpdated{effective_keys: ekeys} = event, line_item) do
-  #   if Enum.member?(ekeys, :quantity) do
-  #     events = [event] ++ balance_transaction(line_item, event.quantity)
-  #     unwrap_event(events)
-  #   else
-  #     event
-  #   end
-  # end
-
-  # defp balance_transaction(%LineItem{quantity: current_quantity} = li, target_quantity) do
-  #   if D.cmp(target_quantity, current_quantity) == :lt do
-  #     decrease = D.sub(current_quantity, target_quantity)
-  #     transactions = Enum.into(transactions, [])
-  #     decrease_transaction(transactions, decrease, [])
-  #   else
-  #     []
-  #   end
-  # end
-
-  # defp decrease_transaction([{id, txn} | transactions], decrease, events) do
-  #   case D.cmp(txn.quantity, decrease) do
-  #     :eq ->
-  #       events = %TransactionCanceled{
-  #         account_id: txn.account_id
-  #         movement_id: txn.movement_id
-  #       }
-  #       events ++ [%TransactionCanceled{}]
-  #   end
-  # end
-
-  defp unwrap_event([event]), do: event
-  defp unwrap_event(events), do: events
 end

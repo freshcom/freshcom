@@ -13,3 +13,7 @@ config :eventstore, EventStore.Storage,
 config :logger, level: :warn
 
 config :fc_state_storage, adapter: FCStateStorage.MemoryAdapter
+
+config :commanded,
+  assert_receive_event_timeout: 3_000,
+  refute_receive_event_timeout: 3_000

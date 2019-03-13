@@ -11,13 +11,14 @@ defmodule FCInventory.ReserveStock do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stockable_id, String.t()
-    field :movement_id, String.t()
+    field :stock_id, String.t()
+    field :transaction_id, String.t()
+    field :serial_number, String.t()
 
     field :quantity, Decimal.t()
+    field :expected_commit_date, DateTime.t()
   end
 
-  validates :stockable_id, presence: true, uuid: true
-  validates :movement_id, presence: true, uuid: true
+  validates :stock_id, presence: true
   validates :quantity, presence: true
 end

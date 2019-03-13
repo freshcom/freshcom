@@ -1,8 +1,6 @@
 defmodule FCInventory.TransactionUpdated do
   use FCBase, :event
 
-  alias Decimal, as: D
-
   @version 1
 
   typedstruct do
@@ -16,17 +14,36 @@ defmodule FCInventory.TransactionUpdated do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :movement_id, String.t()
-    field :line_item_id, String.t()
-    field :transaction_id, String.t()
+    field :effective_keys, [atom()]
+    field :original_fields, map()
+    field :locale, String.t()
 
-    field :destination_batch_id, String.t()
-    field :quantity, Decimal.t()
+    field :transaction_id, String.t()
+    field :serial_number, String.t()
+    field :quantity, String.t()
+
+    field :name, String.t()
+    field :number, String.t()
+    field :label, String.t()
+    field :expected_commit_date, DateTime.t()
+
+    field :caption, String.t()
+    field :description, String.t()
+    field :custom_data, map()
+    field :translations, map()
   end
 end
 
 defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionUpdated do
+  import FCSupport.Normalization
+
   def decode(event) do
-    %{event | quantity: Decimal.new(event.quantity)}
+    event = %{event | effective_keys: atomize_list(event.effective_keys)}
+
+    if event.quantity do
+      %{event | quantity: Decimal.new(event.quantity)}
+    else
+      event
+    end
   end
 end

@@ -3,66 +3,40 @@ defmodule FCInventory.StockTest do
 
   alias Decimal, as: D
   alias FCInventory.{
-    BatchAdded,
-    BatchUpdated,
-    BatchDeleted,
+    EntryDeleted,
     StockReserved
   }
-  alias FCInventory.{Stock, Batch}
+  alias FCInventory.{Stock, Batch, Entry}
 
-  test "apply AddBatch" do
-    state = %Stock{}
+  test "apply EntryDeleted" do
+    serial_number = "SN1234"
+    transaction_id = uuid4()
+    entry_id = uuid4()
 
-    event = %BatchAdded{
-      account_id: uuid4(),
-      stockable_id: uuid4(),
-      batch_id: uuid4(),
-      status: "active",
-      quantity_on_hand: D.new(5)
+    state = %Stock{
+      batches: %{
+        serial_number => %Batch{
+          quantity_incoming: D.new(7),
+          entries: %{
+            transaction_id => %{
+              entry_id => %Entry{quantity: D.new(5)},
+              uuid4() => %Entry{quantity: D.new(2)}
+            }
+          }
+        }
+      }
+    }
+
+    event = %EntryDeleted{
+      serial_number: serial_number,
+      transaction_id: transaction_id,
+      entry_id: entry_id
     }
 
     assert state = Stock.apply(state, event)
-    assert map_size(state.batches) == 1
-    assert batch = state.batches[event.batch_id]
-    assert batch.status == event.status
-    assert batch.quantity_on_hand == event.quantity_on_hand
-    assert state.id == event.stockable_id
-    assert state.account_id == event.account_id
-  end
-
-  test "apply BatchUpdated" do
-    batch_id = uuid4()
-    state = %Stock{
-      batches: %{batch_id => %Batch{}}
-    }
-
-    event = %BatchUpdated{
-      batch_id: batch_id,
-      effective_keys: [:quantity_on_hand, :translations],
-      quantity_on_hand: D.new(5),
-      description: "This should not be updated to state",
-      translations: %{"en" => %{"description" => "Good"}}
-    }
-
-    assert %{batches: batches} = Stock.apply(state, event)
-    assert batch = batches[batch_id]
-    assert batch.description == nil
-    assert batch.quantity_on_hand == event.quantity_on_hand
-    assert batch.translations == event.translations
-  end
-
-  test "apply BatchDeleted" do
-    batch_id = uuid4()
-    state = %Stock{
-      batches: %{batch_id => %Batch{}}
-    }
-
-    event = %BatchDeleted{
-      batch_id: batch_id
-    }
-
-    assert %{batches: batches} = Stock.apply(state, event)
-    assert map_size(batches) == 0
+    assert batch = state.batches[serial_number]
+    assert D.cmp(batch.quantity_incoming, D.new(2)) == :eq
+    assert map_size(batch.entries[transaction_id]) == 1
   end
 
   test "apply StockReserved" do

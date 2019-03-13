@@ -39,44 +39,50 @@ defmodule FCBase do
 
       @derive Jason.Encoder
 
-      defimpl Inspect do
-        @identity_keys [
-          :requester_id,
-          :requester_type,
-          :requester_role,
-          :client_id,
-          :client_type
-        ]
+      # defimpl Inspect do
+      #   @identity_keys [
+      #     :requester_id,
+      #     :requester_type,
+      #     :requester_role,
+      #     :client_id,
+      #     :client_type
+      #   ]
 
-        def inspect(%{__struct__: t, __version__: v} = event, opts) do
-          map =
-            event
-            |> Map.drop([:__struct__, :__version__])
-            |> clean_identity_fields()
-            |> clean_effective_keys()
+      #   def inspect(%{__struct__: t, __version__: v} = event, opts) do
+      #     map =
+      #       event
+      #       |> Map.drop([:__struct__, :__version__])
+      #       |> clean_identity_fields()
+      #       |> clean_effective_keys()
 
-          name = Inspect.Algebra.to_doc(t, opts) <> "#v#{v}"
-          Inspect.Map.inspect(map, name, opts)
-        end
+      #     name = Inspect.Algebra.to_doc(t, opts) <> "#v#{v}"
+      #     Inspect.Map.inspect(map, name, opts)
+      #   end
 
-        defp clean_identity_fields(%{requester_role: "system"} = map) do
-          Map.drop(map, @identity_keys -- [:requester_role])
-        end
+      #   defp clean_identity_fields(%{requester_role: "system"} = map) do
+      #     Map.drop(map, @identity_keys -- [:requester_role])
+      #   end
 
-        defp clean_identity_fields(%{requester_role: nil, requester_id: nil, requester_type: nil} = map) do
-          Map.drop(map, @identity_keys)
-        end
+      #   defp clean_identity_fields(%{requester_role: nil, requester_id: nil, requester_type: nil} = map) do
+      #     Map.drop(map, @identity_keys)
+      #   end
 
-        defp clean_identity_fields(map), do: map
+      #   defp clean_identity_fields(map), do: map
 
-        defp clean_effective_keys(%{effective_keys: ekeys} = map) do
-          ekeys = ekeys ++ @identity_keys ++ [:locale, :original_fields]
-          dkeys = Map.keys(map) -- ekeys
-          Map.drop(map, dkeys)
-        end
+      #   defp clean_effective_keys(%{effective_keys: ekeys} = map) do
+      #     ekeys = ekeys ++ @identity_keys ++ [:locale, :original_fields]
+      #     dkeys = Map.keys(map) -- ekeys
+      #     dkeys = Enum.reject(dkeys, fn key ->
+      #       key
+      #       |> Atom.to_string()
+      #       |> String.ends_with?("_id")
+      #     end)
 
-        defp clean_effective_keys(map), do: map
-      end
+      #     Map.drop(map, dkeys)
+      #   end
+
+      #   defp clean_effective_keys(map), do: map
+      # end
     end
   end
 

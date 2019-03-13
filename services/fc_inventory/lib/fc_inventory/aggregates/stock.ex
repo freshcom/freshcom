@@ -4,18 +4,18 @@ defmodule FCInventory.Stock do
   use TypedStruct
   use FCBase, :aggregate
 
-  alias Decimal, as: D
-  alias FCInventory.{Batch, BatchReservation}
+  alias FCInventory.{Batch, Entry}
   alias FCInventory.{
-    BatchAdded,
-    BatchUpdated,
-    BatchDeleted,
     StockReserved,
+    ReservedStockDecreased,
     StockPartiallyReserved,
     StockReservationFailed,
-    StockReservationDecreased,
-    BatchReserved,
-    BatchReservationDecreased
+    StockCommitted,
+
+    EntryAdded,
+    EntryUpdated,
+    EntryCommitted,
+    EntryDeleted,
   }
 
   typedstruct do
@@ -24,49 +24,47 @@ defmodule FCInventory.Stock do
     field :batches, map(), default: %{}
   end
 
-  def apply(%{} = state, %BatchAdded{} = event) do
-    batch = merge(%Batch{}, event)
-    batches = Map.put(state.batches, event.batch_id, batch)
+  def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state
 
-    %{
-      state
-      | id: event.stockable_id,
-        account_id: event.account_id,
-        batches: batches
-    }
+  def apply(%{batches: batches} = state, %EntryAdded{} = event) do
+    entry = merge(%Entry{id: event.entry_id}, event)
+    batches = Batch.add_entry(batches, event.serial_number, entry)
+
+    %{state | batches: batches}
   end
 
-  def apply(state, %BatchUpdated{} = event) do
-    batch =
-      state.batches[event.batch_id]
+  def apply(%{batches: batches} = state, %EntryUpdated{} = event) do
+    entry =
+      batches
+      |> Batch.get_entry(event.serial_number, event.transaction_id, event.entry_id)
       |> cast(event)
       |> apply_changes()
 
-    batches = Map.put(state.batches, event.batch_id, batch)
-
+    batches = Batch.put_entry(batches, event.entry_id, entry)
     %{state | batches: batches}
   end
 
-  def apply(state, %BatchDeleted{} = event) do
-    batches = Map.drop(state.batches, [event.batch_id])
+  def apply(%{batches: batches} = state, %EntryCommitted{} = event) do
+    batches = Batch.commit_entry(batches, event.serial_number, event.transaction_id, event.entry_id)
     %{state | batches: batches}
   end
 
-  def apply(%{batches: batches} = state, %BatchReserved{} = event) do
-    rsv = merge(%BatchReservation{}, event)
-    batch = Batch.add_reservation(batches[event.batch_id], rsv)
-
-    put_batch(state, event.batch_id, batch)
+  def apply(%{batches: batches} = state, %EntryDeleted{} = event) do
+    batches = Batch.delete_entry(batches, event.serial_number, event.transaction_id, event.entry_id)
+    %{state | batches: batches}
   end
 
-  def apply(%{batches: batches} = state, %BatchReservationDecreased{} = event) do
-    batch = Batch.decrease_reservation(batches[event.batch_id], event.reservation_id, event.quantity)
-    put_batch(state, event.batch_id, batch)
+  def id(stockable_id, location_id) do
+    "#{stockable_id}/#{location_id}"
   end
 
-  def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, StockReservationDecreased], do: state
+  def location_id(stock_id) do
+    [_, location_id] = String.split(stock_id, "/")
+    location_id
+  end
 
-  defp put_batch(%{batches: batches} = state, id, batch) do
-    %{state | batches: Map.put(batches, id, batch)}
+  def stockable_id(stock_id) do
+    [stockable_id, _] = String.split(stock_id, "/")
+    stockable_id
   end
 end

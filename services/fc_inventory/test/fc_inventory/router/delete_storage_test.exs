@@ -24,7 +24,7 @@ defmodule FCInventory.Router.DeleteStorageTest do
   end
 
   test "given valid command with unauthorized role", %{cmd: cmd} do
-    to_streams(:storage_id, "stock-storage-", [
+    to_streams(:storage_id, "inventory-storage-", [
       %StorageAdded{
         storage_id: cmd.storage_id,
         name: Company.name()
@@ -39,7 +39,7 @@ defmodule FCInventory.Router.DeleteStorageTest do
     client_id = app_id("standard", account_id)
     requester_id = user_id(account_id, "goods_specialist")
 
-    to_streams(:storage_id, "stock-storage-", [
+    to_streams(:storage_id, "inventory-storage-", [
       %StorageAdded{
         storage_id: cmd.storage_id,
         name: Company.name()
@@ -56,7 +56,7 @@ defmodule FCInventory.Router.DeleteStorageTest do
   end
 
   test "given valid command with system role", %{cmd: cmd} do
-    to_streams(:storage_id, "stock-storage-", [
+    to_streams(:storage_id, "inventory-storage-", [
       %StorageAdded{
         storage_id: cmd.storage_id,
         name: Company.name()

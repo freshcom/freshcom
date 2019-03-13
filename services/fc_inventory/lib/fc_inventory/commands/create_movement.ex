@@ -15,14 +15,11 @@ defmodule FCInventory.CreateMovement do
     field :cause_id, String.t()
     field :cause_type, String.t()
     field :source_id, String.t()
-    field :source_type, String.t()
     field :destination_id, String.t()
-    field :destination_type, String.t()
 
-    field :status, String.t(), default: "pending"
-    field :line_items, map(), default: %{}
     field :expected_completion_date, DateTime.t()
 
+    field :name, String.t()
     field :number, String.t()
     field :label, String.t()
 
@@ -31,8 +28,6 @@ defmodule FCInventory.CreateMovement do
     field :custom_data, map(), default: %{}
   end
 
-  @valid_statuses ["pending"]
-
-  validates :status, presence: true, inclusion: @valid_statuses
-  validates :destination_type, presence: [unless: [:source_type]]
+  validates :source_id, presence: true
+  validates :destination_id, presence: true
 end

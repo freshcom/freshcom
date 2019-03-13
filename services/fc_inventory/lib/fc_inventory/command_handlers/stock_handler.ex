@@ -10,89 +10,132 @@ defmodule FCInventory.StockHandler do
 
   alias Decimal, as: D
   alias FCStateStorage.GlobalStore.DefaultLocaleStore
+  alias FCInventory.LocationStore
   alias FCInventory.{
-    AddBatch,
-    UpdateBatch,
-    DeleteBatch,
     ReserveStock,
-    CancelReservation,
-    DecreaseStockReservation
+    DecreaseReservedStock,
+    CommitStock,
+
+    AddEntry,
+    UpdateEntry,
+    CommitEntry,
+    DeleteEntry
   }
   alias FCInventory.{
-    BatchAdded,
-    BatchUpdated,
-    BatchDeleted,
-    BatchReserved,
     StockReserved,
     StockPartiallyReserved,
     StockReservationFailed,
-    StockReservationDecreased,
-    StockReservationCancelled,
-    BatchReservationDecreased,
-    BatchReservationCancelled
-  }
-  alias FCInventory.{Batch}
+    ReservedStockDecreased,
+    StockCommitted,
 
-  def handle(state, %AddBatch{} = cmd) do
-    cmd
-    |> authorize(state)
-    ~> merge_to(%BatchAdded{batch_id: uuid4()})
-    |> unwrap_ok()
-  end
+    EntryAdded,
+    EntryDeleted,
+    EntryUpdated,
+    EntryCommitted
+  }
+  alias FCInventory.{Batch, Entry}
 
   def handle(state, %ReserveStock{} = cmd) do
-    cmd
-    |> authorize(state)
-    ~> reserve(state)
-    |> unwrap_ok()
-  end
-
-  def handle(%{id: nil}, _), do: {:error, {:not_found, :stock}}
-
-  def handle(state, %CancelReservation{} = cmd) do
-    cmd
-    |> authorize(state)
-    ~> merge_to(%StockReservationCancelled{})
-    |> unwrap_ok()
-  end
-
-  def handle(state, %DecreaseStockReservation{} = cmd) do
-    cmd
-    |> authorize(state)
-    ~> decrease_reservation(state)
-    |> unwrap_ok()
-  end
-
-  def handle(state, %UpdateBatch{} = cmd) do
-    default_locale = DefaultLocaleStore.get(state.account_id)
-    translatable_fields = Batch.translatable_fields()
-    batch = state.batches[cmd.batch_id]
+    location = LocationStore.get(cmd.account_id, location_id(cmd.stock_id))
 
     cmd
     |> authorize(state)
-    ~>> ensure_batch_exist(state)
-    ~> merge_to(%BatchUpdated{})
-    ~> put_translations(batch, translatable_fields, default_locale)
-    ~> put_original_fields(batch)
+    ~> reserve(location, state)
     |> unwrap_ok()
   end
 
-  def handle(state, %DeleteBatch{} = cmd) do
+  def handle(state, %DecreaseReservedStock{} = cmd) do
+    location = LocationStore.get(cmd.account_id, location_id(cmd.stock_id))
+
     cmd
     |> authorize(state)
-    ~>> ensure_batch_exist(state)
-    ~> merge_to(%BatchDeleted{})
+    ~> decrease_reserved(location, state)
     |> unwrap_ok()
   end
 
-  defp reserve(cmd, state) do
+  def handle(state, %CommitStock{} = cmd) do
+    cmd
+    |> authorize(state)
+    ~> commit(state)
+    |> unwrap_ok()
+  end
+
+  def handle(%{batches: batches} = state, %CommitEntry{} = cmd) do
+    entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
+
+    cmd
+    |> authorize(state)
+    ~>> ensure_exist(entry, {:not_found, :stock_entry})
+    ~> merge_to(%EntryCommitted{quantity: entry.quantity})
+    |> unwrap_ok()
+  end
+
+  def handle(state, %AddEntry{} = cmd) do
+    entry_id = cmd.entry_id || uuid4()
+    cmd = %{cmd | entry_id: entry_id}
+
+    cmd
+    |> authorize(state)
+    ~> merge_to(%EntryAdded{})
+    |> unwrap_ok()
+  end
+
+  def handle(%{batches: batches} = state, %UpdateEntry{} = cmd) do
+    entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
+
+    cmd
+    |> authorize(state)
+    ~>> ensure_exist(entry, {:not_found, :stock_entry})
+    ~> merge_to(%EntryUpdated{})
+    ~> put_original_fields(entry)
+    |> unwrap_ok()
+  end
+
+  def handle(%{batches: batches} = state, %DeleteEntry{} = cmd) do
+    entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
+    entry = entry || %Entry{}
+
+    cmd
+    |> authorize(state)
+    ~> merge_to(%EntryDeleted{quantity: entry.quantity})
+    |> unwrap_ok()
+  end
+
+  defp reserve(cmd, %{type: type} = location, _) when type in ["partner", "adjustment"] do
+    [
+      %EntryAdded{
+        requester_role: "system",
+        account_id: cmd.account_id,
+        stock_id: cmd.stock_id,
+        transaction_id: cmd.transaction_id,
+        serial_number: cmd.serial_number,
+        entry_id: uuid4(),
+        status: "planned",
+        quantity: D.minus(cmd.quantity),
+        expected_commit_date: cmd.expected_commit_date
+      },
+      %StockReserved{
+        requester_role: "system",
+        account_id: cmd.account_id,
+        stock_id: cmd.stock_id,
+        transaction_id: cmd.transaction_id,
+        quantity: cmd.quantity
+      }
+    ]
+  end
+
+  defp reserve(cmd, location, %{batches: batches}) do
     available_batches =
-      state
-      |> available_batches()
-      |> Enum.into([])
+      batches
+      |> Batch.with_serial_number(cmd.serial_number)
+      |> Batch.available()
+      |> Batch.sort(location.output_strategy)
 
-    txn_events = reserve_batches(cmd, available_batches, cmd.quantity, [])
-    quantity_reserved = Enum.reduce(txn_events, D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
+    entry_events = reserve_batches(cmd, available_batches, cmd.quantity, [])
+    quantity_reserved =
+      entry_events
+      |> Enum.reduce(D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
+      |> D.minus()
 
     event =
       cond do
@@ -109,116 +152,139 @@ defmodule FCInventory.StockHandler do
           merge(%StockReserved{}, cmd)
       end
 
-    unwrap_event(txn_events ++ [event])
+    unwrap_event(entry_events ++ [event])
   end
 
   defp reserve_batches(_, [], _, events) do
     events
   end
 
-  defp reserve_batches(cmd, [{id, batch} | batches], quantity, events) do
-    quantity_available = D.sub(batch.quantity_on_hand, batch.quantity_reserved)
+  defp reserve_batches(cmd, [{sn, batch} | batches], quantity, events) do
+    quantity_available = Batch.quantity_available(batch)
 
     cond do
       D.cmp(quantity, D.new(0)) == :eq ->
         events
 
       D.cmp(quantity_available, quantity) == :lt ->
-        rsv_confirmed = reservation_confirmed(cmd, id, quantity_available)
-        events = events ++ [rsv_confirmed]
+        entry_added = add_entry(cmd, {sn, batch}, quantity_available)
+        events = events ++ [entry_added]
         reserve_batches(cmd, batches, D.sub(quantity, quantity_available), events)
 
       true ->
-        events ++ [reservation_confirmed(cmd, id, quantity)]
+        events ++ [add_entry(cmd, {sn, batch}, quantity)]
     end
   end
 
-  defp reservation_confirmed(cmd, batch_id, quantity) do
-    %BatchReserved{
+  defp commit(cmd, %{batches: batches}) do
+    entries = Batch.get_entries(batches, cmd.transaction_id)
+    events = Enum.map(entries, fn {id, entry} ->
+      %EntryCommitted{
+        requester_role: "system",
+        account_id: cmd.account_id,
+        stock_id: cmd.stock_id,
+        transaction_id: cmd.transaction_id,
+        serial_number: entry.serial_number,
+        entry_id: id,
+        quantity: entry.quantity,
+        committed_at: Timex.now()
+      }
+    end)
+    quantity = Enum.reduce(events, D.new(0), fn e, acc -> D.add(acc, e.quantity) end)
+    events ++ [%StockCommitted{
       requester_role: "system",
-      stockable_id: cmd.stockable_id,
-      movement_id: cmd.movement_id,
-      batch_id: batch_id,
-      status: "reserved",
+      account_id: cmd.account_id,
+      stock_id: cmd.stock_id,
+      transaction_id: cmd.transaction_id,
       quantity: quantity
+    }]
+  end
+
+  defp add_entry(cmd, {sn, batch}, quantity) do
+    %EntryAdded{
+      requester_role: "system",
+      stock_id: cmd.stock_id,
+      transaction_id: cmd.transaction_id,
+      serial_number: sn,
+      entry_id: uuid4(),
+      status: "planned",
+      quantity: D.minus(quantity),
+      expected_commit_date: cmd.expected_commit_date
     }
   end
 
-  defp decrease_reservation(cmd, state) do
-    reservations =
-      state
-      |> reservations(cmd.movement_id)
-      |> Enum.into([])
-
-    events = decrease_reservation(cmd, reservations, cmd.quantity, [])
-    reservation_decreased = merge(%StockReservationDecreased{}, cmd)
-    events ++ [reservation_decreased]
+  defp ensure_exist(cmd, data, error) do
+    if data do
+      {:ok, cmd}
+    else
+      {:error, error}
+    end
   end
 
-  defp decrease_reservation(_, [], _, events) do
-    events
+  defp decrease_reserved(cmd, location, %{batches: batches}) do
+    entries =
+      batches
+      |> Batch.sort(location.output_strategy)
+      |> Enum.reduce([], fn {sn, batch}, acc ->
+        Enum.into(batch.entries[cmd.transaction_id], []) ++ acc
+      end)
+
+    {decreased_quantity, entry_events} = decrease_reserved(cmd, entries, cmd.quantity, {D.new(0), []})
+    event = merge_to(cmd, %ReservedStockDecreased{quantity: decreased_quantity}, except: [:quantity])
+    entry_events ++ [event]
   end
 
-  defp decrease_reservation(cmd, [{id, rsv} | reservations], quantity, events) do
-    quantity_reserved = D.sub(rsv.quantity, rsv.quantity_fulfilled)
+  defp decrease_reserved(_, [], _, acc), do: acc
+
+  defp decrease_reserved(cmd, [{id, entry} | entries], quantity, {dq, events}) do
+    quantity_reserved = D.minus(entry.quantity)
 
     cond do
       D.cmp(quantity, D.new(0)) == :eq ->
-        events
+        {dq, events}
 
-      D.cmp(quantity_reserved, quantity) == :lt ->
-        rsv_cancelled = batch_reservation_cancelled(cmd, rsv.batch_id, id)
-        events = events ++ [rsv_cancelled]
-        decrease_reservation(cmd, reservations, D.sub(quantity, quantity_reserved), events)
-
-      D.cmp(quantity_reserved, quantity) == :eq ->
-        events ++ [batch_reservation_cancelled(cmd, rsv.batch_id, id)]
+      D.cmp(quantity_reserved, quantity) == :gt ->
+        new_quantity = D.minus(D.sub(quantity_reserved, quantity))
+        events = events ++ [update_entry(cmd, {id, entry}, new_quantity)]
+        {D.add(dq, quantity), events}
 
       true ->
-        events ++ [decrease_batch_reservation(cmd, rsv.batch_id, id, quantity)]
+        entry_deleted = delete_entry(cmd, {id, entry})
+        remaining_quantity = D.sub(quantity, quantity_reserved)
+        events = events ++ [entry_deleted]
+        acc = {D.add(dq, quantity_reserved), events}
+        decrease_reserved(cmd, entries, remaining_quantity, acc)
     end
   end
 
-  defp decrease_batch_reservation(cmd, batch_id, rsv_id, quantity) do
-    %BatchReservationDecreased{
+  defp delete_entry(cmd, {id, entry}) do
+    %EntryDeleted{
       requester_role: "system",
-      stockable_id: cmd.stockable_id,
-      batch_id: batch_id,
-      reservation_id: rsv_id,
-      quantity: quantity
+      account_id: cmd.account_id,
+      stock_id: cmd.stock_id,
+      serial_number: entry.serial_number,
+      transaction_id: cmd.transaction_id,
+      entry_id: id,
+      quantity: entry.quantity
     }
   end
 
-  defp batch_reservation_cancelled(cmd, batch_id, rsv_id) do
-    %BatchReservationCancelled{
+  defp update_entry(cmd, {id, entry}, new_quantity) do
+    %EntryUpdated{
       requester_role: "system",
-      stockable_id: cmd.stockable_id,
-      batch_id: batch_id,
-      reservation_id: rsv_id
+      account_id: cmd.account_id,
+      stock_id: cmd.stock_id,
+      serial_number: entry.serial_number,
+      transaction_id: cmd.transaction_id,
+      entry_id: id,
+      effective_keys: [:quantity],
+      quantity: new_quantity
     }
+    |> put_original_fields(entry)
   end
 
-  defp ensure_batch_exist(%{batch_id: batch_id} = cmd, state) do
-    if state.batches[batch_id] do
-      {:ok, cmd}
-    else
-      {:error, {:not_found, :batch}}
-    end
-  end
-
-  defp available_batches(%{batches: batches}) do
-    Enum.reduce(batches, %{}, fn {id, batch}, a_batches ->
-      if Batch.is_available(batch) do
-        Map.put(a_batches, id, batch)
-      else
-        a_batches
-      end
-    end)
-  end
-
-  defp reservations(%{batches: batches}, movement_id) do
-    Enum.reduce(batches, %{}, fn {_, batch}, reservations ->
-      Map.merge(reservations, Batch.reservations(batch, movement_id))
-    end)
+  defp location_id(stock_id) do
+    [_, location_id] = String.split(stock_id, "/")
+    location_id
   end
 end

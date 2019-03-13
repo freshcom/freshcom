@@ -36,14 +36,4 @@ defmodule FCInventory.Location do
     %{state | id: event.location_id}
     |> merge(event)
   end
-
-  # def apply(state, %LocationUpdated{} = event) do
-  #   state
-  #   |> cast(event)
-  #   |> apply_changes()
-  # end
-
-  # def apply(state, %LocationDeleted{}) do
-  #   %{state | status: "deleted"}
-  # end
 end

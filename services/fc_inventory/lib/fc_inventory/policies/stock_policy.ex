@@ -3,16 +3,26 @@ defmodule FCInventory.StockPolicy do
 
   use FCBase, :policy
 
-  alias FCInventory.{AddBatch, UpdateBatch, DeleteBatch}
+  alias FCInventory.{
+    ReserveStock,
+    CommitStock,
+    AddEntry
+  }
 
-  def authorize(%AddBatch{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  def authorize(%ReserveStock{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 
-  def authorize(%UpdateBatch{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  def authorize(%CommitStock{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 
-  def authorize(%DeleteBatch{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  def authorize(%AddEntry{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
+
+  # def authorize(%UpdateBatch{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  #   do: {:ok, cmd}
+
+  # def authorize(%DeleteBatch{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  #   do: {:ok, cmd}
 
   def authorize(_, _), do: {:error, :access_denied}
 end

@@ -18,6 +18,7 @@ defmodule FCInventory.LocationAdded do
 
     field :status, String.t()
     field :type, String.t()
+    field :output_strategy, String.t()
     field :number, String.t()
 
     field :name, String.t()
