@@ -12,6 +12,7 @@ defmodule FCInventory.TransactionHandler do
     DraftTransaction,
     PrepareTransaction,
     UpdateTransaction,
+    MarkTransaction,
     CommitTransaction,
     DeleteTransaction,
     CompleteTransactionPrep,
@@ -25,6 +26,7 @@ defmodule FCInventory.TransactionHandler do
     TransactionCommitRequested,
     TransactionCommitted,
     TransactionUpdated,
+    TransactionMarked,
     TransactionDeleted
   }
   alias FCInventory.{Transaction}
@@ -77,6 +79,15 @@ defmodule FCInventory.TransactionHandler do
     ~> update(state)
     ~> put_translations(state, translatable_fields, default_locale)
     ~> put_original_fields(state)
+    |> unwrap_ok()
+  end
+
+  def handle(state, %MarkTransaction{} = cmd) do
+    event = merge(%TransactionMarked{original_status: state.status}, state)
+
+    cmd
+    |> authorize(state)
+    ~> merge_to(event)
     |> unwrap_ok()
   end
 
@@ -145,13 +156,13 @@ defmodule FCInventory.TransactionHandler do
     if Enum.member?(ekeys, :quantity) do
       [
         event,
-        %TransactionPrepared{
+        %TransactionMarked{
           requester_role: "system",
           account_id: cmd.account_id,
           transaction_id: cmd.transaction_id,
           movement_id: txn.movement_id,
-          status: "action_required",
-          quantity: D.new(0)
+          original_status: "ready",
+          status: "action_required"
         }
       ]
     else

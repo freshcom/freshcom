@@ -9,6 +9,7 @@ defmodule FCInventory.Transaction do
     TransactionDrafted,
     TransactionPrepared,
     TransactionUpdated,
+    TransactionMarked,
     TransactionDeleted,
     TransactionPrepRequested,
     TransactionPrepFailed,
@@ -86,6 +87,10 @@ defmodule FCInventory.Transaction do
     state
     |> cast(event)
     |> apply_changes()
+  end
+
+  def apply(state, %TransactionMarked{} = event) do
+    %{state | status: event.status}
   end
 
   def apply(state, %TransactionDeleted{}) do

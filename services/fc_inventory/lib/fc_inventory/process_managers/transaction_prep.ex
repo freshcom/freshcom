@@ -29,6 +29,7 @@ defmodule FCInventory.TransactionPrep do
     StockPartiallyReserved,
     StockReservationFailed,
     TransactionPrepared,
+    TransactionMarked,
     TransactionPrepFailed,
     ReservedStockDecreased
   }
@@ -68,6 +69,7 @@ defmodule FCInventory.TransactionPrep do
   def interested?(%ReservedStockDecreased{} = event), do: {:continue, event.transaction_id}
 
   def interested?(%TransactionPrepared{} = event), do: {:stop, event.transaction_id}
+  def interested?(%TransactionMarked{} = event), do: {:stop, event.transaction_id}
   def interested?(%TransactionPrepFailed{} = event), do: {:stop, event.transaction_id}
 
   def interested?(_), do: false
