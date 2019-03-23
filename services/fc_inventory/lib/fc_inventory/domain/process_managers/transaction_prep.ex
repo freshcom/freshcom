@@ -9,7 +9,7 @@ defmodule FCInventory.TransactionPrep do
   import FCSupport.Struct, only: [merge_to: 3]
 
   alias Decimal, as: D
-  alias FCInventory.Stock
+  alias FCInventory.{Stock, StockId}
   alias FCInventory.{
     ReserveStock,
     DecreaseReservedStock,
@@ -81,17 +81,17 @@ defmodule FCInventory.TransactionPrep do
           requester_role: "system",
           account_id: event.account_id,
           transaction_id: event.transaction_id,
-          stock_id: Stock.id(event.stockable_id, event.source_id),
+          stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
           serial_number: event.serial_number,
           quantity: D.sub(event.quantity, event.quantity_prepared),
-          expected_commit_date: event.expected_commit_date
+          expected_commit_date: event.expected_completion_date
         }
 
       :gt ->
         %DecreaseReservedStock{
           requester_role: "system",
           account_id: event.account_id,
-          stock_id: Stock.id(event.stockable_id, event.source_id),
+          stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
           transaction_id: event.transaction_id,
           quantity: D.sub(event.quantity_prepared, event.quantity)
         }
@@ -109,12 +109,10 @@ defmodule FCInventory.TransactionPrep do
   end
 
   def handle(%{destination_id: dst_id}, %EntryAdded{} = event) do
-    stockable_id = Stock.stockable_id(event.stock_id)
-
     %AddEntry{
       requester_role: "system",
       account_id: event.account_id,
-      stock_id: Stock.id(stockable_id, dst_id),
+      stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
       transaction_id: event.transaction_id,
       serial_number: event.serial_number,
       entry_id: event.entry_id,
@@ -124,12 +122,10 @@ defmodule FCInventory.TransactionPrep do
   end
 
   def handle(%{destination_id: dst_id}, %EntryUpdated{} = event) do
-    stockable_id = Stock.stockable_id(event.stock_id)
-
     update_entry =
       merge_to(event, %UpdateEntry{
           requester_role: "system",
-          stock_id: Stock.id(stockable_id, dst_id)
+          stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id}
         },
         except: [:requester_role, :stock_id]
       )
@@ -142,12 +138,10 @@ defmodule FCInventory.TransactionPrep do
   end
 
   def handle(%{destination_id: dst_id}, %EntryDeleted{} = event) do
-    stockable_id = Stock.stockable_id(event.stock_id)
-
     %DeleteEntry{
       requester_role: "system",
       account_id: event.account_id,
-      stock_id: Stock.id(stockable_id, dst_id),
+      stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
       transaction_id: event.transaction_id,
       serial_number: event.serial_number,
       entry_id: event.entry_id
@@ -156,8 +150,8 @@ defmodule FCInventory.TransactionPrep do
 
   def handle(_, %StockReserved{} = event) do
     %CompleteTransactionPrep{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       transaction_id: event.transaction_id,
       quantity: event.quantity
     }
@@ -165,8 +159,8 @@ defmodule FCInventory.TransactionPrep do
 
   def handle(_, %StockPartiallyReserved{} = event) do
     %CompleteTransactionPrep{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       transaction_id: event.transaction_id,
       quantity: event.quantity_reserved
     }
@@ -174,8 +168,8 @@ defmodule FCInventory.TransactionPrep do
 
   def handle(_, %StockReservationFailed{} = event) do
     %CompleteTransactionPrep{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       transaction_id: event.transaction_id,
       quantity: D.new(0)
     }
@@ -183,8 +177,8 @@ defmodule FCInventory.TransactionPrep do
 
   def handle(_, %ReservedStockDecreased{} = event) do
     %CompleteTransactionPrep{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       transaction_id: event.transaction_id,
       quantity: D.minus(event.quantity)
     }

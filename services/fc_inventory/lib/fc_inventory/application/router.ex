@@ -31,12 +31,14 @@ defmodule FCInventory.Router do
   }
 
   alias FCInventory.{Storage, Location, Stock, Movement, Transaction}
-  alias FCInventory.{StorageHandler, LocationHandler, StockHandler, MovementHandler, TransactionHandler}
+  alias FCInventory.{StorageHandler, LocationHandler, StockHandler, MovementHandler}
+  alias FCInventory.TransactionHandler
 
   middleware(FCBase.CommandValidation)
   middleware(FCBase.RequesterIdentification)
   middleware(FCBase.ClientIdentification)
   middleware(FCBase.IdentifierGeneration)
+  middleware(FCInventory.Authentication)
 
   identify(Storage, by: :storage_id, prefix: "inventory-storage-")
   identify(Location, by: :location_id, prefix: "inventory-location-")

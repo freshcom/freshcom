@@ -2,14 +2,19 @@ defmodule FCBase.RouterCase do
   use ExUnit.CaseTemplate
   import UUID
   import Commanded.Assertions.EventAssertions
+  import Mox
 
   using do
     quote do
       import UUID
       import Commanded.Assertions.EventAssertions
+      import Mox
       import FCBase.{RouterCase, Fixture}
     end
   end
+
+  setup :set_mox_from_context
+  setup :verify_on_exit!
 
   setup do
     {:ok, _} = Application.ensure_all_started(:commanded)
@@ -51,7 +56,7 @@ defmodule FCBase.RouterCase do
     groups = Enum.group_by(events, &Map.get(&1, id_key))
 
     Enum.each(groups, fn {id, events} ->
-      append_to_stream("#{stream_prefix}" <> id, events)
+      append_to_stream("#{stream_prefix}" <> "#{id}", events)
     end)
   end
 

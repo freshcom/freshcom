@@ -4,18 +4,11 @@ defmodule FCInventory.TransactionPolicy do
   use FCBase, :policy
 
   alias FCInventory.{
-    DraftTransaction,
     PrepareTransaction,
     UpdateTransaction,
     CommitTransaction,
     DeleteTransaction
   }
-
-  def authorize(%DraftTransaction{requester_role: role} = cmd, _) when role in @goods_management_roles,
-    do: {:ok, cmd}
-
-  def authorize(%PrepareTransaction{requester_role: role} = cmd, _) when role in @goods_management_roles,
-    do: {:ok, cmd}
 
   def authorize(%UpdateTransaction{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}

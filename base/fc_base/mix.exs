@@ -27,7 +27,8 @@ defmodule FCBase.MixProject do
       {:commanded_eventstore_adapter, "~> 0.5.0"},
       {:phoenix_pubsub, "~> 1.1"},
       {:jason, "~> 1.1"},
-      {:ok, "~> 2.0"}
+      {:ok, "~> 2.0"},
+      {:mox, "~> 0.5"}
     ]
   end
 end

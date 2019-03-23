@@ -4,6 +4,8 @@ defmodule FCInventory.Transaction do
   use TypedStruct
   use FCBase, :aggregate
 
+  import UUID
+
   alias Decimal, as: D
   alias FCInventory.{
     TransactionDrafted,
@@ -19,39 +21,56 @@ defmodule FCInventory.Transaction do
 
   typedstruct do
     field :id, String.t()
+
     field :account_id, String.t()
     field :movement_id, String.t()
-
     field :cause_id, String.t()
     field :cause_type, String.t()
-    field :stockable_id, String.t()
+
+    field :sku_id, String.t()
+    field :serial_number, String.t()
     field :source_id, String.t()
     field :destination_id, String.t()
-    field :serial_number, String.t()
 
     # draft, zero_stock, action_required, ready
     field :status, String.t(), default: "draft"
     field :quantity, Decimal.t()
     field :quantity_prepared, Decimal.t(), default: Decimal.new(0)
+    field :expected_completion_date, DateTime.t()
 
-    field :name, String.t()
     field :number, String.t()
-    field :label, String.t()
-    field :expected_commit_date, DateTime.t()
-
-    field :caption, String.t()
+    field :name, String.t()
     field :description, String.t()
-    field :custom_data, map(), default: %{}
-    field :translations, map(), default: %{}
+    field :label, String.t()
   end
 
-  def translatable_fields do
-    [
-      :name,
-      :caption,
-      :description,
-      :custom_data
-    ]
+  def draft(fields, staff) do
+    merge_to(fields, %TransactionDrafted{transaction_id: uuid4(), staff_id: staff.id})
+  end
+
+  def request_preparation(txn, staff) do
+    merge_to(txn, %TransactionPrepRequested{transaction_id: txn.id, staff_id: staff.id})
+  end
+
+  def complete_preparation(txn, completed_quantity, staff) do
+    prepared = D.add(txn.quantity_prepared, completed_quantity)
+
+    event = cond do
+      D.cmp(prepared, D.new(0)) == :eq ->
+        %TransactionPrepFailed{status: "zero_stock"}
+
+      D.cmp(prepared, txn.quantity) == :eq ->
+        %TransactionPrepared{status: "ready"}
+
+      true ->
+        %TransactionPrepared{status: "action_required"}
+    end
+
+    event
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:transaction_id, txn.id)
+    |> Map.put(:quantity, completed_quantity)
+    |> merge(txn, except: [:status, :quantity])
   end
 
   def apply(state, %TransactionDrafted{} = event) do

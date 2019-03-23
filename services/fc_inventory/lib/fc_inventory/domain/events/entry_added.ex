@@ -1,6 +1,8 @@
 defmodule FCInventory.EntryAdded do
   use FCBase, :event
 
+  alias FCInventory.StockId
+
   @version 1
 
   typedstruct do
@@ -14,7 +16,7 @@ defmodule FCInventory.EntryAdded do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stock_id, String.t()
+    field :stock_id, StockId.t()
     field :transaction_id, String.t()
     field :serial_number, String.t()
     field :entry_id, String.t()
@@ -31,10 +33,15 @@ defmodule FCInventory.EntryAdded do
     field :custom_data, map(), default: %{}
     field :translations, map(), default: %{}
   end
-end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.EntryAdded do
-  def decode(event) do
-    %{event | quantity: Decimal.new(event.quantity)}
+  defimpl Commanded.Serialization.JsonDecoder do
+    def decode(event) do
+      %{
+        event
+        | stock_id: StockId.from(event.stock_id),
+          quantity: Decimal.new(event.quantity)
+      }
+    end
   end
 end
+

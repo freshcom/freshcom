@@ -1,6 +1,8 @@
 defmodule FCInventory.ReservedStockDecreased do
   use FCBase, :event
 
+  alias FCInventory.StockId
+
   @version 1
 
   typedstruct do
@@ -14,17 +16,21 @@ defmodule FCInventory.ReservedStockDecreased do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stock_id, String.t()
+    field :stock_id, StockId.t()
     field :transaction_id, String.t()
 
     field :quantity, Decimal.t()
   end
-end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.ReservedStockDecreased do
-  alias Decimal, as: D
+  defimpl Commanded.Serialization.JsonDecoder do
+    alias Decimal, as: D
 
-  def decode(event) do
-    %{event | quantity: D.new(event.quantity)}
+    def decode(event) do
+      %{
+        event
+        | stock_id: StockId.from(event.stock_id),
+          quantity: Decimal.new(event.quantity)
+      }
+    end
   end
 end

@@ -18,7 +18,7 @@ defmodule FCInventory.Router.UpdateTransactionTest do
         transaction_id: txn_id,
         source_id: uuid4(),
         destination_id: uuid4(),
-        stockable_id: uuid4(),
+        sku_id: uuid4(),
         quantity: Decimal.new(7)
       }
     ])

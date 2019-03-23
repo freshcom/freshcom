@@ -8,11 +8,11 @@ defmodule FCBase.ClientIdentification do
     %{pipeline | command: identify(pipeline.command)}
   end
 
-  def identify(%{client_id: nil} = cmd) do
+  def identify(%{client_id: nil, client_type: _} = cmd) do
     %{cmd | client_type: "unkown"}
   end
 
-  def identify(%{client_id: client_id, account_id: account_id} = cmd) do
+  def identify(%{client_id: client_id, account_id: account_id, client_type: _} = cmd) do
     client = AppStore.get(client_id)
 
     cond do

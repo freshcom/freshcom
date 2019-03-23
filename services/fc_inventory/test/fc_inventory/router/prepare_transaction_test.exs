@@ -3,6 +3,8 @@ defmodule FCInventory.Router.PrepareTransactionTest do
 
   import FCInventory.Fixture
 
+  alias FCInventory.{AccountServiceMock, StaffServiceMock}
+  alias FCInventory.{Account, Worker}
   alias Decimal, as: D
   alias FCInventory.Router
   alias FCInventory.PrepareTransaction
@@ -22,32 +24,64 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     :ok
   end
 
-  test "given invalid command" do
+  test "dispatch invalid command" do
     assert {:error, {:validation_failed, errors}} = Router.dispatch(%PrepareTransaction{})
     assert length(errors) > 0
   end
 
-  describe "dispatch command with" do
+  test "dispatch command with unauthenticated account" do
+    expect(AccountServiceMock, :find, fn(_) ->
+      {:error, {:not_found, :account}}
+    end)
+
+    cmd = %PrepareTransaction{
+      account_id: uuid4(),
+      staff_id: uuid4(),
+      transaction_id: uuid4()
+    }
+
+    assert {:error, {:unauthenticated, :account}} = Router.dispatch(cmd)
+  end
+
+  describe "dispatch command by" do
     setup do
       txn = draft_transaction("partner", "internal")
 
       cmd = %PrepareTransaction{
         account_id: txn.account_id,
+        staff_id: uuid4(),
         transaction_id: txn.id
       }
 
       %{cmd: cmd}
     end
 
-    test "with unauthorized role", %{cmd: cmd} do
-      assert {:error, :access_denied} = Router.dispatch(cmd)
+    test "unauthorized staff", %{cmd: cmd} do
+      expect(AccountServiceMock, :find, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
+      expect(StaffServiceMock, :find, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:error, {:not_found, :staff}}
+      end)
+
+      assert {:error, {:unauthenticated, :staff}} = Router.dispatch(cmd)
     end
 
-    test "with authorized role", %{cmd: cmd} do
-      requester_id = user_id(cmd.account_id, "goods_specialist")
-      client_id = app_id("standard", cmd.account_id)
+    test "authorized staff", %{cmd: cmd} do
+      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
 
-      cmd = %{cmd | client_id: client_id, requester_id: requester_id}
+      expect(StaffServiceMock, :find, 1, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:ok, %Worker{account_id: account.id, id: staff_id}}
+      end)
 
       assert :ok = Router.dispatch(cmd)
 
@@ -55,24 +89,28 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         event.transaction_id == cmd.transaction_id
       end)
     end
-
-    test "with system role", %{cmd: cmd} do
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
-
-      assert_event(TransactionPrepared, fn event ->
-        event.transaction_id == cmd.transaction_id
-      end)
-    end
   end
 
-  describe "dispatch command where transaction was never prepared before and" do
+  describe "dispatch command for transaction that was never prepared before and" do
     setup do
       txn = draft_transaction("internal", "internal")
 
       cmd = %PrepareTransaction{
         account_id: txn.account_id,
+        staff_id: uuid4(),
         transaction_id: txn.id
       }
+
+      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
+      expect(StaffServiceMock, :find, 1, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:ok, %Worker{account_id: account.id, id: staff_id}}
+      end)
 
       %{cmd: cmd, txn: txn}
     end
@@ -95,7 +133,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         }
       ])
 
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+      assert :ok = Router.dispatch(cmd)
 
       assert_event(TransactionPrepFailed, fn event ->
         event.transaction_id == cmd.transaction_id &&
@@ -121,7 +159,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         }
       ])
 
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+      assert :ok = Router.dispatch(cmd)
 
       assert_event(TransactionPrepared, fn event ->
         D.cmp(event.quantity, D.new(3)) == :eq &&
@@ -147,7 +185,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         }
       ])
 
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+      assert :ok = Router.dispatch(cmd)
 
       assert_event(TransactionPrepared, fn event ->
         D.cmp(event.quantity, D.new(5)) == :eq &&
@@ -156,7 +194,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     end
   end
 
-  describe "dispatch command where transaction decreased in quantity and" do
+  describe "dispatch command for transaction that decreased in quantity and" do
     setup do
       txn = draft_transaction("internal", "internal", events: [
         %TransactionPrepared{
@@ -171,8 +209,20 @@ defmodule FCInventory.Router.PrepareTransactionTest do
 
       cmd = %PrepareTransaction{
         account_id: txn.account_id,
+        staff_id: uuid4(),
         transaction_id: txn.id
       }
+
+      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
+      expect(StaffServiceMock, :find, 1, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:ok, %Worker{account_id: account.id, id: staff_id}}
+      end)
 
       %{cmd: cmd, txn: txn}
     end
@@ -220,7 +270,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         }
       ])
 
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+      assert :ok = Router.dispatch(cmd)
 
       assert_event(TransactionPrepRequested, fn event ->
         event.transaction_id == txn.id &&
@@ -272,12 +322,25 @@ defmodule FCInventory.Router.PrepareTransactionTest do
 
       cmd = %PrepareTransaction{
         account_id: txn.account_id,
+        staff_id: uuid4(),
         transaction_id: txn.id
       }
+
+      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
+      expect(StaffServiceMock, :find, 1, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:ok, %Worker{account_id: account.id, id: staff_id}}
+      end)
 
       %{cmd: cmd, txn: txn}
     end
 
+    @tag :focus
     test "not enough stock exist", %{cmd: cmd, txn: txn} do
       serial_number = serial_number(cmd.account_id, Timex.shift(Timex.now, days: 1))
       add_entry(cmd.account_id, stock_id(:src, txn), [
@@ -302,7 +365,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         }
       ])
 
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
+      assert :ok = Router.dispatch(cmd)
 
       assert_event(TransactionPrepared, fn event ->
         D.cmp(event.quantity, D.new(1)) == :eq &&

@@ -7,7 +7,6 @@ defmodule FCInventory.TransactionHandler do
 
   import FCInventory.TransactionPolicy
 
-  alias Decimal, as: D
   alias FCInventory.{
     DraftTransaction,
     PrepareTransaction,
@@ -19,53 +18,44 @@ defmodule FCInventory.TransactionHandler do
     CompleteTransactionCommit
   }
   alias FCInventory.{
-    TransactionDrafted,
-    TransactionPrepRequested,
-    TransactionPrepared,
-    TransactionPrepFailed,
     TransactionCommitRequested,
     TransactionCommitted,
     TransactionUpdated,
     TransactionMarked,
     TransactionDeleted
   }
-  alias FCInventory.{Transaction}
+  alias FCInventory.Transaction
+  alias FCInventory.Worker
 
-  def handle(%Transaction{id: nil} = state, %DraftTransaction{} = cmd) do
+  def authorize(cmd, _, type) do
+    case type.from(cmd._staff_) do
+      nil -> {:error, {:unauthorized, :staff}}
+      staff -> {:ok, %{cmd | _staff_: staff}}
+    end
+  end
+
+  def handle(%Transaction{id: nil} = txn, %DraftTransaction{} = cmd) do
     cmd
-    |> authorize(state)
-    ~> merge_to(%TransactionDrafted{})
+    |> authorize(txn, Worker)
+    |> OK.flat_map(&Transaction.draft(&1, &1._staff_))
     |> unwrap_ok()
   end
 
-  def handle(%Transaction{id: _}, %DraftTransaction{}) do
-    {:error, {:already_exist, :transaction}}
-  end
+  def handle(_, %DraftTransaction{}), do: {:error, {:already_exist, :transaction}}
+  def handle(%Transaction{id: nil}, _), do: {:error, {:not_found, :transaction}}
+  def handle(%Transaction{status: "deleted"}, _), do: {:error, {:already_deleted, :transaction}}
 
-  def handle(%{id: nil}, _), do: {:error, {:not_found, :transaction}}
-  def handle(%{status: "deleted"}, _), do: {:error, {:already_deleted, :transaction}}
-
-  def handle(state, %PrepareTransaction{} = cmd) do
-    event = %TransactionPrepRequested{
-      stockable_id: state.stockable_id,
-      source_id: state.source_id,
-      destination_id: state.destination_id,
-      serial_number: state.serial_number,
-      quantity: state.quantity,
-      quantity_prepared: state.quantity_prepared,
-      expected_commit_date: state.expected_commit_date
-    }
-
+  def handle(txn, %PrepareTransaction{} = cmd) do
     cmd
-    |> authorize(state)
-    ~> merge_to(event)
+    |> authorize(txn, Worker)
+    |> OK.flat_map(&Transaction.request_preparation(txn, &1._staff_))
     |> unwrap_ok()
   end
 
-  def handle(state, %CompleteTransactionPrep{} = cmd) do
+  def handle(txn, %CompleteTransactionPrep{} = cmd) do
     cmd
-    |> authorize(state)
-    ~> complete_prep(state)
+    |> authorize(txn, Worker)
+    |> OK.flat_map(&Transaction.complete_preparation(txn, &1.quantity, &1._staff_))
     |> unwrap_ok()
   end
 
@@ -169,23 +159,4 @@ defmodule FCInventory.TransactionHandler do
       event
     end
   end
-
-  def complete_prep(%{quantity: quantity} = cmd, txn) do
-    prepared = D.add(txn.quantity_prepared, quantity)
-
-    event = cond do
-      D.cmp(prepared, D.new(0)) == :eq ->
-        %TransactionPrepFailed{status: "zero_stock"}
-
-      D.cmp(prepared, txn.quantity) == :eq ->
-        %TransactionPrepared{status: "ready"}
-
-      true ->
-        %TransactionPrepared{status: "action_required"}
-    end
-
-    event
-    |> merge(txn, except: [:status])
-    |> merge(cmd)
-  end
- end
+end

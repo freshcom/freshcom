@@ -3,7 +3,7 @@ defmodule FCInventory.Fixture do
   import FCBase.RouterCase
 
   alias Decimal, as: D
-  alias FCInventory.Stock
+  alias FCInventory.{Stock, StockId}
   alias FCInventory.{SerialNumberStore, LocationStore}
   alias FCInventory.TransactionDrafted
 
@@ -22,13 +22,13 @@ defmodule FCInventory.Fixture do
 
   def draft_transaction(source_type, destination_type, opts \\ []) do
     account_id = uuid4()
-    stockable_id = uuid4()
+    sku_id = uuid4()
     source_id = location_id(account_id, %{type: source_type})
     destination_id = location_id(account_id, %{type: destination_type})
     txn_id = uuid4()
 
     drafted = %TransactionDrafted{
-      stockable_id: stockable_id,
+      sku_id: sku_id,
       source_id: source_id,
       destination_id: destination_id,
       quantity: opts[:quantity] || D.new(5)
@@ -47,7 +47,7 @@ defmodule FCInventory.Fixture do
     %{
       id: txn_id,
       account_id: account_id,
-      stockable_id: stockable_id,
+      sku_id: sku_id,
       source_id: source_id,
       destination_id: destination_id
     }
@@ -65,11 +65,11 @@ defmodule FCInventory.Fixture do
     to_streams(:stock_id, "inventory-stock-", events)
   end
 
-  def stock_id(:src, %{stockable_id: stockable_id, source_id: source_id}) do
-    Stock.id(stockable_id, source_id)
+  def stock_id(:src, %{sku_id: sku_id, source_id: source_id}) do
+    %StockId{sku_id: sku_id, location_id: source_id}
   end
 
-  def stock_id(:dst, %{stockable_id: stockable_id, destination_id: destination_id}) do
-    Stock.id(stockable_id, destination_id)
+  def stock_id(:dst, %{sku_id: sku_id, destination_id: destination_id}) do
+    %StockId{sku_id: sku_id, location_id: destination_id}
   end
 end

@@ -35,7 +35,7 @@ defmodule FCInventory.StockHandler do
   alias FCInventory.{Batch, Entry}
 
   def handle(state, %ReserveStock{} = cmd) do
-    location = LocationStore.get(cmd.account_id, location_id(cmd.stock_id))
+    location = LocationStore.get(cmd.account_id, cmd.stock_id.location_id)
 
     cmd
     |> authorize(state)
@@ -44,7 +44,7 @@ defmodule FCInventory.StockHandler do
   end
 
   def handle(state, %DecreaseReservedStock{} = cmd) do
-    location = LocationStore.get(cmd.account_id, location_id(cmd.stock_id))
+    location = LocationStore.get(cmd.account_id, cmd.stock_id.location_id)
 
     cmd
     |> authorize(state)
