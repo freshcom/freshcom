@@ -29,7 +29,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     assert length(errors) > 0
   end
 
-  test "dispatch command with unauthenticated account" do
+  test "dispatch command by unauthenticated account" do
     expect(AccountServiceMock, :find, fn(_) ->
       {:error, {:not_found, :account}}
     end)

@@ -19,6 +19,21 @@ defmodule FCBase do
   def aggregate do
     quote do
       import FCSupport.{Changeset, Struct}
+
+      def put_original_fields(%{effective_keys: ekeys} = event, state) do
+        fields = Map.from_struct(state)
+
+        original_fields =
+          Enum.reduce(fields, %{}, fn {k, v}, acc ->
+            if Enum.member?(ekeys, k) do
+              Map.put(acc, k, v)
+            else
+              acc
+            end
+          end)
+
+        Map.put(event, :original_fields, original_fields)
+      end
     end
   end
 

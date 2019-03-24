@@ -10,9 +10,6 @@ defmodule FCInventory.TransactionPolicy do
     DeleteTransaction
   }
 
-  def authorize(%UpdateTransaction{requester_role: role} = cmd, _) when role in @goods_management_roles,
-    do: {:ok, cmd}
-
   def authorize(%CommitTransaction{requester_role: role} = cmd, _) when role in @goods_management_roles,
     do: {:ok, cmd}
 

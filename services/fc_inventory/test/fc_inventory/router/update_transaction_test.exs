@@ -2,6 +2,8 @@ defmodule FCInventory.Router.UpdateTransactionTest do
   use FCBase.RouterCase
 
   alias Decimal, as: D
+  alias FCInventory.{AccountServiceMock, StaffServiceMock}
+  alias FCInventory.{Account, Worker}
   alias FCInventory.Router
   alias FCInventory.UpdateTransaction
   alias FCInventory.{
@@ -26,38 +28,61 @@ defmodule FCInventory.Router.UpdateTransactionTest do
     cmd = %UpdateTransaction{
       account_id: account_id,
       transaction_id: txn_id,
-      effective_keys: [:name, :quantity],
-      name: "Annual Check 123",
+      effective_keys: [:summary, :quantity],
+      summary: "Annual Check 123",
       quantity: D.new(5)
     }
 
     %{cmd: cmd}
   end
 
-  test "given invalid command" do
+  test "dispatch invalid command" do
     assert {:error, {:validation_failed, errors}} = Router.dispatch(%UpdateTransaction{})
     assert length(errors) > 0
   end
 
-  describe "given valid command with" do
-    test "authorized role", %{cmd: cmd} do
-      client_id = app_id("standard", cmd.account_id)
-      requester_id = user_id(cmd.account_id, "goods_specialist")
+  test "dispatch command by unauthenticated account", %{cmd: cmd} do
+    expect(AccountServiceMock, :find, fn(_) ->
+      {:error, {:not_found, :account}}
+    end)
 
-      cmd = %{cmd | client_id: client_id, requester_id: requester_id}
+    assert {:error, {:unauthenticated, :account}} = Router.dispatch(cmd)
+  end
+
+  describe "dispatch command by" do
+    setup do
+      expect(AccountServiceMock, :find, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
+      :ok
+    end
+
+    test "unauthenticated staff", %{cmd: cmd} do
+      expect(StaffServiceMock, :find, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:error, {:not_found, :staff}}
+      end)
+
+      assert {:error, {:unauthenticated, :staff}} = Router.dispatch(cmd)
+    end
+
+    test "authorized staff", %{cmd: cmd} do
+      expect(StaffServiceMock, :find, fn(account, staff_id) ->
+        assert account.id == cmd.account_id
+        assert staff_id == cmd.staff_id
+
+        {:ok, %Worker{account_id: account.id, id: staff_id}}
+      end)
 
       assert :ok = Router.dispatch(cmd)
 
       assert_receive_event(TransactionUpdated, fn event ->
-        assert event.name == cmd.name
-      end)
-    end
-
-    test "system role", %{cmd: cmd} do
-      assert :ok = Router.dispatch(%{cmd | requester_role: "system"})
-
-      assert_receive_event(TransactionUpdated, fn event ->
-        assert event.name == cmd.name
+        assert event.summary == cmd.summary
+        assert event.quantity == cmd.quantity
+        assert D.cmp(event.original_fields.quantity, D.new(7)) == :eq
       end)
     end
   end

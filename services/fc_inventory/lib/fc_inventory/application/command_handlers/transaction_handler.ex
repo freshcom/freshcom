@@ -20,12 +20,11 @@ defmodule FCInventory.TransactionHandler do
   alias FCInventory.{
     TransactionCommitRequested,
     TransactionCommitted,
-    TransactionUpdated,
     TransactionMarked,
     TransactionDeleted
   }
   alias FCInventory.Transaction
-  alias FCInventory.Worker
+  alias FCInventory.{Worker, System}
 
   def authorize(cmd, _, type) do
     case type.from(cmd._staff_) do
@@ -38,6 +37,7 @@ defmodule FCInventory.TransactionHandler do
     cmd
     |> authorize(txn, Worker)
     |> OK.flat_map(&Transaction.draft(&1, &1._staff_))
+    |> Map.put(:client_id, cmd.client_id)
     |> unwrap_ok()
   end
 
@@ -49,6 +49,7 @@ defmodule FCInventory.TransactionHandler do
     cmd
     |> authorize(txn, Worker)
     |> OK.flat_map(&Transaction.request_preparation(txn, &1._staff_))
+    |> Map.put(:client_id, cmd.client_id)
     |> unwrap_ok()
   end
 
@@ -56,29 +57,31 @@ defmodule FCInventory.TransactionHandler do
     cmd
     |> authorize(txn, Worker)
     |> OK.flat_map(&Transaction.complete_preparation(txn, &1.quantity, &1._staff_))
+    |> Map.put(:client_id, cmd.client_id)
     |> unwrap_ok()
   end
 
-  def handle(state, %UpdateTransaction{} = cmd) do
-    default_locale = FCStateStorage.GlobalStore.DefaultLocaleStore.get(state.account_id)
-    translatable_fields = FCInventory.Transaction.translatable_fields()
-
+  def handle(txn, %UpdateTransaction{} = cmd) do
     cmd
-    |> authorize(state)
-    ~>> validate_update(state)
-    ~> update(state)
-    ~> put_translations(state, translatable_fields, default_locale)
-    ~> put_original_fields(state)
+    |> authorize(txn, Worker)
+    |> OK.flat_map(&Transaction.update(txn, Map.take(&1, &1.effective_keys), &1._staff_))
+    |> Map.put(:client_id, cmd.client_id)
     |> unwrap_ok()
   end
 
-  def handle(state, %MarkTransaction{} = cmd) do
-    event = merge(%TransactionMarked{original_status: state.status}, state)
-
+  def handle(txn, %MarkTransaction{} = cmd) do
     cmd
-    |> authorize(state)
-    ~> merge_to(event)
+    |> authorize(txn, System)
+    |> OK.flat_map(&Trasaction.mark(txn, &1.status, &1._staff_))
+    |> Map.put(:client_id, cmd.client_id)
     |> unwrap_ok()
+
+    # event = merge(%TransactionMarked{original_status: state.status}, state)
+
+    # cmd
+    # |> authorize(state)
+    # ~> merge_to(event)
+    # |> unwrap_ok()
   end
 
   def handle(%{status: "ready"} = state, %CommitTransaction{} = cmd) do
@@ -118,45 +121,5 @@ defmodule FCInventory.TransactionHandler do
     |> authorize(state)
     ~> merge_to(event)
     |> unwrap_ok()
-  end
-
-  defp validate_update(cmd, %{status: "draft"}), do: {:ok, cmd}
-  defp validate_update(cmd, %{status: "zero_stock"}), do: {:ok, cmd}
-
-  defp validate_update(cmd, _) do
-    if Enum.member?(cmd.effective_keys, :serial_number) do
-      {:error, {:validation_failed, [{:error, :serial_number, :cannot_be_updated}]}}
-    else
-      {:ok, cmd}
-    end
-  end
-
-  defp update(cmd, %{status: "draft"} = txn) do
-    %TransactionUpdated{}
-    |> merge(txn)
-    |> merge(cmd)
-  end
-
-  defp update(%{effective_keys: ekeys} = cmd, %{status: "ready"} = txn) do
-    event =
-      %TransactionUpdated{}
-      |> merge(txn)
-      |> merge(cmd)
-
-    if Enum.member?(ekeys, :quantity) do
-      [
-        event,
-        %TransactionMarked{
-          requester_role: "system",
-          account_id: cmd.account_id,
-          transaction_id: cmd.transaction_id,
-          movement_id: txn.movement_id,
-          original_status: "ready",
-          status: "action_required"
-        }
-      ]
-    else
-      event
-    end
   end
 end

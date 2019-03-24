@@ -38,8 +38,7 @@ defmodule FCInventory.Transaction do
     field :quantity_prepared, Decimal.t(), default: Decimal.new(0)
     field :expected_completion_date, DateTime.t()
 
-    field :number, String.t()
-    field :name, String.t()
+    field :summary, String.t()
     field :description, String.t()
     field :label, String.t()
   end
@@ -73,6 +72,50 @@ defmodule FCInventory.Transaction do
     |> merge(txn, except: [:status, :quantity])
   end
 
+  def update(%{status: "completed"}, _, _), do: {:error, {:validation_failed, [{:error, :status, :cannot_be_completed}]}}
+
+  def update(%{status: "draft"} = txn, fields, staff) do
+    do_update(txn, fields, staff)
+  end
+
+  def update(%{status: "ready"} = txn, %{quantity: _} = fields, staff) do
+    [
+      do_update(txn, fields, staff),
+      %TransactionMarked{ # TODO: how should we handle client_id?
+        account_id: txn.account_id,
+        staff_id: "system",
+        transaction_id: txn.id,
+        movement_id: txn.movement_id,
+        original_status: "ready",
+        status: "action_required"
+      }
+    ]
+  end
+
+  def update(txn, fields, staff) do
+    do_update(txn, fields, staff)
+  end
+
+  defp do_update(txn, fields, staff) do
+    ekeys = Map.keys(fields)
+
+    fields
+    |> merge_to(%TransactionUpdated{effective_keys: ekeys})
+    |> put_original_fields(txn)
+    |> Map.put(:account_id, txn.account_id)
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:movement_id, txn.movement_id)
+    |> Map.put(:transaction_id, txn.id)
+  end
+
+  def mark(txn, status, staff) do
+    txn
+    |> merge_to(%TransactionMarked{})
+    |> Map.put(:status, status)
+    |> Map.put(:original_status, txn.status)
+  end
+
+  #####
   def apply(state, %TransactionDrafted{} = event) do
     %{state | id: event.transaction_id}
     |> merge(event)
