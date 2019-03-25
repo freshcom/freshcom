@@ -24,6 +24,10 @@ defmodule FCInventory.Stock do
     field :batches, map(), default: %{}
   end
 
+  # def reserve(stock, %{type: type}, txn) when type in [""] do
+
+  # end
+
   def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state
 
   def apply(%{batches: batches} = state, %EntryAdded{} = event) do

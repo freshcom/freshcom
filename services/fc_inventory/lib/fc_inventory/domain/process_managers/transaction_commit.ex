@@ -26,19 +26,20 @@ defmodule FCInventory.TransactionCommit do
     field :destination_id, String.t()
   end
 
-  def interested?(%TransactionCommitRequested{} = event), do: {:start, event.transaction_id}
+  def interested?(%TransactionCommitRequested{} = event), do: {:start!, event.transaction_id}
 
   def interested?(%EntryCommitted{transaction_id: tid, quantity: quantity}) do
     case D.cmp(quantity, D.new(0)) do
       :lt ->
-        {:continue, tid}
+        {:continue!, tid}
 
       _ ->
         false
     end
   end
 
-  def interested?(%StockCommitted{} = event), do: {:continue, event.transaction_id}
+  def interested?(%StockCommitted{} = event), do: {:continue!, event.transaction_id}
+
   def interested?(%TransactionCommitted{} = event), do: {:stop, event.transaction_id}
   def interested?(_), do: false
 

@@ -67,6 +67,7 @@ defmodule FCInventory.Router.DeleteTransactionTest do
       end)
     end
 
+    @tag :focus
     test "a prepared transaction" do
       txn = draft_transaction("internal", "internal", events: [
         %TransactionPrepared{
@@ -123,7 +124,7 @@ defmodule FCInventory.Router.DeleteTransactionTest do
         transaction_id: txn.id
       }
 
-      expect(AccountServiceMock, :find, 3, fn(account_id) ->
+      expect(AccountServiceMock, :find, fn(account_id) ->
         {:ok, %Account{id: account_id}}
       end)
 

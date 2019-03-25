@@ -21,7 +21,6 @@ defmodule FCInventory.TransactionPrep do
 
   alias FCInventory.{
     TransactionPrepRequested,
-    TransactionDeleted,
     EntryAdded,
     EntryUpdated,
     EntryDeleted,
@@ -45,28 +44,25 @@ defmodule FCInventory.TransactionPrep do
         false
 
       _ ->
-        {:start, event.transaction_id}
+        {:start!, event.transaction_id}
     end
   end
-
-  def interested?(%TransactionDeleted{status: "draft"}), do: false
-  def interested?(%TransactionDeleted{} = event), do: {:start, event.transaction_id}
 
   def interested?(%et{transaction_id: tid, quantity: quantity} = event)
       when not is_nil(tid) and not is_nil(quantity) and et in [EntryAdded, EntryUpdated, EntryDeleted] do
     case D.cmp(event.quantity, D.new(0)) do
       :lt ->
-        {:continue, event.transaction_id}
+        {:continue!, event.transaction_id}
 
       _ ->
         false
     end
   end
 
-  def interested?(%StockReserved{} = event), do: {:continue, event.transaction_id}
-  def interested?(%StockPartiallyReserved{} = event), do: {:continue, event.transaction_id}
-  def interested?(%StockReservationFailed{} = event), do: {:continue, event.transaction_id}
-  def interested?(%ReservedStockDecreased{} = event), do: {:continue, event.transaction_id}
+  def interested?(%StockReserved{} = event), do: {:continue!, event.transaction_id}
+  def interested?(%StockPartiallyReserved{} = event), do: {:continue!, event.transaction_id}
+  def interested?(%StockReservationFailed{} = event), do: {:continue!, event.transaction_id}
+  def interested?(%ReservedStockDecreased{} = event), do: {:continue!, event.transaction_id}
 
   def interested?(%TransactionPrepared{} = event), do: {:stop, event.transaction_id}
   def interested?(%TransactionMarked{} = event), do: {:stop, event.transaction_id}
@@ -96,16 +92,6 @@ defmodule FCInventory.TransactionPrep do
           quantity: D.sub(event.quantity_prepared, event.quantity)
         }
     end
-  end
-
-  def handle(_, %TransactionDeleted{} = event) do
-    %DecreaseReservedStock{
-      requester_role: "system",
-      account_id: event.account_id,
-      stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
-      transaction_id: event.transaction_id,
-      quantity: event.quantity_prepared
-    }
   end
 
   def handle(%{destination_id: dst_id}, %EntryAdded{} = event) do
@@ -188,7 +174,7 @@ defmodule FCInventory.TransactionPrep do
     %{state | destination_id: event.destination_id}
   end
 
-  def apply(state, %TransactionDeleted{} = event) do
-    %{state | destination_id: event.destination_id}
+  def error({:error, {:continue!, :process_not_started}}, _, _) do
+    :skip
   end
 end

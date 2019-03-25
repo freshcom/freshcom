@@ -15,6 +15,7 @@ defmodule FCInventory.Supervisor do
       {FCInventory.DefaultLocationSetup, [start_from: :current]},
       {FCInventory.RootLocationSetup, [start_from: :current]},
       {FCInventory.TransactionPrep, [start_from: :current]},
+      {FCInventory.TransactionDelete, [start_from: :current]},
       {FCInventory.TransactionCommit, [start_from: :current]}
     ]
 
