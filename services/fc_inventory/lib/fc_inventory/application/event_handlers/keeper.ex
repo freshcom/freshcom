@@ -26,7 +26,7 @@ defmodule FCInventory.Keeper do
   end
 
   def handle(event, _) do
-    IO.inspect(event)
+    # IO.inspect(event)
 
     :ok
   end
