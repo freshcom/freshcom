@@ -72,7 +72,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     end
 
     test "authorized staff", %{cmd: cmd} do
-      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+      expect(AccountServiceMock, :find, 3, fn(account_id) ->
         {:ok, %Account{id: account_id}}
       end)
 
@@ -101,10 +101,6 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         transaction_id: txn.id
       }
 
-      expect(AccountServiceMock, :find, 2, fn(account_id) ->
-        {:ok, %Account{id: account_id}}
-      end)
-
       expect(StaffServiceMock, :find, 1, fn(account, staff_id) ->
         assert account.id == cmd.account_id
         assert staff_id == cmd.staff_id
@@ -116,6 +112,10 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     end
 
     test "source have zero stock", %{cmd: cmd, txn: txn} do
+      expect(AccountServiceMock, :find, 3, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
       serial_number = serial_number(cmd.account_id, %{remove_at: Timex.shift(Timex.now, days: -1)})
       add_entry(cmd.account_id, stock_id(:src, txn), [
         %EntryAdded{
@@ -142,6 +142,10 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     end
 
     test "source have insufficient stock", %{cmd: cmd, txn: txn} do
+      expect(AccountServiceMock, :find, 5, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
       serial_number = serial_number(cmd.account_id, Timex.shift(Timex.now, days: 1))
       add_entry(cmd.account_id, stock_id(:src, txn), [
         %EntryAdded{
@@ -168,6 +172,10 @@ defmodule FCInventory.Router.PrepareTransactionTest do
     end
 
     test "source have enough stock from multiple batches combined", %{cmd: cmd, txn: txn} do
+      expect(AccountServiceMock, :find, 5, fn(account_id) ->
+        {:ok, %Account{id: account_id}}
+      end)
+
       serial_number = serial_number(cmd.account_id, Timex.shift(Timex.now, days: 1))
       add_entry(cmd.account_id, stock_id(:src, txn), [
         %EntryAdded{
@@ -326,7 +334,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         transaction_id: txn.id
       }
 
-      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+      expect(AccountServiceMock, :find, 4, fn(account_id) ->
         {:ok, %Account{id: account_id}}
       end)
 

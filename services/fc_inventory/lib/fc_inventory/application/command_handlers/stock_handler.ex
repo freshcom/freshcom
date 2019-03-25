@@ -9,6 +9,8 @@ defmodule FCInventory.StockHandler do
   import FCInventory.StockPolicy
 
   alias Decimal, as: D
+  alias FCInventory.Stock
+  alias FCInventory.Worker
   alias FCInventory.LocationStore
   alias FCInventory.{
     ReserveStock,
@@ -34,12 +36,33 @@ defmodule FCInventory.StockHandler do
   }
   alias FCInventory.{Batch, Entry}
 
-  def handle(state, %ReserveStock{} = cmd) do
+  def authorize(cmd, _, type) do
+    case type.from(cmd._staff_) do
+      nil -> {:error, {:unauthorized, :staff}}
+      staff -> {:ok, %{cmd | _staff_: staff}}
+    end
+  end
+
+  def handle(stock, %ReserveStock{} = cmd) do
     location = LocationStore.get(cmd.account_id, cmd.stock_id.location_id)
+    txn =
+      cmd
+      |> Map.take([:serial_number, :quantity, :expected_commit_date])
+      |> Map.put(:id, cmd.transaction_id)
+    stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
 
     cmd
-    |> authorize(state)
-    ~> reserve(location, state)
+    |> authorize(stock, Worker)
+    |> OK.flat_map(&Stock.reserve(stock, location, txn, &1._staff_))
+    |> unwrap_ok()
+  end
+
+  def handle(stock, %AddEntry{} = cmd) do
+    stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
+
+    cmd
+    |> authorize(stock, Worker)
+    |> OK.flat_map(&Stock.add_entry(stock, &1, &1._staff_))
     |> unwrap_ok()
   end
 
@@ -69,16 +92,6 @@ defmodule FCInventory.StockHandler do
     |> unwrap_ok()
   end
 
-  def handle(state, %AddEntry{} = cmd) do
-    entry_id = cmd.entry_id || uuid4()
-    cmd = %{cmd | entry_id: entry_id}
-
-    cmd
-    |> authorize(state)
-    ~> merge_to(%EntryAdded{})
-    |> unwrap_ok()
-  end
-
   def handle(%{batches: batches} = state, %UpdateEntry{} = cmd) do
     entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
 
@@ -98,81 +111,6 @@ defmodule FCInventory.StockHandler do
     |> authorize(state)
     ~> merge_to(%EntryDeleted{quantity: entry.quantity})
     |> unwrap_ok()
-  end
-
-  defp reserve(cmd, %{type: type}, _) when type in ["partner", "adjustment"] do
-    [
-      %EntryAdded{
-        requester_role: "system",
-        account_id: cmd.account_id,
-        stock_id: cmd.stock_id,
-        transaction_id: cmd.transaction_id,
-        serial_number: cmd.serial_number,
-        entry_id: uuid4(),
-        status: "planned",
-        quantity: D.minus(cmd.quantity),
-        expected_commit_date: cmd.expected_commit_date
-      },
-      %StockReserved{
-        requester_role: "system",
-        account_id: cmd.account_id,
-        stock_id: cmd.stock_id,
-        transaction_id: cmd.transaction_id,
-        quantity: cmd.quantity
-      }
-    ]
-  end
-
-  defp reserve(cmd, location, %{batches: batches}) do
-    available_batches =
-      batches
-      |> Batch.with_serial_number(cmd.serial_number)
-      |> Batch.available()
-      |> Batch.sort(location.output_strategy)
-
-    entry_events = reserve_batches(cmd, available_batches, cmd.quantity, [])
-    quantity_reserved =
-      entry_events
-      |> Enum.reduce(D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
-      |> D.minus()
-
-    event =
-      cond do
-        D.cmp(quantity_reserved, D.new(0)) == :eq ->
-          merge(%StockReservationFailed{}, cmd)
-
-        D.cmp(quantity_reserved, cmd.quantity) == :lt ->
-          %StockPartiallyReserved{}
-          |> Map.put(:quantity_requested, cmd.quantity)
-          |> Map.put(:quantity_reserved, quantity_reserved)
-          |> merge(cmd)
-
-        D.cmp(quantity_reserved, cmd.quantity) == :eq ->
-          merge(%StockReserved{}, cmd)
-      end
-
-    unwrap_event(entry_events ++ [event])
-  end
-
-  defp reserve_batches(_, [], _, events) do
-    events
-  end
-
-  defp reserve_batches(cmd, [{sn, batch} | batches], quantity, events) do
-    quantity_available = Batch.quantity_available(batch)
-
-    cond do
-      D.cmp(quantity, D.new(0)) == :eq ->
-        events
-
-      D.cmp(quantity_available, quantity) == :lt ->
-        entry_added = add_entry(cmd, sn, quantity_available)
-        events = events ++ [entry_added]
-        reserve_batches(cmd, batches, D.sub(quantity, quantity_available), events)
-
-      true ->
-        events ++ [add_entry(cmd, sn, quantity)]
-    end
   end
 
   defp commit(cmd, %{batches: batches}) do
@@ -197,19 +135,6 @@ defmodule FCInventory.StockHandler do
       transaction_id: cmd.transaction_id,
       quantity: quantity
     }]
-  end
-
-  defp add_entry(cmd, sn, quantity) do
-    %EntryAdded{
-      requester_role: "system",
-      stock_id: cmd.stock_id,
-      transaction_id: cmd.transaction_id,
-      serial_number: sn,
-      entry_id: uuid4(),
-      status: "planned",
-      quantity: D.minus(quantity),
-      expected_commit_date: cmd.expected_commit_date
-    }
   end
 
   defp ensure_exist(cmd, data, error) do

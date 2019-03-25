@@ -13,7 +13,7 @@ defmodule FCInventory.UpdateTransaction do
     field :transaction_id, String.t()
 
     field :quantity, Decimal.t()
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
     field :summary, String.t()
     field :description, String.t()

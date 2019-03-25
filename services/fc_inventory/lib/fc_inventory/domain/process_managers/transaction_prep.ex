@@ -9,7 +9,7 @@ defmodule FCInventory.TransactionPrep do
   import FCSupport.Struct, only: [merge_to: 3]
 
   alias Decimal, as: D
-  alias FCInventory.{Stock, StockId}
+  alias FCInventory.StockId
   alias FCInventory.{
     ReserveStock,
     DecreaseReservedStock,
@@ -74,13 +74,13 @@ defmodule FCInventory.TransactionPrep do
     case D.cmp(event.quantity_prepared, event.quantity) do
       :lt ->
         %ReserveStock{
-          requester_role: "system",
+          staff_id: "system",
           account_id: event.account_id,
           transaction_id: event.transaction_id,
           stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
           serial_number: event.serial_number,
           quantity: D.sub(event.quantity, event.quantity_prepared),
-          expected_commit_date: event.expected_completion_date
+          expected_commit_date: event.expected_commit_date
         }
 
       :gt ->
@@ -96,8 +96,8 @@ defmodule FCInventory.TransactionPrep do
 
   def handle(%{destination_id: dst_id}, %EntryAdded{} = event) do
     %AddEntry{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
       transaction_id: event.transaction_id,
       serial_number: event.serial_number,

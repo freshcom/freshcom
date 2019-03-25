@@ -20,7 +20,7 @@ defmodule FCInventory.DraftTransaction do
     field :destination_id, String.t()
 
     field :quantity, Decimal.t(), default: Decimal.new(0)
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
     field :number, String.t()
     field :name, String.t()

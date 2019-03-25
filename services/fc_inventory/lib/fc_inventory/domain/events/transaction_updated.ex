@@ -17,7 +17,7 @@ defmodule FCInventory.TransactionUpdated do
     field :serial_number, String.t()
 
     field :quantity, String.t()
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
     field :summary, String.t()
     field :description, String.t()

@@ -20,17 +20,16 @@ defmodule FCInventory.TransactionDrafted do
     field :destination_id, String.t()
 
     field :quantity, Decimal.t()
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
-    field :number, String.t()
-    field :name, String.t()
+    field :summary, String.t()
     field :description, String.t()
     field :label, String.t()
   end
-end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.TransactionDrafted do
-  def decode(event) do
-    %{event | quantity: Decimal.new(event.quantity)}
+  defimpl Commanded.Serialization.JsonDecoder do
+    def decode(event) do
+      %{event | quantity: Decimal.new(event.quantity)}
+    end
   end
 end

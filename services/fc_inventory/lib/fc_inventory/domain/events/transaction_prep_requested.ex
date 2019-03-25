@@ -17,7 +17,7 @@ defmodule FCInventory.TransactionPrepRequested do
 
     field :quantity, Decimal.t()
     field :quantity_prepared, Decimal.t()
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
   end
 end
 

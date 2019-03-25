@@ -17,7 +17,7 @@ defmodule FCInventory.CreateMovement do
     field :source_id, String.t()
     field :destination_id, String.t()
 
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
     field :name, String.t()
     field :number, String.t()

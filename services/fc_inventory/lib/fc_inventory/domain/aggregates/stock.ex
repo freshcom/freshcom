@@ -4,6 +4,10 @@ defmodule FCInventory.Stock do
   use TypedStruct
   use FCBase, :aggregate
 
+  import UUID
+
+  alias Decimal, as: D
+  alias FCInventory.StockId
   alias FCInventory.{Batch, Entry}
   alias FCInventory.{
     StockReserved,
@@ -19,14 +23,175 @@ defmodule FCInventory.Stock do
   }
 
   typedstruct do
-    field :id, String.t()
+    field :id, StockId.t()
     field :account_id, String.t()
     field :batches, map(), default: %{}
   end
 
-  # def reserve(stock, %{type: type}, txn) when type in [""] do
+  def unwrap_event([event]), do: event
+  def unwrap_event(events), do: events
 
-  # end
+  def reserve(stock, %{type: type}, txn, staff) when type in ["partner", "adjustment"] do
+    entry_fields = %{
+      status: "planned",
+      quantity: D.minus(txn.quantity),
+      expected_commit_date: txn.expected_commit_date
+    }
+
+    [
+      add_entry(stock, entry_fields, staff),
+      %StockReserved{
+        account_id: stock.account_id,
+        staff_id: staff.id,
+        stock_id: stock.id,
+        transaction_id: txn.id,
+        quantity: txn.quantity
+      }
+    ]
+  end
+
+  def reserve(%{batches: batches} = stock, %{output_strategy: output_strategy}, txn, staff) do
+    available_batches =
+      batches
+      |> Batch.with_serial_number(txn.serial_number)
+      |> Batch.available()
+      |> Batch.sort(output_strategy)
+
+    entry_events = do_reserve(stock, available_batches, txn, txn.quantity, staff, [])
+    quantity_reserved =
+      entry_events
+      |> Enum.reduce(D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
+      |> D.minus()
+
+    event =
+      cond do
+        D.cmp(quantity_reserved, D.new(0)) == :eq ->
+          %StockReservationFailed{quantity: txn.quantity}
+
+        D.cmp(quantity_reserved, txn.quantity) == :lt ->
+          %StockPartiallyReserved{
+            quantity_requested: txn.quantity,
+            quantity_reserved: quantity_reserved
+          }
+
+        D.cmp(quantity_reserved, txn.quantity) == :eq ->
+          %StockReserved{quantity: txn.quantity}
+      end
+
+    event =
+      event
+      |> Map.put(:stock_id, stock.id)
+      |> Map.put(:transaction_id, txn.id)
+      |> Map.put(:account_id, stock.account_id)
+
+    unwrap_event(entry_events ++ [event])
+  end
+
+  defp do_reserve(_, [], _, _, _, events) do
+    events
+  end
+
+  defp do_reserve(stock, [{sn, batch} | batches], txn, quantity, staff, events) do
+    quantity_available = Batch.quantity_available(batch)
+
+    cond do
+      D.cmp(quantity, D.new(0)) == :eq ->
+        events
+
+      D.cmp(quantity_available, quantity) == :lt ->
+        entry_fields = %{
+          serial_number: sn,
+          transaction_id: txn.id,
+          status: "planned",
+          quantity: D.minus(quantity_available),
+          expected_commit_date: txn.expected_commit_date
+        }
+        entry_added = add_entry(stock, entry_fields, staff)
+        events = events ++ [entry_added]
+        do_reserve(stock, batches, txn, D.sub(quantity, quantity_available), staff, events)
+
+      true ->
+        entry_fields = %{
+          serial_number: sn,
+          transaction_id: txn.id,
+          status: "planned",
+          quantity: D.minus(quantity),
+          expected_commit_date: txn.expected_commit_date
+        }
+        events ++ [add_entry(stock, entry_fields, staff)]
+    end
+  end
+
+  def add_entry(stock, fields, staff) do
+    entry_id = Map.get(fields, :entry_id) || uuid4()
+    account_id = stock.account_id || Map.get(fields, :account_id)
+
+    fields
+    |> merge_to(%EntryAdded{})
+    |> Map.put(:account_id, account_id)
+    |> Map.put(:stock_id, stock.id)
+    |> Map.put(:entry_id, entry_id)
+    |> Map.put(:staff, staff.id)
+  end
+
+  # TODO:
+  def decrease_reserved(%{batches: batches} = stock, %{output_strategy: output_strategy}, txn_id, quantity, staff) do
+    entries =
+      batches
+      |> Batch.sort(output_strategy)
+      |> Enum.reduce([], fn {_, batch}, acc ->
+        Enum.into(batch.entries[txn_id], []) ++ acc
+      end)
+
+    {decreased_quantity, events} = do_decrease_reserved(stock, entries, quantity, staff, {D.new(0), []})
+    event = %ReservedStockDecreased{
+      account_id: stock.account_id,
+      staff_id: staff.id,
+      stock_id: stock.id,
+      transaction_id: txn_id,
+      quantity: decreased_quantity,
+    }
+
+    events ++ [event]
+  end
+
+  defp do_decrease_reserved(_, [], _, _, acc), do: acc
+
+  defp do_decrease_reserved(stock, [{id, entry} | entries], quantity, staff, {decreased_quantity, []}) do
+    quantity_reserved = D.minus(entry.quantity)
+
+    cond do
+      D.cmp(quantity, D.new(0)) == :eq ->
+        {dq, events}
+
+      D.cmp(quantity_reserved, quantity) == :gt ->
+        new_quantity = D.minus(D.sub(quantity_reserved, quantity))
+        events = events ++ [update_entry(cmd, {id, entry}, new_quantity)]
+        {D.add(dq, quantity), events}
+
+      true ->
+        entry_deleted = delete_entry(cmd, {id, entry})
+        remaining_quantity = D.sub(quantity, quantity_reserved)
+        events = events ++ [entry_deleted]
+        acc = {D.add(dq, quantity_reserved), events}
+        decrease_reserved(cmd, entries, remaining_quantity, acc)
+    end
+  end
+
+  # TODO:
+  defp update_entry(stock, {id, entry}, fields, staff) do
+    %EntryUpdated{
+      requester_role: "system",
+      account_id: cmd.account_id,
+      stock_id: cmd.stock_id,
+      serial_number: entry.serial_number,
+      transaction_id: cmd.transaction_id,
+      entry_id: id,
+      effective_keys: [:quantity],
+      quantity: new_quantity
+    }
+    |> put_original_fields(entry)
+  end
 
   def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state
 

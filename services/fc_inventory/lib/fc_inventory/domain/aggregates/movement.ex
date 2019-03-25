@@ -26,7 +26,7 @@ defmodule FCInventory.Movement do
     field :name, String.t()
     field :number, String.t()
     field :label, String.t()
-    field :expected_completion_date, DateTime.t()
+    field :expected_commit_date, DateTime.t()
 
     field :caption, String.t()
     field :description, String.t()
