@@ -102,7 +102,7 @@ defmodule FCInventory.TransactionPrep do
     %DecreaseReservedStock{
       requester_role: "system",
       account_id: event.account_id,
-      stock_id: Stock.id(event.stockable_id, event.source_id),
+      stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
       transaction_id: event.transaction_id,
       quantity: event.quantity_prepared
     }

@@ -7,7 +7,6 @@ defmodule FCInventory.CompleteTransactionPrep do
   typedstruct do
     field :request_id, String.t()
     field :account_id, String.t()
-    field :client_id, String.t()
     field :staff_id, String.t()
 
     field :transaction_id, String.t()

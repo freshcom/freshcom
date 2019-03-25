@@ -7,7 +7,6 @@ defmodule FCInventory.UpdateTransaction do
   typedstruct do
     field :request_id, String.t()
     field :account_id, String.t()
-    field :client_id, String.t()
     field :staff_id, String.t()
 
     field :effective_keys, [atom], default: []
@@ -21,7 +20,7 @@ defmodule FCInventory.UpdateTransaction do
     field :label, String.t()
 
     field :_account_, Account.t()
-    field :_staff_, Satff.t()
+    field :_staff_, Staff.t()
   end
 
   validates :account_id, presence: true, uuid: true

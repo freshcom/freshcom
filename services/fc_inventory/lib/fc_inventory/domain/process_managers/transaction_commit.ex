@@ -7,7 +7,7 @@ defmodule FCInventory.TransactionCommit do
     router: FCInventory.Router
 
   alias Decimal, as: D
-  alias FCInventory.Stock
+  alias FCInventory.StockId
   alias FCInventory.{
     CommitStock,
     CommitEntry,
@@ -46,18 +46,16 @@ defmodule FCInventory.TransactionCommit do
     %CommitStock{
       requester_role: "system",
       account_id: event.account_id,
-      stock_id: Stock.id(event.stockable_id, event.source_id),
+      stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
       transaction_id: event.transaction_id
     }
   end
 
   def handle(%{destination_id: dst_id}, %EntryCommitted{} = event) do
-    stockable_id = Stock.stockable_id(event.stock_id)
-
     %CommitEntry{
       requester_role: "system",
       account_id: event.account_id,
-      stock_id: Stock.id(stockable_id, dst_id),
+      stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
       transaction_id: event.transaction_id,
       serial_number: event.serial_number,
       entry_id: event.entry_id
@@ -66,8 +64,8 @@ defmodule FCInventory.TransactionCommit do
 
   def handle(_, %StockCommitted{} = event) do
     %CompleteTransactionCommit{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       transaction_id: event.transaction_id
     }
   end

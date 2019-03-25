@@ -1,6 +1,8 @@
 defmodule FCInventory.StockCommitted do
   use FCBase, :event
 
+  alias FCInventory.StockId
+
   @version 1
 
   typedstruct do
@@ -14,15 +16,19 @@ defmodule FCInventory.StockCommitted do
     field :client_type, String.t()
     field :account_id, String.t()
 
-    field :stock_id, String.t()
+    field :stock_id, StockId.t()
     field :transaction_id, String.t()
 
     field :quantity, Decimal.t()
   end
-end
 
-defimpl Commanded.Serialization.JsonDecoder, for: FCInventory.StockCommitted do
-  def decode(event) do
-    %{event | quantity: Decimal.new(event.quantity)}
+  defimpl Commanded.Serialization.JsonDecoder do
+    def decode(event) do
+      %{
+        event
+        | stock_id: StockId.from(event.stock_id),
+          quantity: Decimal.new(event.quantity)
+      }
+    end
   end
 end

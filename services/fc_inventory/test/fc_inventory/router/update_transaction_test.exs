@@ -27,6 +27,7 @@ defmodule FCInventory.Router.UpdateTransactionTest do
 
     cmd = %UpdateTransaction{
       account_id: account_id,
+      staff_id: uuid4(),
       transaction_id: txn_id,
       effective_keys: [:summary, :quantity],
       summary: "Annual Check 123",

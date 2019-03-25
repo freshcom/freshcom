@@ -340,7 +340,6 @@ defmodule FCInventory.Router.PrepareTransactionTest do
       %{cmd: cmd, txn: txn}
     end
 
-    @tag :focus
     test "not enough stock exist", %{cmd: cmd, txn: txn} do
       serial_number = serial_number(cmd.account_id, Timex.shift(Timex.now, days: 1))
       add_entry(cmd.account_id, stock_id(:src, txn), [

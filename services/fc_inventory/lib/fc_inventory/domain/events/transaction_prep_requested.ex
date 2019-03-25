@@ -7,7 +7,6 @@ defmodule FCInventory.TransactionPrepRequested do
     field :__version__, integer(), default: @version
 
     field :account_id, String.t()
-    field :client_id, String.t()
     field :staff_id, String.t()
 
     field :transaction_id, String.t()

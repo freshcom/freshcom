@@ -6,16 +6,11 @@ defmodule FCInventory.TransactionCommitRequested do
   typedstruct do
     field :__version__, integer(), default: @version
 
-    field :request_id, String.t()
-    field :requester_id, String.t()
-    field :requester_type, String.t()
-    field :requester_role, String.t()
-    field :client_id, String.t()
-    field :client_type, String.t()
     field :account_id, String.t()
+    field :staff_id, String.t()
 
     field :transaction_id, String.t()
-    field :stockable_id, String.t()
+    field :sku_id, String.t()
     field :source_id, String.t()
     field :destination_id, String.t()
   end

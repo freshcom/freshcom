@@ -72,7 +72,7 @@ defmodule FCInventory.Transaction do
     |> merge(txn, except: [:status, :quantity])
   end
 
-  def update(%{status: "completed"}, _, _), do: {:error, {:validation_failed, [{:error, :status, :cannot_be_completed}]}}
+  def update(%{status: "committed"}, _, _), do: {:error, {:validation_failed, [{:error, :status, :cannot_be_committed}]}}
 
   def update(%{status: "draft"} = txn, fields, staff) do
     do_update(txn, fields, staff)
@@ -81,7 +81,7 @@ defmodule FCInventory.Transaction do
   def update(%{status: "ready"} = txn, %{quantity: _} = fields, staff) do
     [
       do_update(txn, fields, staff),
-      %TransactionMarked{ # TODO: how should we handle client_id?
+      %TransactionMarked{
         account_id: txn.account_id,
         staff_id: "system",
         transaction_id: txn.id,
@@ -104,18 +104,44 @@ defmodule FCInventory.Transaction do
     |> put_original_fields(txn)
     |> Map.put(:account_id, txn.account_id)
     |> Map.put(:staff_id, staff.id)
-    |> Map.put(:movement_id, txn.movement_id)
     |> Map.put(:transaction_id, txn.id)
+    |> Map.put(:movement_id, txn.movement_id)
   end
 
   def mark(txn, status, staff) do
     txn
     |> merge_to(%TransactionMarked{})
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:transaction_id, txn.id)
     |> Map.put(:status, status)
     |> Map.put(:original_status, txn.status)
   end
 
-  #####
+  def request_commit(%{status: "ready"} = txn, staff) do
+    txn
+    |> merge_to(%TransactionCommitRequested{})
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:transaction_id, txn.id)
+  end
+
+  def request_commit(_, _), do: {:error, {:validation_failed, [{:error, :status, :must_be_ready}]}}
+
+  def complete_commit(txn, staff) do
+    txn
+    |> merge_to(%TransactionCommitted{})
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:transaction_id, txn.id)
+  end
+
+  def delete(%{status: "committed"}, _), do: {:error, {:validation_failed, [{:error, :status, :cannot_be_committed}]}}
+
+  def delete(txn, staff) do
+    txn
+    |> merge_to(%TransactionDeleted{})
+    |> Map.put(:staff_id, staff.id)
+    |> Map.put(:transaction_id, txn.id)
+  end
+
   def apply(state, %TransactionDrafted{} = event) do
     %{state | id: event.transaction_id}
     |> merge(event)
