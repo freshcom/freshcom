@@ -43,7 +43,7 @@ defmodule FCInventory.TransactionDelete do
 
   def handle(_, %TransactionDeleted{} = event) do
     %DecreaseReservedStock{
-      requester_role: "system",
+      staff_id: "system",
       account_id: event.account_id,
       stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
       transaction_id: event.transaction_id,
@@ -53,7 +53,7 @@ defmodule FCInventory.TransactionDelete do
 
   def handle(%{destination_id: dst_id}, %EntryDeleted{} = event) do
     %DeleteEntry{
-      requester_role: "system",
+      staff_id: "system",
       account_id: event.account_id,
       stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
       transaction_id: event.transaction_id,

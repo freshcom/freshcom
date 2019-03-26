@@ -143,13 +143,13 @@ defmodule FCInventory.Stock do
         Enum.into(batch.entries[txn_id], []) ++ acc
       end)
 
-    {decreased_quantity, events} = do_decrease_reserved(stock, entries, quantity, staff, {D.new(0), []})
+    {quantity_decreased, events} = do_decrease_reserved(stock, entries, quantity, staff, {D.new(0), []})
     event = %ReservedStockDecreased{
       account_id: stock.account_id,
       staff_id: staff.id,
       stock_id: stock.id,
       transaction_id: txn_id,
-      quantity: decreased_quantity,
+      quantity: quantity_decreased,
     }
 
     events ++ [event]
@@ -157,40 +157,56 @@ defmodule FCInventory.Stock do
 
   defp do_decrease_reserved(_, [], _, _, acc), do: acc
 
-  defp do_decrease_reserved(stock, [{id, entry} | entries], quantity, staff, {decreased_quantity, []}) do
+  defp do_decrease_reserved(stock, [{id, entry} | entries], quantity, staff, {quantity_decreased, events}) do
     quantity_reserved = D.minus(entry.quantity)
 
     cond do
       D.cmp(quantity, D.new(0)) == :eq ->
-        {dq, events}
+        {quantity_decreased, events}
 
       D.cmp(quantity_reserved, quantity) == :gt ->
-        new_quantity = D.minus(D.sub(quantity_reserved, quantity))
-        events = events ++ [update_entry(cmd, {id, entry}, new_quantity)]
-        {D.add(dq, quantity), events}
+        entry_fields = %{
+          quantity: D.minus(D.sub(quantity_reserved, quantity))
+        }
+        events = events ++ [update_entry(stock, {id, entry}, entry_fields, staff)]
+        {D.add(quantity_decreased, quantity), events}
 
       true ->
-        entry_deleted = delete_entry(cmd, {id, entry})
+        entry_deleted = delete_entry(stock, {id, entry}, staff)
         remaining_quantity = D.sub(quantity, quantity_reserved)
         events = events ++ [entry_deleted]
-        acc = {D.add(dq, quantity_reserved), events}
-        decrease_reserved(cmd, entries, remaining_quantity, acc)
+        acc = {D.add(quantity_decreased, quantity_reserved), events}
+        do_decrease_reserved(stock, entries, remaining_quantity, staff, acc)
     end
   end
 
-  # TODO:
-  defp update_entry(stock, {id, entry}, fields, staff) do
+  def update_entry(stock, {id, entry}, fields, staff) do
+    ekeys = Map.keys(fields)
+
     %EntryUpdated{
-      requester_role: "system",
-      account_id: cmd.account_id,
-      stock_id: cmd.stock_id,
+      staff_id: staff.id,
+      account_id: stock.account_id,
+      stock_id: stock.id,
       serial_number: entry.serial_number,
-      transaction_id: cmd.transaction_id,
+      transaction_id: entry.transaction_id,
       entry_id: id,
-      effective_keys: [:quantity],
-      quantity: new_quantity
+      effective_keys: ekeys,
+      quantity: Map.get(fields, :quantity),
+      expected_commit_date: Map.get(fields, :expected_commit_date)
     }
     |> put_original_fields(entry)
+  end
+
+  def delete_entry(stock, {id, entry}, staff) do
+    %EntryDeleted{
+      staff_id: staff.id,
+      account_id: stock.account_id,
+      stock_id: stock.id,
+      serial_number: entry.serial_number,
+      transaction_id: entry.transaction_id,
+      entry_id: id,
+      quantity: entry.quantity
+    }
   end
 
   def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state

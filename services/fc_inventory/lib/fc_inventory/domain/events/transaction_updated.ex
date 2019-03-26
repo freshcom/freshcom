@@ -9,10 +9,11 @@ defmodule FCInventory.TransactionUpdated do
     field :account_id, String.t()
     field :staff_id, String.t()
 
+    field :transaction_id, String.t()
+
     field :effective_keys, [atom()]
     field :original_fields, map(), default: %{}
 
-    field :transaction_id, String.t()
     field :movement_id, String.t()
     field :serial_number, String.t()
 

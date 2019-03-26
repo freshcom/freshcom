@@ -221,7 +221,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
         transaction_id: txn.id
       }
 
-      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+      expect(AccountServiceMock, :find, 5, fn(account_id) ->
         {:ok, %Account{id: account_id}}
       end)
 
@@ -235,6 +235,7 @@ defmodule FCInventory.Router.PrepareTransactionTest do
       %{cmd: cmd, txn: txn}
     end
 
+    @tag :focus
     test "multiple entries exist", %{cmd: cmd, txn: txn} do
       serial_number = serial_number(cmd.account_id, %{expires_at: Timex.shift(Timex.now, days: 1)})
       add_entry(cmd.account_id, stock_id(:src, txn), [

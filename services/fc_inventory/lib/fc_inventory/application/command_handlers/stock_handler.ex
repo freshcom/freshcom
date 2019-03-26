@@ -5,7 +5,6 @@ defmodule FCInventory.StockHandler do
 
   use FCBase, :command_handler
 
-  import UUID
   import FCInventory.StockPolicy
 
   alias Decimal, as: D
@@ -23,15 +22,7 @@ defmodule FCInventory.StockHandler do
     DeleteEntry
   }
   alias FCInventory.{
-    StockReserved,
-    StockPartiallyReserved,
-    StockReservationFailed,
-    ReservedStockDecreased,
     StockCommitted,
-
-    EntryAdded,
-    EntryDeleted,
-    EntryUpdated,
     EntryCommitted
   }
   alias FCInventory.{Batch, Entry}
@@ -66,12 +57,13 @@ defmodule FCInventory.StockHandler do
     |> unwrap_ok()
   end
 
-  def handle(state, %DecreaseReservedStock{} = cmd) do
+  def handle(stock, %DecreaseReservedStock{} = cmd) do
     location = LocationStore.get(cmd.account_id, cmd.stock_id.location_id)
+    stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
 
     cmd
-    |> authorize(state)
-    ~> decrease_reserved(location, state)
+    |> authorize(stock, Worker)
+    |> OK.flat_map(&Stock.decrease_reserved(stock, location, &1.transaction_id, &1.quantity, &1._staff_))
     |> unwrap_ok()
   end
 
@@ -92,24 +84,25 @@ defmodule FCInventory.StockHandler do
     |> unwrap_ok()
   end
 
-  def handle(%{batches: batches} = state, %UpdateEntry{} = cmd) do
+  def handle(%{batches: batches} = stock, %UpdateEntry{} = cmd) do
     entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
+    stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
+    fields = Map.take(cmd, cmd.effective_keys)
 
     cmd
-    |> authorize(state)
-    ~>> ensure_exist(entry, {:not_found, :stock_entry})
-    ~> merge_to(%EntryUpdated{})
-    ~> put_original_fields(entry)
+    |> authorize(stock, Worker)
+    |> OK.flat_map(&Stock.update_entry(stock, {&1.entry_id, entry}, fields, &1._staff_))
     |> unwrap_ok()
   end
 
-  def handle(%{batches: batches} = state, %DeleteEntry{} = cmd) do
+  def handle(%{batches: batches} = stock, %DeleteEntry{} = cmd) do
     entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
     entry = entry || %Entry{}
+    stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
 
     cmd
-    |> authorize(state)
-    ~> merge_to(%EntryDeleted{quantity: entry.quantity})
+    |> authorize(stock, Worker)
+    |> OK.flat_map(&Stock.delete_entry(stock, {&1.entry_id, entry}, &1._staff_))
     |> unwrap_ok()
   end
 
@@ -143,72 +136,5 @@ defmodule FCInventory.StockHandler do
     else
       {:error, error}
     end
-  end
-
-  defp decrease_reserved(cmd, location, %{batches: batches}) do
-    entries =
-      batches
-      |> Batch.sort(location.output_strategy)
-      |> Enum.reduce([], fn {_, batch}, acc ->
-        Enum.into(batch.entries[cmd.transaction_id], []) ++ acc
-      end)
-
-    {decreased_quantity, entry_events} = decrease_reserved(cmd, entries, cmd.quantity, {D.new(0), []})
-    event = merge_to(cmd, %ReservedStockDecreased{quantity: decreased_quantity}, except: [:quantity])
-    entry_events ++ [event]
-  end
-
-  defp decrease_reserved(_, [], _, acc), do: acc
-
-  defp decrease_reserved(cmd, [{id, entry} | entries], quantity, {dq, events}) do
-    quantity_reserved = D.minus(entry.quantity)
-
-    cond do
-      D.cmp(quantity, D.new(0)) == :eq ->
-        {dq, events}
-
-      D.cmp(quantity_reserved, quantity) == :gt ->
-        new_quantity = D.minus(D.sub(quantity_reserved, quantity))
-        events = events ++ [update_entry(cmd, {id, entry}, new_quantity)]
-        {D.add(dq, quantity), events}
-
-      true ->
-        entry_deleted = delete_entry(cmd, {id, entry})
-        remaining_quantity = D.sub(quantity, quantity_reserved)
-        events = events ++ [entry_deleted]
-        acc = {D.add(dq, quantity_reserved), events}
-        decrease_reserved(cmd, entries, remaining_quantity, acc)
-    end
-  end
-
-  defp delete_entry(cmd, {id, entry}) do
-    %EntryDeleted{
-      requester_role: "system",
-      account_id: cmd.account_id,
-      stock_id: cmd.stock_id,
-      serial_number: entry.serial_number,
-      transaction_id: cmd.transaction_id,
-      entry_id: id,
-      quantity: entry.quantity
-    }
-  end
-
-  defp update_entry(cmd, {id, entry}, new_quantity) do
-    %EntryUpdated{
-      requester_role: "system",
-      account_id: cmd.account_id,
-      stock_id: cmd.stock_id,
-      serial_number: entry.serial_number,
-      transaction_id: cmd.transaction_id,
-      entry_id: id,
-      effective_keys: [:quantity],
-      quantity: new_quantity
-    }
-    |> put_original_fields(entry)
-  end
-
-  defp location_id(stock_id) do
-    [_, location_id] = String.split(stock_id, "/")
-    location_id
   end
 end

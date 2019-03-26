@@ -8,13 +8,8 @@ defmodule FCInventory.EntryUpdated do
   typedstruct do
     field :__version__, integer(), default: @version
 
-    field :request_id, String.t()
-    field :requester_id, String.t()
-    field :requester_type, String.t()
-    field :requester_role, String.t()
-    field :client_id, String.t()
-    field :client_type, String.t()
     field :account_id, String.t()
+    field :staff_id, String.t()
 
     field :stock_id, StockId.t()
     field :transaction_id, String.t()
@@ -22,9 +17,9 @@ defmodule FCInventory.EntryUpdated do
     field :entry_id, String.t()
 
     field :effective_keys, [atom()]
-    field :original_fields, map()
+    field :original_fields, map(), default: %{}
 
-    field :quantity, String.t()
+    field :quantity, Decimal.t()
     field :expected_commit_date, DateTime.t()
   end
 

@@ -9,8 +9,8 @@ defmodule FCInventory.UpdateTransaction do
     field :account_id, String.t()
     field :staff_id, String.t()
 
-    field :effective_keys, [atom], default: []
     field :transaction_id, String.t()
+    field :effective_keys, [atom], default: []
 
     field :quantity, Decimal.t()
     field :expected_commit_date, DateTime.t()
