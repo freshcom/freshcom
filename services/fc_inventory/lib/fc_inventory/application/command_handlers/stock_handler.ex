@@ -72,6 +72,13 @@ defmodule FCInventory.StockHandler do
     |> authorize(state)
     ~> commit(state)
     |> unwrap_ok()
+
+    # stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
+
+    # cmd
+    # |> authorize(stock, Worker)
+    # |> OK.flat_map(&Stock.commit(stock, &1.transaction_id, &1._staff_))
+    # |> unwrap_ok()
   end
 
   def handle(%{batches: batches} = state, %CommitEntry{} = cmd) do
@@ -85,24 +92,21 @@ defmodule FCInventory.StockHandler do
   end
 
   def handle(%{batches: batches} = stock, %UpdateEntry{} = cmd) do
-    entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
     stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
     fields = Map.take(cmd, cmd.effective_keys)
 
     cmd
     |> authorize(stock, Worker)
-    |> OK.flat_map(&Stock.update_entry(stock, {&1.entry_id, entry}, fields, &1._staff_))
+    |> OK.flat_map(&Stock.update_entry(stock, &1.entry_id, fields, &1._staff_))
     |> unwrap_ok()
   end
 
   def handle(%{batches: batches} = stock, %DeleteEntry{} = cmd) do
-    entry = Batch.get_entry(batches, cmd.serial_number, cmd.transaction_id, cmd.entry_id)
-    entry = entry || %Entry{}
     stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
 
     cmd
     |> authorize(stock, Worker)
-    |> OK.flat_map(&Stock.delete_entry(stock, {&1.entry_id, entry}, &1._staff_))
+    |> OK.flat_map(&Stock.delete_entry(stock, &1.entry_id, &1._staff_))
     |> unwrap_ok()
   end
 

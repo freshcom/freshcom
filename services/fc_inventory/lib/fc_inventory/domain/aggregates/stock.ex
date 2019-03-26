@@ -134,13 +134,12 @@ defmodule FCInventory.Stock do
     |> Map.put(:staff, staff.id)
   end
 
-  # TODO:
   def decrease_reserved(%{batches: batches} = stock, %{output_strategy: output_strategy}, txn_id, quantity, staff) do
     entries =
       batches
       |> Batch.sort(output_strategy)
       |> Enum.reduce([], fn {_, batch}, acc ->
-        Enum.into(batch.entries[txn_id], []) ++ acc
+        Enum.into(batch.txn_entries[txn_id], []) ++ acc
       end)
 
     {quantity_decreased, events} = do_decrease_reserved(stock, entries, quantity, staff, {D.new(0), []})
@@ -168,11 +167,11 @@ defmodule FCInventory.Stock do
         entry_fields = %{
           quantity: D.minus(D.sub(quantity_reserved, quantity))
         }
-        events = events ++ [update_entry(stock, {id, entry}, entry_fields, staff)]
+        events = events ++ [do_update_entry(stock, {id, entry}, entry_fields, staff)]
         {D.add(quantity_decreased, quantity), events}
 
       true ->
-        entry_deleted = delete_entry(stock, {id, entry}, staff)
+        entry_deleted = do_delete_entry(stock, {id, entry}, staff)
         remaining_quantity = D.sub(quantity, quantity_reserved)
         events = events ++ [entry_deleted]
         acc = {D.add(quantity_decreased, quantity_reserved), events}
@@ -180,7 +179,14 @@ defmodule FCInventory.Stock do
     end
   end
 
-  def update_entry(stock, {id, entry}, fields, staff) do
+  def update_entry(stock, entry_id, fields, staff) do
+    entry = get_entry(stock, entry_id)
+    do_update_entry(stock, {entry_id, entry}, fields, staff)
+  end
+
+  defp do_update_entry(_, {_, nil}, _, _), do: {:error, {:not_found, :entry}}
+
+  defp do_update_entry(stock, {id, entry}, fields, staff) do
     ekeys = Map.keys(fields)
 
     %EntryUpdated{
@@ -197,7 +203,14 @@ defmodule FCInventory.Stock do
     |> put_original_fields(entry)
   end
 
-  def delete_entry(stock, {id, entry}, staff) do
+  def delete_entry(stock, entry_id, staff) do
+    entry = get_entry(stock, entry_id)
+    do_delete_entry(stock, {entry_id, entry}, staff)
+  end
+
+  defp do_delete_entry(_, {_, nil}, _), do: {:error, {:not_found, :entry}}
+
+  defp do_delete_entry(stock, {id, entry}, staff) do
     %EntryDeleted{
       staff_id: staff.id,
       account_id: stock.account_id,
@@ -208,6 +221,53 @@ defmodule FCInventory.Stock do
       quantity: entry.quantity
     }
   end
+
+  def entries(%{batches: batches} = stock) do
+    Batch.entries(batches)
+  end
+
+  def get_entry(stock, entry_id) do
+    stock
+    |> entries()
+    |> Map.get(entry_id)
+  end
+
+  # def commit(stock, transaction_id, staff) do
+  #   entries = Batch.get_entries(batches, transaction_id)
+  #   events = Enum.map(entries, fn {id, entry} ->
+  #     %EntryCommitted{
+  #       requester_role: "system",
+  #       account_id: cmd.account_id,
+  #       stock_id: cmd.stock_id,
+  #       transaction_id: cmd.transaction_id,
+  #       serial_number: entry.serial_number,
+  #       entry_id: id,
+  #       quantity: entry.quantity,
+  #       committed_at: Timex.now()
+  #     }
+  #   end)
+  #   quantity = Enum.reduce(events, D.new(0), fn e, acc -> D.add(acc, e.quantity) end)
+  #   events ++ [%StockCommitted{
+  #     requester_role: "system",
+  #     account_id: cmd.account_id,
+  #     stock_id: cmd.stock_id,
+  #     transaction_id: cmd.transaction_id,
+  #     quantity: quantity
+  #   }]
+  # end
+
+  # def commit_entry(stock, {id, entry}, staff) do
+  #   %EntryCommitted{
+  #     requester_role: "system",
+  #     account_id: cmd.account_id,
+  #     stock_id: cmd.stock_id,
+  #     transaction_id: cmd.transaction_id,
+  #     serial_number: entry.serial_number,
+  #     entry_id: id,
+  #     quantity: entry.quantity,
+  #     committed_at: Timex.now()
+  #   }
+  # end
 
   def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state
 

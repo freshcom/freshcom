@@ -13,7 +13,7 @@ defmodule FCInventory.Batch do
     field :quantity_on_hand, Decimal.t(), default: D.new(0)
     field :quantity_reserved, Decimal.t(), default: D.new(0)
     field :quantity_incoming, Decimal.t(), default: D.new(0)
-    field :entries, map(), default: %{}
+    field :txn_entries, map(), default: %{}
     field :added_at, DateTime.t()
   end
 
@@ -116,9 +116,17 @@ defmodule FCInventory.Batch do
     end)
   end
 
-  # def entries(%{entries: entries}, transaction_id) do
-  #   entries[transaction_id]
-  # end
+  def entries(%__MODULE__{txn_entries: txn_entries}) do
+    Enum.reduce(txn_entries, %{}, fn {txn_id, entries}, acc ->
+      Map.merge(acc, entries)
+    end)
+  end
+
+  def entries(batches) do
+    Enum.reduce(batches, %{}, fn {sn, batch}, acc ->
+      Map.merge(acc, entries(batch))
+    end)
+  end
 
   def add_entry(batches, serial_number, entry) do
     batch =
@@ -131,11 +139,11 @@ defmodule FCInventory.Batch do
   end
 
   def add_entry(batch, %{status: "planned"} = entry) do
-    txn_entries = batch.entries[entry.transaction_id] || %{}
-    txn_entries = Map.put(txn_entries, entry.id, entry)
+    entries = batch.txn_entries[entry.transaction_id] || %{}
+    entries = Map.put(entries, entry.id, entry)
 
-    entries = Map.put(batch.entries, entry.transaction_id, txn_entries)
-    batch = Map.put(batch, :entries, entries)
+    txn_entries = Map.put(batch.txn_entries, entry.transaction_id, entries)
+    batch = Map.put(batch, :txn_entries, txn_entries)
 
     case D.cmp(entry.quantity, D.new(0)) do
       :lt ->
@@ -154,29 +162,29 @@ defmodule FCInventory.Batch do
   def get_entry(batches, serial_number, transaction_id, entry_id) do
     batches
     |> Map.get(serial_number, %{})
-    |> Map.get(:entries, %{})
+    |> Map.get(:txn_entries, %{})
     |> Map.get(transaction_id, %{})
     |> Map.get(entry_id)
   end
 
   def get_entries(batches, transaction_id) do
     Enum.reduce(batches, %{}, fn {_, batch}, acc ->
-      Map.merge(acc, (batch.entries[transaction_id] || %{}))
+      Map.merge(acc, (batch.txn_entries[transaction_id] || %{}))
     end)
   end
 
-  def commit_entry(%__MODULE__{entries: entries} = batch, transaction_id, entry_id) do
-    txn_entries = entries[transaction_id]
-    entry = txn_entries[entry_id]
+  def commit_entry(%__MODULE__{txn_entries: txn_entries} = batch, transaction_id, entry_id) do
+    entries = txn_entries[transaction_id]
+    entry = entries[entry_id]
 
-    txn_entries = Map.drop(txn_entries, [entry_id])
-    entries = Map.put(entries, transaction_id, txn_entries)
+    entries = Map.drop(entries, [entry_id])
+    txn_entries = Map.put(txn_entries, transaction_id, entries)
 
     case D.cmp(entry.quantity, D.new(0)) do
       :lt ->
         %{
           batch
-          | entries: entries,
+          | txn_entries: txn_entries,
             quantity_reserved: D.add(batch.quantity_reserved, entry.quantity),
             quantity_on_hand: D.add(batch.quantity_on_hand, entry.quantity)
         }
@@ -184,7 +192,7 @@ defmodule FCInventory.Batch do
       :gt ->
         %{
           batch
-          | entries: entries,
+          | txn_entries: txn_entries,
             quantity_incoming: D.sub(batch.quantity_incoming, entry.quantity),
             quantity_on_hand: D.add(batch.quantity_on_hand, entry.quantity)
         }
@@ -196,12 +204,12 @@ defmodule FCInventory.Batch do
     Map.put(batches, serial_number, batch)
   end
 
-  def put_entry(%{entries: entries} = batch, entry_id, entry) do
-    txn_entries = entries[entry.transaction_id]
-    txn_entries = Map.put(txn_entries, entry_id, entry)
-    entries = Map.put(entries, entry.transaction_id, txn_entries)
+  def put_entry(%{txn_entries: txn_entries} = batch, entry_id, entry) do
+    entries = txn_entries[entry.transaction_id]
+    entries = Map.put(entries, entry_id, entry)
+    txn_entries = Map.put(txn_entries, entry.transaction_id, entries)
 
-    %{batch | entries: entries}
+    %{batch | txn_entries: txn_entries}
   end
 
   def put_entry(batches, entry_id, entry) do
@@ -225,14 +233,14 @@ defmodule FCInventory.Batch do
     end
   end
 
-  def delete_entry(%{entries: entries} = batch, transaction_id, entry_id) do
-    txn_entries = entries[transaction_id]
-    entry = txn_entries[entry_id]
+  def delete_entry(%{txn_entries: txn_entries} = batch, transaction_id, entry_id) do
+    entries = txn_entries[transaction_id]
+    entry = entries[entry_id]
 
-    txn_entries = Map.drop(txn_entries, [entry_id])
-    entries = Map.put(entries, transaction_id, txn_entries)
+    entries = Map.drop(entries, [entry_id])
+    txn_entries = Map.put(txn_entries, transaction_id, entries)
 
-    batch = %{batch | entries: entries}
+    batch = %{batch | txn_entries: txn_entries}
 
     case D.cmp(entry.quantity, D.new(0)) do
       :gt ->
