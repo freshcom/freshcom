@@ -45,8 +45,8 @@ defmodule FCInventory.TransactionCommit do
 
   def handle(_, %TransactionCommitRequested{} = event) do
     %CommitStock{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       stock_id: %StockId{sku_id: event.sku_id, location_id: event.source_id},
       transaction_id: event.transaction_id
     }
@@ -54,11 +54,9 @@ defmodule FCInventory.TransactionCommit do
 
   def handle(%{destination_id: dst_id}, %EntryCommitted{} = event) do
     %CommitEntry{
-      requester_role: "system",
       account_id: event.account_id,
+      staff_id: "system",
       stock_id: %StockId{sku_id: event.stock_id.sku_id, location_id: dst_id},
-      transaction_id: event.transaction_id,
-      serial_number: event.serial_number,
       entry_id: event.entry_id
     }
   end

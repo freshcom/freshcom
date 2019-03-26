@@ -42,6 +42,7 @@ defmodule FCInventory.Router.CommitTransactionTest do
   end
 
   describe "dispatch command for" do
+    @tag :focus
     test "a prepared transaction" do
       txn = draft_transaction("internal", "internal", events: [
         %TransactionPrepared{
@@ -98,7 +99,7 @@ defmodule FCInventory.Router.CommitTransactionTest do
         transaction_id: txn.id
       }
 
-      expect(AccountServiceMock, :find, 2, fn(account_id) ->
+      expect(AccountServiceMock, :find, 5, fn(account_id) ->
         {:ok, %Account{id: account_id}}
       end)
 

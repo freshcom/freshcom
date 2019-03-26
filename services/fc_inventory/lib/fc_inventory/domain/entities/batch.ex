@@ -128,6 +128,12 @@ defmodule FCInventory.Batch do
     end)
   end
 
+  def entries(batches, transaction_id) do
+    Enum.reduce(batches, %{}, fn {_, batch}, acc ->
+      Map.merge(acc, (batch.txn_entries[transaction_id] || %{}))
+    end)
+  end
+
   def add_entry(batches, serial_number, entry) do
     batch =
       batches
@@ -165,12 +171,6 @@ defmodule FCInventory.Batch do
     |> Map.get(:txn_entries, %{})
     |> Map.get(transaction_id, %{})
     |> Map.get(entry_id)
-  end
-
-  def get_entries(batches, transaction_id) do
-    Enum.reduce(batches, %{}, fn {_, batch}, acc ->
-      Map.merge(acc, (batch.txn_entries[transaction_id] || %{}))
-    end)
   end
 
   def commit_entry(%__MODULE__{txn_entries: txn_entries} = batch, transaction_id, entry_id) do

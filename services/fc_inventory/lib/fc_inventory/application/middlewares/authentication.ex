@@ -16,9 +16,6 @@ defmodule FCInventory.Authentication do
     end
   end
 
-  # def authenticate(%{staff_id: nil}), do: {:error, {:unauthenticated, :staff}}
-  # def authenticate(%{account_id: nil}), do: {:error, {:unauthenticated, :account}}
-
   def authenticate(%{_account_: _, _staff_: _} = cmd) do
     with {:ok, account} <- AccountService.find(cmd.account_id),
          {:ok, staff} <- StaffService.find(account, cmd.staff_id)

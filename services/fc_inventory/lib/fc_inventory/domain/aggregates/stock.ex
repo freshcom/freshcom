@@ -226,48 +226,48 @@ defmodule FCInventory.Stock do
     Batch.entries(batches)
   end
 
+  def entries(%{batches: batches}, transaction_id) do
+    Batch.entries(batches, transaction_id)
+  end
+
   def get_entry(stock, entry_id) do
     stock
     |> entries()
     |> Map.get(entry_id)
   end
 
-  # def commit(stock, transaction_id, staff) do
-  #   entries = Batch.get_entries(batches, transaction_id)
-  #   events = Enum.map(entries, fn {id, entry} ->
-  #     %EntryCommitted{
-  #       requester_role: "system",
-  #       account_id: cmd.account_id,
-  #       stock_id: cmd.stock_id,
-  #       transaction_id: cmd.transaction_id,
-  #       serial_number: entry.serial_number,
-  #       entry_id: id,
-  #       quantity: entry.quantity,
-  #       committed_at: Timex.now()
-  #     }
-  #   end)
-  #   quantity = Enum.reduce(events, D.new(0), fn e, acc -> D.add(acc, e.quantity) end)
-  #   events ++ [%StockCommitted{
-  #     requester_role: "system",
-  #     account_id: cmd.account_id,
-  #     stock_id: cmd.stock_id,
-  #     transaction_id: cmd.transaction_id,
-  #     quantity: quantity
-  #   }]
-  # end
+  def commit(stock, transaction_id, staff) do
+    events = Enum.map(entries(stock, transaction_id), fn {id, entry} ->
+      do_commit_entry(stock, {id, entry}, staff)
+    end)
 
-  # def commit_entry(stock, {id, entry}, staff) do
-  #   %EntryCommitted{
-  #     requester_role: "system",
-  #     account_id: cmd.account_id,
-  #     stock_id: cmd.stock_id,
-  #     transaction_id: cmd.transaction_id,
-  #     serial_number: entry.serial_number,
-  #     entry_id: id,
-  #     quantity: entry.quantity,
-  #     committed_at: Timex.now()
-  #   }
-  # end
+    quantity = Enum.reduce(events, D.new(0), fn e, acc -> D.add(acc, e.quantity) end)
+    events ++ [%StockCommitted{
+      account_id: stock.account_id,
+      staff_id: staff.id,
+      stock_id: stock.id,
+      transaction_id: transaction_id,
+      quantity: quantity
+    }]
+  end
+
+  def commit_entry(stock, entry_id, staff) do
+    entry = get_entry(stock, entry_id)
+    do_commit_entry(stock, {entry_id, entry}, staff)
+  end
+
+  def do_commit_entry(stock, {id, entry}, staff) do
+    %EntryCommitted{
+      account_id: stock.account_id,
+      staff_id: staff.id,
+      stock_id: stock.id,
+      transaction_id: entry.transaction_id,
+      serial_number: entry.serial_number,
+      entry_id: id,
+      quantity: entry.quantity,
+      committed_at: Timex.now()
+    }
+  end
 
   def apply(state, %et{}) when et in [StockReserved, StockPartiallyReserved, StockReservationFailed, ReservedStockDecreased, StockCommitted], do: state
 

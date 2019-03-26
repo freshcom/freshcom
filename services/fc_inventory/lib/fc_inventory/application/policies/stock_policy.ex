@@ -9,8 +9,8 @@ defmodule FCInventory.StockPolicy do
     AddEntry
   }
 
-  def authorize(%CommitStock{requester_role: role} = cmd, _) when role in @goods_management_roles,
-    do: {:ok, cmd}
+  # def authorize(%CommitStock{requester_role: role} = cmd, _) when role in @goods_management_roles,
+  #   do: {:ok, cmd}
 
   # def authorize(%AddEntry{requester_role: role} = cmd, _) when role in @goods_management_roles,
   #   do: {:ok, cmd}

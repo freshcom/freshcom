@@ -22,8 +22,7 @@ defmodule FCInventory.DraftTransaction do
     field :quantity, Decimal.t(), default: Decimal.new(0)
     field :expected_commit_date, DateTime.t()
 
-    field :number, String.t()
-    field :name, String.t()
+    field :summary, String.t()
     field :description, String.t()
     field :label, String.t()
 
