@@ -12,11 +12,12 @@ defmodule FCInventory.Supervisor do
       {FCInventory.Keeper, [start_from: :current]},
 
       # Process Manager
-      {FCInventory.DefaultLocationSetup, [start_from: :current]},
-      {FCInventory.RootLocationSetup, [start_from: :current]},
-      {FCInventory.TransactionPrep, [start_from: :current]},
-      {FCInventory.TransactionDelete, [start_from: :current]},
-      {FCInventory.TransactionCommit, [start_from: :current]}
+      {FCInventory.StockReservation, [start_from: :current]}
+      # {FCInventory.DefaultLocationSetup, [start_from: :current]},
+      # {FCInventory.RootLocationSetup, [start_from: :current]},
+      # {FCInventory.TransactionPrep, [start_from: :current]},
+      # {FCInventory.TransactionDelete, [start_from: :current]},
+      # {FCInventory.TransactionCommit, [start_from: :current]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

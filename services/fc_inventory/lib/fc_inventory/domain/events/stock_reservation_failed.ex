@@ -15,7 +15,8 @@ defmodule FCInventory.StockReservationFailed do
     field :account_id, String.t()
 
     field :stock_id, String.t()
-    field :transaction_id, String.t()
+    field :order_id, String.t()
+    field :serial_number, String.t()
 
     field :quantity, Decimal.t()
   end

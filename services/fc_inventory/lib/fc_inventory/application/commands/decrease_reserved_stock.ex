@@ -11,7 +11,7 @@ defmodule FCInventory.DecreaseReservedStock do
     field :staff_id, String.t()
 
     field :stock_id, StockId.t()
-    field :transaction_id, String.t()
+    field :order_id, String.t()
 
     field :quantity, Decimal.t()
 
@@ -22,5 +22,6 @@ defmodule FCInventory.DecreaseReservedStock do
   validates :account_id, presence: true, uuid: true
   validates :staff_id, presence: true
   validates :stock_id, presence: true
+  validates :order_id, presence: true, uuid: true
   validates :quantity, presence: true
 end

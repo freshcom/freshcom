@@ -4,6 +4,46 @@ defmodule FCInventory.Router do
   use Commanded.Commands.Router
 
   alias FCInventory.{
+    CreateOrder,
+    MarkOrder,
+    RequestStockReservation,
+    RecordStockReservation,
+    FinishStockReservation,
+    StartOrderProcessing,
+    ProcessOrderItem,
+    FinishOrderProcessing
+  }
+  alias FCInventory.{
+    Order
+  }
+  alias FCInventory.{
+    OrderHandler
+  }
+
+  middleware(FCBase.CommandValidation)
+  middleware(FCBase.RequesterIdentification)
+  middleware(FCBase.ClientIdentification)
+  middleware(FCBase.IdentifierGeneration)
+  middleware(FCInventory.Authentication)
+
+  identify(Order, by: :order_id, prefix: "inventory-order-")
+
+  dispatch(
+    [
+      CreateOrder,
+      MarkOrder,
+      RequestStockReservation,
+      RecordStockReservation,
+      FinishStockReservation,
+      StartOrderProcessing,
+      ProcessOrderItem,
+      FinishOrderProcessing
+    ],
+    to: OrderHandler,
+    aggregate: Order
+  )
+
+  alias FCInventory.{
     AddStorage,
     UpdateStorage,
     DeleteStorage,
@@ -33,12 +73,6 @@ defmodule FCInventory.Router do
   alias FCInventory.{Storage, Location, Stock, Movement, Transaction}
   alias FCInventory.{StorageHandler, LocationHandler, StockHandler, MovementHandler}
   alias FCInventory.TransactionHandler
-
-  middleware(FCBase.CommandValidation)
-  middleware(FCBase.RequesterIdentification)
-  middleware(FCBase.ClientIdentification)
-  middleware(FCBase.IdentifierGeneration)
-  middleware(FCInventory.Authentication)
 
   identify(Storage, by: :storage_id, prefix: "inventory-storage-")
   identify(Location, by: :location_id, prefix: "inventory-location-")

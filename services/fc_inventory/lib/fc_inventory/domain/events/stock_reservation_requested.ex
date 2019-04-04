@@ -1,7 +1,7 @@
-defmodule FCInventory.ReservedStockDecreased do
+defmodule FCInventory.StockReservationRequested do
   use FCBase, :event
 
-  alias FCInventory.StockId
+  alias FCInventory.LineItem
 
   @version 1
 
@@ -11,19 +11,14 @@ defmodule FCInventory.ReservedStockDecreased do
     field :account_id, String.t()
     field :staff_id, String.t()
 
-    field :stock_id, StockId.t()
     field :order_id, String.t()
-
-    field :quantity, Decimal.t()
+    field :location_id, String.t()
+    field :line_items, [LineItem.t()]
   end
 
   defimpl Commanded.Serialization.JsonDecoder do
     def decode(event) do
-      %{
-        event
-        | stock_id: StockId.from(event.stock_id),
-          quantity: Decimal.new(event.quantity)
-      }
+      %{event | line_items: LineItem.deserialize(event.line_items)}
     end
   end
 end

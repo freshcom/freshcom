@@ -12,7 +12,7 @@ defmodule FCInventory.EntryAdded do
     field :staff_id, String.t()
 
     field :stock_id, StockId.t()
-    field :transaction_id, String.t()
+    field :order_id, String.t()
     field :serial_number, String.t()
     field :entry_id, String.t()
 

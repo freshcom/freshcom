@@ -34,6 +34,10 @@ defmodule FCInventory.Movement do
     field :translations, map(), default: %{}
   end
 
+  def create(fields, staff) do
+
+  end
+
   def translatable_fields do
     [
       :name,

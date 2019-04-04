@@ -65,11 +65,11 @@ defmodule FCInventory.Fixture do
     to_streams(:stock_id, "inventory-stock-", events)
   end
 
-  def stock_id(:src, %{sku_id: sku_id, source_id: source_id}) do
-    %StockId{sku_id: sku_id, location_id: source_id}
+  def stock_id(:src, %{sku: sku, source_id: source_id}) do
+    %StockId{sku: sku, location_id: source_id}
   end
 
-  def stock_id(:dst, %{sku_id: sku_id, destination_id: destination_id}) do
-    %StockId{sku_id: sku_id, location_id: destination_id}
+  def stock_id(:dst, %{sku: sku, destination_id: destination_id}) do
+    %StockId{sku: sku, location_id: destination_id}
   end
 end

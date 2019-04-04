@@ -31,11 +31,12 @@ defmodule FCInventory.Stock do
   def unwrap_event([event]), do: event
   def unwrap_event(events), do: events
 
-  def reserve(stock, %{type: type}, txn, staff) when type in ["partner", "adjustment"] do
+  def reserve(stock, %{type: type}, req, staff) when type in ["partner", "adjustment"] do
     entry_fields = %{
+      cause_id: req.order_id,
+      cause_type: "Order",
       status: "planned",
-      quantity: D.minus(txn.quantity),
-      expected_commit_date: txn.expected_commit_date
+      quantity: D.minus(req.quantity),
     }
 
     [
@@ -44,20 +45,21 @@ defmodule FCInventory.Stock do
         account_id: stock.account_id,
         staff_id: staff.id,
         stock_id: stock.id,
-        transaction_id: txn.id,
-        quantity: txn.quantity
+        order_id: req.order_id,
+        serial_number: req.serial_number,
+        quantity: req.quantity
       }
     ]
   end
 
-  def reserve(%{batches: batches} = stock, %{output_strategy: output_strategy}, txn, staff) do
+  def reserve(%{batches: batches} = stock, %{output_strategy: output_strategy}, req, staff) do
     available_batches =
       batches
-      |> Batch.with_serial_number(txn.serial_number)
+      |> Batch.with_serial_number(req.serial_number)
       |> Batch.available()
       |> Batch.sort(output_strategy)
 
-    entry_events = do_reserve(stock, available_batches, txn, txn.quantity, staff, [])
+    entry_events = do_reserve(stock, available_batches, req, req.quantity, staff, [])
     quantity_reserved =
       entry_events
       |> Enum.reduce(D.new(0), fn event, acc -> D.add(acc, event.quantity) end)
@@ -66,23 +68,24 @@ defmodule FCInventory.Stock do
     event =
       cond do
         D.cmp(quantity_reserved, D.new(0)) == :eq ->
-          %StockReservationFailed{quantity: txn.quantity}
+          %StockReservationFailed{quantity: req.quantity}
 
-        D.cmp(quantity_reserved, txn.quantity) == :lt ->
+        D.cmp(quantity_reserved, req.quantity) == :lt ->
           %StockPartiallyReserved{
-            quantity_requested: txn.quantity,
+            quantity_requested: req.quantity,
             quantity_reserved: quantity_reserved
           }
 
-        D.cmp(quantity_reserved, txn.quantity) == :eq ->
-          %StockReserved{quantity: txn.quantity}
+        D.cmp(quantity_reserved, req.quantity) == :eq ->
+          %StockReserved{quantity: req.quantity}
       end
 
     event =
       event
       |> Map.put(:stock_id, stock.id)
-      |> Map.put(:transaction_id, txn.id)
+      |> Map.put(:order_id, req.order_id)
       |> Map.put(:account_id, stock.account_id)
+      |> Map.put(:serial_number, req.serial_number)
 
     unwrap_event(entry_events ++ [event])
   end
@@ -91,7 +94,7 @@ defmodule FCInventory.Stock do
     events
   end
 
-  defp do_reserve(stock, [{sn, batch} | batches], txn, quantity, staff, events) do
+  defp do_reserve(stock, [{sn, batch} | batches], req, quantity, staff, events) do
     quantity_available = Batch.quantity_available(batch)
 
     cond do
@@ -101,22 +104,22 @@ defmodule FCInventory.Stock do
       D.cmp(quantity_available, quantity) == :lt ->
         entry_fields = %{
           serial_number: sn,
-          transaction_id: txn.id,
+          cause_id: req.order_id,
+          cause_type: "Order",
           status: "planned",
-          quantity: D.minus(quantity_available),
-          expected_commit_date: txn.expected_commit_date
+          quantity: D.minus(quantity_available)
         }
         entry_added = add_entry(stock, entry_fields, staff)
         events = events ++ [entry_added]
-        do_reserve(stock, batches, txn, D.sub(quantity, quantity_available), staff, events)
+        do_reserve(stock, batches, req, D.sub(quantity, quantity_available), staff, events)
 
       true ->
         entry_fields = %{
           serial_number: sn,
-          transaction_id: txn.id,
+          cause_id: req.order_id,
+          cause_type: "Order",
           status: "planned",
-          quantity: D.minus(quantity),
-          expected_commit_date: txn.expected_commit_date
+          quantity: D.minus(quantity)
         }
         events ++ [add_entry(stock, entry_fields, staff)]
     end
@@ -134,12 +137,12 @@ defmodule FCInventory.Stock do
     |> Map.put(:staff, staff.id)
   end
 
-  def decrease_reserved(%{batches: batches} = stock, %{output_strategy: output_strategy}, txn_id, quantity, staff) do
+  def decrease_reserved(%{batches: batches} = stock, %{output_strategy: output_strategy}, order_id, quantity, staff) do
     entries =
       batches
       |> Batch.sort(output_strategy)
       |> Enum.reduce([], fn {_, batch}, acc ->
-        Enum.into(batch.txn_entries[txn_id], []) ++ acc
+        Enum.into(batch.txn_entries[order_id], []) ++ acc
       end)
 
     {quantity_decreased, events} = do_decrease_reserved(stock, entries, quantity, staff, {D.new(0), []})
@@ -147,7 +150,7 @@ defmodule FCInventory.Stock do
       account_id: stock.account_id,
       staff_id: staff.id,
       stock_id: stock.id,
-      transaction_id: txn_id,
+      order_id: order_id,
       quantity: quantity_decreased,
     }
 
@@ -222,7 +225,7 @@ defmodule FCInventory.Stock do
     }
   end
 
-  def entries(%{batches: batches} = stock) do
+  def entries(%{batches: batches}) do
     Batch.entries(batches)
   end
 

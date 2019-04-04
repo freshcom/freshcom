@@ -10,7 +10,8 @@ defmodule FCInventory.AddEntry do
     field :staff_id, String.t()
 
     field :stock_id, String.t()
-    field :transaction_id, String.t()
+    field :cause_id, String.t()
+    field :cause_type, String.t()
     field :serial_number, String.t()
     field :entry_id, String.t()
 
@@ -25,7 +26,8 @@ defmodule FCInventory.AddEntry do
   validates :account_id, presence: true, uuid: true
   validates :staff_id, presence: true
   validates :stock_id, presence: true
-  validates :transaction_id, presence: true, uuid: true
+  validates :cause_id, presence: true, uuid: true
+  validates :cause_type, presence: true
 
   validates :quantity, presence: true
 end

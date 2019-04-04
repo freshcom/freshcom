@@ -1,7 +1,7 @@
 defmodule FCInventory.Staff do
   alias FCInventory.{Manager, Associate, Worker}
 
-  @type t :: Manager.t() | Associate.t() | Worker.t()
+  @type t :: System.t() | Manager.t() | Associate.t() | Worker.t()
 
   @callback from(Staff.t()) :: Staff.t() | nil
 end
@@ -27,9 +27,19 @@ end
 defmodule FCInventory.Associate do
   use TypedStruct
 
+  alias FCInventory.Staff
+  alias FCInventory.{System, Manager}
+
+  @behaviour Staff
+
   typedstruct do
     field :account_id, String.t(), enforce: true
     field :id, String.t(), enforce: true
+  end
+
+  @impl Staff
+  def from(%type{} = staff) when type in [System, Manager, __MODULE__] do
+    %__MODULE__{account_id: staff.account_id, id: staff.id}
   end
 end
 

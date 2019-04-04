@@ -23,15 +23,15 @@ defmodule FCInventory.StockHandler do
 
   def handle(stock, %ReserveStock{} = cmd) do
     location = LocationStore.get(cmd.account_id, cmd.stock_id.location_id)
-    txn =
+    req =
       cmd
-      |> Map.take([:serial_number, :quantity, :expected_commit_date])
-      |> Map.put(:id, cmd.transaction_id)
+      |> Map.take([:serial_number, :quantity])
+      |> Map.put(:order_id, cmd.order_id)
     stock = %{stock | id: cmd.stock_id, account_id: cmd.account_id}
 
     cmd
     |> authorize(Worker)
-    |> OK.flat_map(&Stock.reserve(stock, location, txn, &1._staff_))
+    |> OK.flat_map(&Stock.reserve(stock, location, req, &1._staff_))
     |> unwrap_ok()
   end
 
@@ -50,7 +50,7 @@ defmodule FCInventory.StockHandler do
 
     cmd
     |> authorize(Worker)
-    |> OK.flat_map(&Stock.decrease_reserved(stock, location, &1.transaction_id, &1.quantity, &1._staff_))
+    |> OK.flat_map(&Stock.decrease_reserved(stock, location, &1.order_id, &1.quantity, &1._staff_))
     |> unwrap_ok()
   end
 
